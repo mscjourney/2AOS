@@ -9,7 +9,9 @@
 | Anya Khatri | ak***9 |
 | Osarobo Omokaro | oo***3 |
 
-### Language and Platform
-Programming Language: Java
-Platform: Linux
+## Language and Platform
+
+**Programming Language:**  Java
+
+**Platform:**  Linux
 
