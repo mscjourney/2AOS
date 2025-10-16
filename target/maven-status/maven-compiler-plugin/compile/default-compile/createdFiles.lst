@@ -1,4 +1,6 @@
-org/coms4156/tars/RouteController.class
 org/coms4156/tars/TarsApplication.class
-Model/WeatherModel.class
-Model/WeatherRecommendation.class
+org/coms4156/tars/RouteController.class
+model/WeatherAlert.class
+model/WeatherAlertModel.class
+model/WeatherRecommendation.class
+model/WeatherModel.class
