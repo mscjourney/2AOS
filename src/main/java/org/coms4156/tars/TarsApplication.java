@@ -1,7 +1,5 @@
 package org.coms4156.tars;
 
-import Model.WeatherModel;
-import Model.WeatherRecommendation;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
