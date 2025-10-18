@@ -1,5 +1,7 @@
 package org.coms4156.tars;
 
+import model.WeatherAlert;
+import model.WeatherAlertModel;
 import model.WeatherModel;
 import model.WeatherRecommendation;
 import org.springframework.http.HttpStatus;
@@ -9,10 +11,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * This class defines an API that access weather endpoints.
+ * This class defines an API that accesses weather endpoints.
  */
 @RestController
 public class RouteController {
+  
   @GetMapping({"/", "/index"})
   public String index() {
     return "Welcome to the TARS Home Page!";
@@ -24,7 +27,7 @@ public class RouteController {
    *
    * @param city the name of the city for which to retrieve weather recommendations
    * @param days the number of days to include in the forecast (must be between 1 and 14)
-   * @return a ResponseEntity containing a model.WeatherRecommendation
+   * @return a ResponseEntity containing a WeatherRecommendation
    *         if successful, or an error status if validation fails or an exception occurs
    */
   @GetMapping("/recommendation/weather")
@@ -44,7 +47,38 @@ public class RouteController {
       System.err.println(e);
       return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
   }
 
+  /**
+   * Handles GET requests to retrieve weather alerts for a specified location.
+   *
+   * @param city the name of the city (optional if lat/lon provided)
+   * @param lat the latitude coordinate (optional if city provided)
+   * @param lon the longitude coordinate (optional if city provided)
+   * @return a ResponseEntity containing a WeatherAlert if successful,
+   *         or an error status if validation fails or an exception occurs
+   */
+  @GetMapping("/alert/weather")
+  public ResponseEntity<WeatherAlert> getWeatherAlerts(
+      @RequestParam(required = false) String city,
+      @RequestParam(required = false) Double lat,
+      @RequestParam(required = false) Double lon) {
+
+    try {
+      if (city == null && (lat == null || lon == null)) {
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+      }
+
+      WeatherAlert alert = WeatherAlertModel.getWeatherAlerts(city, lat, lon);
+
+      return ResponseEntity.ok(alert);
+
+    } catch (IllegalArgumentException e) {
+      System.err.println(e);
+      return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    } catch (Exception e) {
+      System.err.println(e);
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 }
