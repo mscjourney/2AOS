@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WeatherModel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Tars</a> &gt; <a href="index.source.html" class="el_package">model</a> &gt; <span class="el_source">WeatherModel.java</span></div><h1>WeatherModel.java</h1><pre class="source lang-java linenums">package model;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Handles weather forecast data retrieval and recommendations.
+ */
+<span class="nc" id="L14">public class WeatherModel {</span>
+
+<span class="nc" id="L16">  private static final HttpClient client = HttpClient.newHttpClient();</span>
+
+  /**
+   * Helper function that calls the weather API and gets forecast information.
+   */
+  private static String getWeatherForCity(String city, int days) {
+    try {
+      // Get city coordinates
+<span class="nc" id="L24">      String geoUrl = &quot;https://geocoding-api.open-meteo.com/v1/search?name=&quot;</span>
+<span class="nc" id="L25">              + city.replace(&quot; &quot;, &quot;%20&quot;);</span>
+<span class="nc" id="L26">      HttpRequest geoRequest = HttpRequest.newBuilder()</span>
+<span class="nc" id="L27">              .uri(URI.create(geoUrl))</span>
+<span class="nc" id="L28">              .GET()</span>
+<span class="nc" id="L29">              .build();</span>
+
+<span class="nc" id="L31">      HttpResponse&lt;String&gt; geoResponse = client.send(geoRequest,</span>
+<span class="nc" id="L32">              HttpResponse.BodyHandlers.ofString());</span>
+
+      // Parse coordinates
+<span class="nc" id="L35">      String body = geoResponse.body();</span>
+<span class="nc" id="L36">      int latIndex = body.indexOf(&quot;\&quot;latitude\&quot;:&quot;);</span>
+<span class="nc" id="L37">      int lonIndex = body.indexOf(&quot;\&quot;longitude\&quot;:&quot;);</span>
+<span class="nc bnc" id="L38" title="All 4 branches missed.">      if (latIndex == -1 || lonIndex == -1) {</span>
+<span class="nc" id="L39">        return &quot;Could not find coordinates for city: &quot; + city;</span>
+      }
+
+<span class="nc" id="L42">      double latitude = Double.parseDouble(body.substring(latIndex + 11,</span>
+<span class="nc" id="L43">              body.indexOf(&quot;,&quot;, latIndex)).trim());</span>
+<span class="nc" id="L44">      double longitude = Double.parseDouble(body.substring(lonIndex + 12,</span>
+<span class="nc" id="L45">              body.indexOf(&quot;,&quot;, lonIndex)).trim());</span>
+
+      // Gets the dates the number of days specified, max temp, min temp, and forecast code
+<span class="nc" id="L48">      String forecastUrl = String.format(</span>
+              &quot;https://api.open-meteo.com/v1/forecast?latitude=%f&amp;longitude=%f&quot;
+                      + &quot;&amp;daily=weathercode,temperature_2m_max,temperature_2m_min&quot;
+                      + &quot;&amp;forecast_days=%d&amp;timezone=auto&quot;,
+<span class="nc" id="L52">              latitude, longitude, days</span>
+      );
+
+<span class="nc" id="L55">      HttpRequest weatherRequest = HttpRequest.newBuilder()</span>
+<span class="nc" id="L56">              .uri(URI.create(forecastUrl))</span>
+<span class="nc" id="L57">              .GET()</span>
+<span class="nc" id="L58">              .build();</span>
+
+<span class="nc" id="L60">      HttpResponse&lt;String&gt; weatherResponse = client.send(weatherRequest,</span>
+<span class="nc" id="L61">              HttpResponse.BodyHandlers.ofString());</span>
+
+<span class="nc" id="L63">      return weatherResponse.body();</span>
+
+<span class="nc" id="L65">    } catch (IOException | InterruptedException e) {</span>
+<span class="nc" id="L66">      return &quot;Error fetching weather data: &quot; + e.getMessage();</span>
+    }
+  }
+
+  /**
+   * Calls getWeatherForCity() and returns the days for clear skies
+   * as a WeatherRecommendation Object.
+   */
+  public static WeatherRecommendation getRecommendedDays(String city, int days) {
+<span class="nc" id="L75">    String forecast = getWeatherForCity(city, days);</span>
+<span class="nc" id="L76">    List&lt;String&gt; niceDays = new ArrayList&lt;&gt;();</span>
+
+    try {
+<span class="nc" id="L79">      String[] dates = forecast.split(&quot;\&quot;time\&quot;:\\[&quot;)[1]</span>
+<span class="nc" id="L80">              .split(&quot;]&quot;)[0]</span>
+<span class="nc" id="L81">              .replace(&quot;\&quot;&quot;, &quot;&quot;).split(&quot;,&quot;);</span>
+<span class="nc" id="L82">      String[] codes = forecast.split(&quot;\&quot;weathercode\&quot;:\\[&quot;)[1]</span>
+<span class="nc" id="L83">              .split(&quot;]&quot;)[0]</span>
+<span class="nc" id="L84">              .split(&quot;,&quot;);</span>
+      // Min/max temperature are pulled in the JSON but not yet implemented here
+
+<span class="nc bnc" id="L87" title="All 4 branches missed.">      for (int i = 0; i &lt; dates.length &amp;&amp; i &lt; codes.length; i++) {</span>
+<span class="nc" id="L88">        int code = Integer.parseInt(codes[i].trim());</span>
+
+<span class="nc bnc" id="L90" title="All 4 branches missed.">        if (code &gt;= 0 &amp;&amp; code &lt;= 3) {</span>
+<span class="nc" id="L91">          niceDays.add(dates[i].trim());</span>
+        }
+      }
+
+      String message;
+<span class="nc bnc" id="L96" title="All 2 branches missed.">      if (niceDays.isEmpty()) {</span>
+<span class="nc" id="L97">        message = &quot;No clear days in the next &quot;</span>
+                + days + &quot; days for &quot; + city + &quot;.&quot;;
+      } else {
+<span class="nc" id="L100">        message = &quot;These days are expected to have clear weather in &quot;</span>
+                + city + &quot;!&quot;;
+      }
+
+<span class="nc" id="L104">      return new WeatherRecommendation(city, niceDays, message);</span>
+
+<span class="nc" id="L106">    } catch (Exception e) {</span>
+<span class="nc" id="L107">      return new WeatherRecommendation(city, List.of(),</span>
+<span class="nc" id="L108">              &quot;Error processing forecast: &quot; + e.getMessage());</span>
+    }
+  }
+
+
+}
+
+
+
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

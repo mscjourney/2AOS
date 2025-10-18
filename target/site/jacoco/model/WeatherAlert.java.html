@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WeatherAlert.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Tars</a> &gt; <a href="index.source.html" class="el_package">model</a> &gt; <span class="el_source">WeatherAlert.java</span></div><h1>WeatherAlert.java</h1><pre class="source lang-java linenums">package model;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Represents weather alert information for a given location.
+ */
+public class WeatherAlert {
+
+  private String location;
+  private String timestamp;
+  private List&lt;Map&lt;String, String&gt;&gt; alerts;
+  private List&lt;String&gt; recommendations;
+  private Map&lt;String, Object&gt; currentConditions;
+
+  /**
+   * Creates a new WeatherAlert with the specified parameters.
+   *
+   * @param location the location name or coordinates
+   * @param alerts list of alert maps containing severity, type, and message
+   * @param recommendations list of recommendation strings
+   * @param currentConditions map of current weather conditions
+   */
+  public WeatherAlert(String location, 
+                      List&lt;Map&lt;String, String&gt;&gt; alerts,
+                      List&lt;String&gt; recommendations,
+<span class="fc" id="L29">                      Map&lt;String, Object&gt; currentConditions) {</span>
+<span class="fc" id="L30">    this.location = location;</span>
+<span class="fc" id="L31">    this.timestamp = new Date().toString();</span>
+<span class="fc" id="L32">    this.alerts = alerts;</span>
+<span class="fc" id="L33">    this.recommendations = recommendations;</span>
+<span class="fc" id="L34">    this.currentConditions = currentConditions;</span>
+<span class="fc" id="L35">  }</span>
+
+<span class="nc" id="L37">  public WeatherAlert() {}</span>
+
+  // Getters and Setters
+  public String getLocation() {
+<span class="fc" id="L41">    return location;</span>
+  }
+
+  public void setLocation(String location) {
+<span class="nc" id="L45">    this.location = location;</span>
+<span class="nc" id="L46">  }</span>
+
+  public String getTimestamp() {
+<span class="fc" id="L49">    return timestamp;</span>
+  }
+
+  public void setTimestamp(String timestamp) {
+<span class="nc" id="L53">    this.timestamp = timestamp;</span>
+<span class="nc" id="L54">  }</span>
+
+  public List&lt;Map&lt;String, String&gt;&gt; getAlerts() {
+<span class="fc" id="L57">    return alerts;</span>
+  }
+
+  public void setAlerts(List&lt;Map&lt;String, String&gt;&gt; alerts) {
+<span class="nc" id="L61">    this.alerts = alerts;</span>
+<span class="nc" id="L62">  }</span>
+
+  public List&lt;String&gt; getRecommendations() {
+<span class="fc" id="L65">    return recommendations;</span>
+  }
+
+  public void setRecommendations(List&lt;String&gt; recommendations) {
+<span class="nc" id="L69">    this.recommendations = recommendations;</span>
+<span class="nc" id="L70">  }</span>
+
+  public Map&lt;String, Object&gt; getCurrentConditions() {
+<span class="fc" id="L73">    return currentConditions;</span>
+  }
+
+  public void setCurrentConditions(Map&lt;String, Object&gt; currentConditions) {
+<span class="nc" id="L77">    this.currentConditions = currentConditions;</span>
+<span class="nc" id="L78">  }</span>
+
+  @Override
+  public String toString() {
+<span class="nc" id="L82">    return &quot;WeatherAlert{&quot;</span>
+            + &quot;location='&quot; + location + '\''
+            + &quot;, timestamp='&quot; + timestamp + '\''
+            + &quot;, alerts=&quot; + alerts
+            + &quot;, recommendations=&quot; + recommendations
+            + &quot;, currentConditions=&quot; + currentConditions
+            + '}';
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

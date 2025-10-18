@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RouteController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Tars</a> &gt; <a href="index.source.html" class="el_package">org.coms4156.tars</a> &gt; <span class="el_source">RouteController.java</span></div><h1>RouteController.java</h1><pre class="source lang-java linenums">package org.coms4156.tars;
+
+import model.WeatherAlert;
+import model.WeatherAlertModel;
+import model.WeatherModel;
+import model.WeatherRecommendation;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * This class defines an API that accesses weather endpoints.
+ */
+@RestController
+<span class="fc" id="L17">public class RouteController {</span>
+  
+  @GetMapping({&quot;/&quot;, &quot;/index&quot;})
+  public String index() {
+<span class="nc" id="L21">    return &quot;Welcome to the TARS Home Page!&quot;;</span>
+  }
+
+  /**
+   * Handles GET requests to retrieve weather recommendations for a specified city
+   * and number of forecast days.
+   *
+   * @param city the name of the city for which to retrieve weather recommendations
+   * @param days the number of days to include in the forecast (must be between 1 and 14)
+   * @return a ResponseEntity containing a WeatherRecommendation
+   *         if successful, or an error status if validation fails or an exception occurs
+   */
+  @GetMapping(&quot;/recommendation/weather&quot;)
+  public ResponseEntity&lt;WeatherRecommendation&gt; getWeatherRecommendation(
+          @RequestParam String city,
+          @RequestParam int days) {
+    try {
+<span class="nc bnc" id="L38" title="All 4 branches missed.">      if (days &lt;= 0 || days &gt; 14) {</span>
+<span class="nc" id="L39">        return new ResponseEntity&lt;&gt;(HttpStatus.BAD_REQUEST);</span>
+      }
+
+<span class="nc" id="L42">      WeatherRecommendation recommendation = WeatherModel.getRecommendedDays(city, days);</span>
+
+<span class="nc" id="L44">      return ResponseEntity.ok(recommendation);</span>
+
+<span class="nc" id="L46">    } catch (Exception e) {</span>
+<span class="nc" id="L47">      System.err.println(e);</span>
+<span class="nc" id="L48">      return new ResponseEntity&lt;&gt;(HttpStatus.INTERNAL_SERVER_ERROR);</span>
+    }
+  }
+
+  /**
+   * Handles GET requests to retrieve weather alerts for a specified location.
+   *
+   * @param city the name of the city (optional if lat/lon provided)
+   * @param lat the latitude coordinate (optional if city provided)
+   * @param lon the longitude coordinate (optional if city provided)
+   * @return a ResponseEntity containing a WeatherAlert if successful,
+   *         or an error status if validation fails or an exception occurs
+   */
+  @GetMapping(&quot;/alert/weather&quot;)
+  public ResponseEntity&lt;WeatherAlert&gt; getWeatherAlerts(
+      @RequestParam(required = false) String city,
+      @RequestParam(required = false) Double lat,
+      @RequestParam(required = false) Double lon) {
+
+    try {
+<span class="fc bfc" id="L68" title="All 6 branches covered.">      if (city == null &amp;&amp; (lat == null || lon == null)) {</span>
+<span class="fc" id="L69">        return new ResponseEntity&lt;&gt;(HttpStatus.BAD_REQUEST);</span>
+      }
+
+<span class="fc" id="L72">      WeatherAlert alert = WeatherAlertModel.getWeatherAlerts(city, lat, lon);</span>
+
+<span class="fc" id="L74">      return ResponseEntity.ok(alert);</span>
+
+<span class="nc" id="L76">    } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L77">      System.err.println(e);</span>
+<span class="nc" id="L78">      return new ResponseEntity&lt;&gt;(HttpStatus.BAD_REQUEST);</span>
+<span class="nc" id="L79">    } catch (Exception e) {</span>
+<span class="nc" id="L80">      System.err.println(e);</span>
+<span class="nc" id="L81">      return new ResponseEntity&lt;&gt;(HttpStatus.INTERNAL_SERVER_ERROR);</span>
+    }
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
