@@ -1,10 +1,5 @@
 package org.coms4156.tars;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
@@ -15,6 +10,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -23,7 +21,9 @@ import org.springframework.test.web.servlet.MockMvc;
 
 // import com.fasterxml.jackson.databind.ObjectMapper;
 
-
+/**
+ * This class contains the unit tests for the User related functionalities.
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
 public class UserTest { 
@@ -57,12 +57,13 @@ public class UserTest {
   @Test
   public void addUserTest() throws Exception {
     List<String> weatherPreferences = new ArrayList<>();
-    List<String> temperaturePreferences = new ArrayList<>();
-    List<String> cityPreferences = new ArrayList<>();
-
     weatherPreferences.add("snowy");
+
+    List<String> temperaturePreferences = new ArrayList<>();
     temperaturePreferences.add("88F");
     temperaturePreferences.add("15C");
+
+    List<String> cityPreferences = new ArrayList<>();
     cityPreferences.add("Rome");
     cityPreferences.add("Syndey");
     
@@ -70,10 +71,9 @@ public class UserTest {
 
     User newUser = new User(3, weatherPreferences, temperaturePreferences, cityPreferences);
 
-    // First addition should succeed
     this.mockMvc.perform(put("/user/3/add")
-            .contentType("application/json")
-            .content(mapper.writeValueAsString(newUser)))
+      .contentType("application/json")
+      .content(mapper.writeValueAsString(newUser)))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id", is(3)))
@@ -81,12 +81,11 @@ public class UserTest {
         .andExpect(jsonPath("$.temperaturePreferences", contains("88F", "15C")))
         .andExpect(jsonPath("$.cityPreferences", contains("Rome", "Syndey")));
 
-
     this.mockMvc.perform(put("/user/3/add")
       .contentType("application/json")
       .content(mapper.writeValueAsString(newUser)))
-      .andDo(print())
-      .andExpect(status().isConflict())
-      .andExpect(content().string(containsString("User Id already exists.")));
+        .andDo(print())
+        .andExpect(status().isConflict())
+        .andExpect(content().string(containsString("User Id already exists.")));
   }
 }
