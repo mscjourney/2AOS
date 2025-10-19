@@ -6,9 +6,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.springframework.stereotype.Service;
 
+/**
+ *  This class defines the Tars Service and the json file used to store users' preferences.
+ *  Defines methods to load and save data from and to the file.
+ */
 @Service
 public class TarsService {
   private static final String USER_FILENAME = "data/userPreferences.json";
@@ -21,6 +24,9 @@ public class TarsService {
     this.users = loadData();
   }
 
+  /**
+   *  Loads the existing user preferences data from USER_FILENAME.
+   */
   private List<User> loadData() {
     try {
       users = mapper.readValue(this.userFile, new TypeReference<List<User>>(){});
@@ -31,9 +37,12 @@ public class TarsService {
     return users;
   }
 
+  /**
+   *  Writes the current list of user preferences stored in the user list to the json file.
+   */
   public void saveData() {
     try {
-        mapper.writeValue(this.userFile, users);
+      mapper.writeValue(this.userFile, users);
     } catch (IOException e) {
       System.err.println("Failed to write users: " + e.getMessage());
     }
@@ -43,6 +52,14 @@ public class TarsService {
     return users;
   }
 
+  /**
+   * Updates the json file by writing the preference data of the new user into the file.
+   *
+   * @param newUser the {@code User} object containing the preferences to be added to the file
+   * @return If the new user was successfully added to the file, returns true.
+   *         If the id of the new user already existed, we do not write the user data to the file
+   *         and return false.
+   */
   public boolean addUser(User newUser) {
     for (User user : this.getUsers()) {
       // Make sure that no user with the same id already exists.
