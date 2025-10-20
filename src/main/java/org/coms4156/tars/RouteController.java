@@ -1,25 +1,33 @@
 package org.coms4156.tars;
 
-import model.WeatherAlert;
-import model.WeatherAlertModel;
-import model.WeatherModel;
-import model.WeatherRecommendation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 <<<<<<< HEAD
+<<<<<<< HEAD
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+=======
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+>>>>>>> b5b406f638a2beb02e68f23861ca84bad60adbe6
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * This class defines an API that accesses weather endpoints.
+ * This class defines an API that accesses endpoints.
  */
 @RestController
 public class RouteController {
-  
+
+  private final TarsService tarsService;
+
+  public RouteController(TarsService tarsService) {
+    this.tarsService = tarsService;
+  }
+
   @GetMapping({"/", "/index"})
   public String index() {
     return "Welcome to the TARS Home Page!";
@@ -27,6 +35,7 @@ public class RouteController {
 
 
   /**
+<<<<<<< HEAD
    * Create new client route
    * @param clientId
    *
@@ -51,6 +60,42 @@ public class RouteController {
     return new ResponseEntity<>("User route created for userId: " + userId, HttpStatus.CREATED);
   
  /**
+=======
+   * Handles PUT requests to add a new user's preferences.
+   *
+   * @param id the id of the user that we are adding
+   * @param user the User object that contains the different preferences of the user.
+   * @return a ResponseEntity containing the User Preferences data in json format if successful,
+   *          or an error message indicating that the user id already exists.
+   */
+  @PutMapping({"/user/{id}/add"})
+  public ResponseEntity<?> addUser(@PathVariable int id, @RequestBody User user) {
+    if (tarsService.addUser(user)) {
+      return new ResponseEntity<>(user, HttpStatus.OK);
+    }
+    return new ResponseEntity<>("User Id already exists.", HttpStatus.CONFLICT);
+
+  }
+
+  /**
+   * Handles GET requests to retrieve a user's preferences.
+   *
+   * @param id the id of the user that we are retrieving
+   * @return a ResponseEntity containing the User Preferences data in json format if succesful,
+   *           or an error message indicating that there are no users with the given id.
+   */
+  @GetMapping({"/user/{id}"})
+  public ResponseEntity<?> getUser(@PathVariable int id) {
+    for (User user : tarsService.getUsers()) {
+      if (user.getId() == id) {
+        return new ResponseEntity<>(user, HttpStatus.OK);
+      }
+    }
+    return new ResponseEntity<>("User not found.", HttpStatus.NOT_FOUND);
+  }
+
+  /**
+>>>>>>> b5b406f638a2beb02e68f23861ca84bad60adbe6
    * Handles GET requests to retrieve weather recommendations for a specified city
    * and number of forecast days.
    *
