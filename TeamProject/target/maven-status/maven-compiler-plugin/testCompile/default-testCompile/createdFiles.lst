@@ -1,5 +1,2 @@
-<<<<<<< HEAD:TeamProject/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/createdFiles.lst
 org/coms4156/tars/UserTest.class
-=======
-org/coms4156/tars/AlertTest.class
->>>>>>> cb5f7f74d259dbed870eb0293ccea8c7eac7b78f:target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/createdFiles.lst
+org/coms4156/tars/model/AlertTest.class

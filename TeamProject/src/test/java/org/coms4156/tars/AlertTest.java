@@ -1,4 +1,4 @@
-package org.coms4156.tars;
+package org.coms4156.tars.model;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -9,8 +9,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import model.WeatherAlert;
-import model.WeatherAlertModel;
+import org.coms4156.tars.controller.RouteController;
+import org.coms4156.tars.model.WeatherAlert;
+import org.coms4156.tars.model.WeatherAlertModel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
