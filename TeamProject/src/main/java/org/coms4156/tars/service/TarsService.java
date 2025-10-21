@@ -3,25 +3,44 @@ package org.coms4156.tars.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.coms4156.tars.model.User;
-import java.io.IOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 /**
- *  This class defines the Tars Service and the json file used to store users' preferences.
- *  Defines methods to load and save data from and to the file.
+ * This class defines the Tars Service and the json file used to store users' preferences.
+ * Defines methods to load and save data from and to the file.
+ * Load data is done during initialization of the service.
+ * Load from resource file path: data/userPreferences.json
  */
 @Service
 public class TarsService {
-  private static final String USER_FILENAME = "data/userPreferences.json";
+  private static final Logger logger = LoggerFactory.getLogger(TarsService.class);
+  private static final String USER_FILENAME = "src/main/resources/data/userPreferences.json";
   private final File userFile;
   private final ObjectMapper mapper = new ObjectMapper();
   private List<User> users;
 
+  /**
+   * Constructor for TarsService.
+   * Initializes the userFile.
+   */
   public TarsService() {
     this.userFile = new File(USER_FILENAME);
+    if (!this.userFile.exists()) {
+      try {
+        this.userFile.getParentFile().mkdirs();
+        mapper.writeValue(this.userFile, new ArrayList<User>());
+      } catch (IOException e) {
+        if (logger.isErrorEnabled()) {
+          logger.error("Failed to create user preferences file: {}", USER_FILENAME, e);
+        }
+      }
+    }
     this.users = loadData();
   }
 
@@ -30,27 +49,38 @@ public class TarsService {
    */
   private List<User> loadData() {
     try {
-      users = mapper.readValue(this.userFile, new TypeReference<List<User>>(){});
+      return mapper.readValue(this.userFile, new TypeReference<List<User>>(){});
     } catch (IOException e) {
-      System.err.println("Failed to load users: " + e.getMessage());
-      users = new ArrayList<>();
+      if (logger.isErrorEnabled()) {
+        logger.error("Failed to load users from {}", USER_FILENAME, e);
+      }
+      return new ArrayList<>();
     }
-    return users;
   }
 
   /**
    *  Writes the current list of user preferences stored in the user list to the json file.
    */
-  public void saveData() {
+  public synchronized void saveData() {
     try {
       mapper.writeValue(this.userFile, users);
     } catch (IOException e) {
-      System.err.println("Failed to write users: " + e.getMessage());
+      if (logger.isErrorEnabled()) {
+        logger.error("Failed to write users to {}", USER_FILENAME, e);
+      }
     }
   }
 
-  public List<User> getUsers() {
-    return users;
+  /**
+   * Returns a defensive copy of the list of users stored in the service.
+   *
+   * @return a List of User objects representing all users stored in the service
+   */
+  public synchronized List<User> getUsers() {
+    if (users == null) {
+      users = loadData();
+    }
+    return new ArrayList<>(users);  // Return defensive copy
   }
 
   /**
@@ -61,9 +91,17 @@ public class TarsService {
    *         If the id of the new user already existed, we do not write the user data to the file
    *         and return false.
    */
-  public boolean addUser(User newUser) {
-    for (User user : this.getUsers()) {
-      // Make sure that no user with the same id already exists.
+  public synchronized boolean addUser(User newUser) {
+    if (users == null) {
+      users = loadData();
+    }
+    if (newUser == null) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("Attempted to add null user");
+      }
+      return false;
+    }
+    for (User user : users) {
       if (user.equals(newUser)) {
         return false;
       }
@@ -73,7 +111,15 @@ public class TarsService {
     return true;
   }
   
-  public void printUsers() {
-    users.forEach(System.out::println);
+  /**
+   * Prints all users currently stored in the service.
+   */
+  public synchronized void printUsers() {
+    if (users == null) {
+      users = loadData();
+    }
+    if (logger.isInfoEnabled()) {
+      users.forEach(user -> logger.info("User: {}", user));
+    }
   }
 }
