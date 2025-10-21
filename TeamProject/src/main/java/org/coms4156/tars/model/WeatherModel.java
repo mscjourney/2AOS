@@ -1,4 +1,4 @@
-package model;
+package org.coms4156.tars.model;
 
 import java.io.IOException;
 import java.net.URI;

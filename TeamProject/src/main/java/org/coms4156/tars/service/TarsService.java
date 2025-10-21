@@ -1,11 +1,12 @@
-package org.coms4156.tars;
+package org.coms4156.tars.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import org.coms4156.tars.model.User;
+import java.io.IOException;
 import org.springframework.stereotype.Service;
 
 /**

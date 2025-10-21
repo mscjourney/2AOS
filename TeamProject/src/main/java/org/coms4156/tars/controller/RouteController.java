@@ -1,18 +1,19 @@
-package org.coms4156.tars;
+package org.coms4156.tars.controller;
 
+import org.coms4156.tars.model.User;
+import org.coms4156.tars.model.WeatherAlert;
+import org.coms4156.tars.model.WeatherAlertModel;
+import org.coms4156.tars.model.WeatherModel;
+import org.coms4156.tars.model.WeatherRecommendation;
+import org.coms4156.tars.service.TarsService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-<<<<<<< HEAD
-<<<<<<< HEAD
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-=======
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
->>>>>>> b5b406f638a2beb02e68f23861ca84bad60adbe6
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -35,32 +36,40 @@ public class RouteController {
 
 
   /**
-<<<<<<< HEAD
-   * Create new client route
-   * @param clientId
+   * An endpoint to create a new client.
+   * Request Method: POST
+   * Returns a new client resource.
    *
-   * @return
+   * @param clientId The ID of the client.
+   *
+   * @return A ResponseEntity indicating the result of the operation.
    */
-  @PostMapping("/api/v1/clients/{clientId}")
+  @PostMapping({"/clients/{clientId}"})
   public ResponseEntity<String> createClientRoute(@PathVariable String clientId) {
     // Logic to create a client would go here.
-    return new ResponseEntity<>("Client route created for clientId: " + clientId, HttpStatus.CREATED);
+    return new ResponseEntity<>(
+        "Client route created for clientId: " + clientId, HttpStatus.CREATED
+      );
   }
+
   
   /**
-   * Handles POST requests to create a user.
+   * Handles POST requests to create a user for a specific client.
+   *
    * @param clientId The ID of the client.
    * @param userId The ID of the user.
    *
    * @return A ResponseEntity indicating the result of the operation.
   */
-  @PostMapping("/api/v1/clients/{clientId}/users/{userId}")
+  @PostMapping({"/clients/{clientId}/users/{userId}"})
   public ResponseEntity<String> createClientUserRoute(@PathVariable String userId) {
     // Logic to create a user would go here.
-    return new ResponseEntity<>("User route created for userId: " + userId, HttpStatus.CREATED);
+    return new ResponseEntity<>(
+        "User route created for userId: " + userId, HttpStatus.CREATED
+      );
+  }
   
- /**
-=======
+  /**
    * Handles PUT requests to add a new user's preferences.
    *
    * @param id the id of the user that we are adding
@@ -73,8 +82,8 @@ public class RouteController {
     if (tarsService.addUser(user)) {
       return new ResponseEntity<>(user, HttpStatus.OK);
     }
-    return new ResponseEntity<>("User Id already exists.", HttpStatus.CONFLICT);
 
+    return new ResponseEntity<>("User Id already exists.", HttpStatus.CONFLICT);
   }
 
   /**
@@ -95,7 +104,6 @@ public class RouteController {
   }
 
   /**
->>>>>>> b5b406f638a2beb02e68f23861ca84bad60adbe6
    * Handles GET requests to retrieve weather recommendations for a specified city
    * and number of forecast days.
    *

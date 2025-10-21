@@ -1,0 +1,14 @@
+[ 
+    { 
+        "id": 1, 
+        "weatherPreferences": ["sunny", "cloudy"], 
+        "temperaturePreferences" : ["78F", "67F", "22C"], 
+        "cityPreferences": ["New York", "Los Angeles"] 
+    }, 
+    { 
+        "id": 2, 
+        "weatherPreferences": ["rainy"], 
+        "temperaturePreferences" : ["60F", "67F"], 
+        "cityPreferences": ["New York", "Paris"] 
+    } 
+]

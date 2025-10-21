@@ -1,4 +1,4 @@
-package org.coms4156.tars;
+package org.coms4156.tars.model;
 
 import java.util.ArrayList;
 import java.util.List;
