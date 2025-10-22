@@ -1,13 +1,27 @@
-import java.util.List;
+package org.coms4156.tars.model;
 
+/**
+ * Crime Summary object. Stores the state, month, year, and a summary
+ * for associated crime activity.
+ */
 public class CrimeSummary {
   private String state;
-  private List<String> dates;
+  private String month;
+  private String year;
   private String message;
 
-  public CrimeSummary(String state, List<String> dates, String message) {
+  /**
+   * Constructs a new CrimeSummary instance with the specified state, month, year, and message.
+   *
+   * @param state   the U.S. state name or abbreviation (e.g., "North Carolina" or "NC")
+   * @param month   the month of the crime data in two-digit format (e.g., "10" for October)
+   * @param year    the year of the crime data in four-digit format (e.g., "2025")
+   * @param message a descriptive summary or formatted message of the crime statistics
+   */
+  public CrimeSummary(String state, String month, String year, String message) {
     this.state = state;
-    this.dates = dates;
+    this.month = month;
+    this.year = year;
     this.message = message;
   }
 
@@ -19,12 +33,20 @@ public class CrimeSummary {
     this.state = state;
   }
 
-  public List<String> getDates() {
-    return dates;
+  public String getmonth() {
+    return month;
   }
 
-  public void setDates(List<String> dates) {
-    this.dates = dates;
+  public void setmonth(String month) {
+    this.month = month;
+  }
+
+  public String getyear() {
+    return year;
+  }
+
+  public void setyear(String year) {
+    this.year = year;
   }
 
   public String getMessage() {
@@ -37,10 +59,11 @@ public class CrimeSummary {
 
   @Override
   public String toString() {
-    return "CrimeSummary {" +
-            "state='" + state + '\'' +
-            ", dates=" + dates +
-            ", message='" + message + '\'' +
-            '}';
+    return "CrimeSummary {"
+            + "state='" + state + '\''
+            + ", month='" + month + '\''
+            + ", year='" + year + '\''
+            + ", message='" + message + '\''
+            + '}';
   }
 }
