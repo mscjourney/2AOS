@@ -124,7 +124,7 @@ public class TarsService {
   
   /**
    * Finds the user from the list based on the user id.
-   * 
+   *
    * @param userId the id of the user
    * @return If the user specified by userId exists, returns the {@code User} object containing
    *         the user's preferences. If no such user exists, returns null.
