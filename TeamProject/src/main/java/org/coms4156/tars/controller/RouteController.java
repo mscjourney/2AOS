@@ -145,8 +145,12 @@ public class RouteController {
   public ResponseEntity<?> getWeatherAlerts(@PathVariable int userId) {
     try {
       User user = tarsService.getUser(userId);
+      if (userId < 0) {
+        return new ResponseEntity<>("User Id cannot be less than zero.", HttpStatus.BAD_REQUEST);
+      }
+
       if (user == null) {
-        return new ResponseEntity<>("No such user", HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>("No such user.", HttpStatus.NOT_FOUND);
       }
       
       List<WeatherAlert> alertList = WeatherAlertModel.getUserAlerts(user);
