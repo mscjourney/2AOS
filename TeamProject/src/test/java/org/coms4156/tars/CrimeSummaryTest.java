@@ -36,7 +36,7 @@ public class CrimeSummaryTest {
   }
 
   @Test
-  void testToStringContainsAllFields() {
+  void toStringTest() {
     CrimeSummary summary = new CrimeSummary("TX", "05", "2023", "Moderate crime rate.");
     String result = summary.toString();
 
