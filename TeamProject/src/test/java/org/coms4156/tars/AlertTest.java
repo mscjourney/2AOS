@@ -42,6 +42,7 @@ public class AlertTest {
   private TarsService tarsService;
 
   private List<WeatherAlert> mockList;
+  private WeatherAlert mockWeatherAlert;
   private User mockUser;
   private List<Map<String, String>> mockAlerts;
   private List<String> mockRecommendations;
@@ -67,13 +68,13 @@ public class AlertTest {
     mockCurrentConditions.put("precipitation_mm", 0.0);
     mockCurrentConditions.put("weather_code", 1);
 
-    WeatherAlert mockWeatherAlert1 = new WeatherAlert("New York", mockAlerts,
+    mockWeatherAlert = new WeatherAlert("New York", mockAlerts,
         mockRecommendations, mockCurrentConditions);
     WeatherAlert mockWeatherAlert2 = new WeatherAlert("Paris", mockAlerts, 
         mockRecommendations, mockCurrentConditions);
 
     mockList = new ArrayList<>();
-    mockList.add(mockWeatherAlert1);
+    mockList.add(mockWeatherAlert);
     mockList.add(mockWeatherAlert2);
 
     List<String> weatherPreferences = new ArrayList<>();
@@ -97,7 +98,7 @@ public class AlertTest {
       mockedModel.when(() -> WeatherAlertModel.getUserAlerts(mockUser))
           .thenReturn(mockList);
 
-      mockMvc.perform(get("/alert/weather/2")
+      mockMvc.perform(get("/alert/weather/user/2")
           .contentType(MediaType.APPLICATION_JSON))
           .andExpect(status().isOk())
           .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -122,15 +123,144 @@ public class AlertTest {
   void testGetUserAlertsWithNoSuchId() throws Exception {
     Mockito.when(tarsService.getUser(0)).thenReturn(null);
 
-    mockMvc.perform(get("/alert/weather/0"))
+    mockMvc.perform(get("/alert/weather/user/0"))
         .andExpect(status().isNotFound())
         .andExpect(content().string(containsString("No such user.")));
   }
 
   @Test
   void testGetUserAlertsWithBadId() throws Exception {
-    mockMvc.perform(get("/alert/weather/-1"))
+    mockMvc.perform(get("/alert/weather/user/-1"))
         .andExpect(status().isBadRequest())
         .andExpect(content().string(containsString("User Id cannot be less than zero.")));
+  }
+
+  @Test
+  void testGetWeatherAlertsWithValidCity() throws Exception {
+    try (MockedStatic<WeatherAlertModel> mockedModel =
+        Mockito.mockStatic(WeatherAlertModel.class)) {
+      mockedModel.when(() -> WeatherAlertModel.getWeatherAlerts(
+          "New York", null, null))
+          .thenReturn(mockWeatherAlert);
+
+      mockMvc.perform(get("/alert/weather")
+          .param("city", "New York")
+          .contentType(MediaType.APPLICATION_JSON))
+          .andExpect(status().isOk())
+          .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+          .andExpect(jsonPath("$.location").value("New York"))
+          .andExpect(jsonPath("$.alerts").isArray())
+          .andExpect(jsonPath("$.alerts[0].severity").value("INFO"))
+          .andExpect(jsonPath("$.alerts[0].type").value("CLEAR"))
+          .andExpect(jsonPath("$.recommendations").isArray())
+          .andExpect(jsonPath("$.currentConditions").isMap())
+          .andExpect(jsonPath("$.currentConditions.temperature_celsius")
+              .value(22.5));
+    }
+  }
+
+
+  @Test
+  void testGetWeatherAlertsWithValidCoordinates() throws Exception {
+    try (MockedStatic<WeatherAlertModel> mockedModel =
+        Mockito.mockStatic(WeatherAlertModel.class)) {
+      WeatherAlert coordAlert = new WeatherAlert("40.7128, -74.0060",
+          mockAlerts, mockRecommendations, mockCurrentConditions);
+      mockedModel.when(() -> WeatherAlertModel.getWeatherAlerts(
+          null, 40.7128, -74.0060))
+          .thenReturn(coordAlert);
+
+      mockMvc.perform(get("/alert/weather")
+          .param("lat", "40.7128")
+          .param("lon", "-74.0060")
+          .contentType(MediaType.APPLICATION_JSON))
+          .andExpect(status().isOk())
+          .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+          .andExpect(jsonPath("$.location").value("40.7128, -74.0060"))
+          .andExpect(jsonPath("$.alerts").isArray())
+          .andExpect(jsonPath("$.recommendations").isArray())
+          .andExpect(jsonPath("$.currentConditions").isMap());
+    }
+  }
+
+
+  @Test
+  void testGetWeatherAlertsWithCityContainingSpaces() throws Exception {
+    try (MockedStatic<WeatherAlertModel> mockedModel =
+        Mockito.mockStatic(WeatherAlertModel.class)) {
+      WeatherAlert spacedAlert = new WeatherAlert("San Francisco",
+          mockAlerts, mockRecommendations, mockCurrentConditions);
+      mockedModel.when(() -> WeatherAlertModel.getWeatherAlerts(
+          "San Francisco", null, null))
+          .thenReturn(spacedAlert);
+
+      mockMvc.perform(get("/alert/weather")
+          .param("city", "San Francisco")
+          .contentType(MediaType.APPLICATION_JSON))
+          .andExpect(status().isOk())
+          .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+          .andExpect(jsonPath("$.location").value("San Francisco"))
+          .andExpect(jsonPath("$.alerts").isArray())
+          .andExpect(jsonPath("$.recommendations").isArray())
+          .andExpect(jsonPath("$.currentConditions").isMap());
+    }
+  }
+
+
+  @Test
+  void testGetWeatherAlertsWithAccentedCityName() throws Exception {
+    try (MockedStatic<WeatherAlertModel> mockedModel =
+        Mockito.mockStatic(WeatherAlertModel.class)) {
+      WeatherAlert accentedAlert = new WeatherAlert("São Paulo",
+          mockAlerts, mockRecommendations, mockCurrentConditions);
+      mockedModel.when(() -> WeatherAlertModel.getWeatherAlerts(
+          "São Paulo", null, null))
+          .thenReturn(accentedAlert);
+
+      mockMvc.perform(get("/alert/weather")
+          .param("city", "São Paulo")
+          .contentType(MediaType.APPLICATION_JSON))
+          .andExpect(status().isOk())
+          .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+          .andExpect(jsonPath("$.location").value("São Paulo"));
+    }
+  }
+
+
+  @Test
+  void testGetWeatherAlertsWithExtremeCoordinates() throws Exception {
+    try (MockedStatic<WeatherAlertModel> mockedModel =
+        Mockito.mockStatic(WeatherAlertModel.class)) {
+      WeatherAlert extremeAlert = new WeatherAlert("90.0000, 180.0000",
+          mockAlerts, mockRecommendations, mockCurrentConditions);
+      mockedModel.when(() -> WeatherAlertModel.getWeatherAlerts(
+          null, 90.0, 180.0))
+          .thenReturn(extremeAlert);
+
+      mockMvc.perform(get("/alert/weather")
+          .param("lat", "90.0")
+          .param("lon", "180.0")
+          .contentType(MediaType.APPLICATION_JSON))
+          .andExpect(status().isOk())
+          .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+          .andExpect(jsonPath("$.location").value("90.0000, 180.0000"));
+    }
+  }
+
+
+  @Test
+  void testGetWeatherAlertsWithNoParameters() throws Exception {
+    mockMvc.perform(get("/alert/weather")
+        .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isBadRequest());
+  }
+
+
+  @Test
+  void testGetWeatherAlertsWithOnlyLatitude() throws Exception {
+    mockMvc.perform(get("/alert/weather")
+        .param("lat", "40.7128")
+        .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isBadRequest());
   }
 }
