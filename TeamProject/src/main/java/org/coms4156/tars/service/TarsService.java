@@ -123,6 +123,34 @@ public class TarsService {
   }
   
   /**
+   * Finds the user from the list based on the user id.
+   * 
+   * @param userId the id of the user
+   * @return If the user specified by userId exists, returns the {@code User} object containing
+   *         the user's preferences. If no such user exists, returns null.
+   */
+  public synchronized User getUser(int userId) {
+    if (users == null) {
+      users = loadData();
+    }
+
+    if (userId < 0) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("User Id cannot be negative");
+      }
+      return null;
+    }
+    
+    for (User user : users) {
+      if (user.getId() == userId) {
+        return user;
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * Prints all users currently stored in the service.
    */
   public synchronized void printUsers() {
