@@ -1,4 +1,4 @@
-package org.coms4156.tars.model;
+package org.coms4156.tars;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -12,6 +12,7 @@ import java.util.Map;
 import org.coms4156.tars.controller.RouteController;
 import org.coms4156.tars.model.WeatherAlert;
 import org.coms4156.tars.model.WeatherAlertModel;
+import org.coms4156.tars.service.TarsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -19,6 +20,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 /**
@@ -33,6 +35,9 @@ public class AlertTest {
 
   @Autowired
   private MockMvc mockMvc;
+
+  @MockitoBean
+  private TarsService tarsService;
 
   private WeatherAlert mockWeatherAlert;
   private List<Map<String, String>> mockAlerts;
@@ -69,7 +74,8 @@ public class AlertTest {
     try (MockedStatic<WeatherAlertModel> mockedModel =
         Mockito.mockStatic(WeatherAlertModel.class)) {
       mockedModel.when(() -> WeatherAlertModel.getWeatherAlerts(
-          "New York", null, null)).thenReturn(mockWeatherAlert);
+          "New York", null, null))
+          .thenReturn(mockWeatherAlert);
 
       mockMvc.perform(get("/alert/weather")
           .param("city", "New York")
@@ -95,7 +101,8 @@ public class AlertTest {
       WeatherAlert coordAlert = new WeatherAlert("40.7128, -74.0060",
           mockAlerts, mockRecommendations, mockCurrentConditions);
       mockedModel.when(() -> WeatherAlertModel.getWeatherAlerts(
-          null, 40.7128, -74.0060)).thenReturn(coordAlert);
+          null, 40.7128, -74.0060))
+          .thenReturn(coordAlert);
 
       mockMvc.perform(get("/alert/weather")
           .param("lat", "40.7128")
@@ -118,7 +125,8 @@ public class AlertTest {
       WeatherAlert spacedAlert = new WeatherAlert("San Francisco",
           mockAlerts, mockRecommendations, mockCurrentConditions);
       mockedModel.when(() -> WeatherAlertModel.getWeatherAlerts(
-          "San Francisco", null, null)).thenReturn(spacedAlert);
+          "San Francisco", null, null))
+          .thenReturn(spacedAlert);
 
       mockMvc.perform(get("/alert/weather")
           .param("city", "San Francisco")
@@ -133,9 +141,6 @@ public class AlertTest {
   }
 
 
-  /**
-   * Test: city name with accented characters.
-   */
   @Test
   void testGetWeatherAlertsWithAccentedCityName() throws Exception {
     try (MockedStatic<WeatherAlertModel> mockedModel =
@@ -143,7 +148,8 @@ public class AlertTest {
       WeatherAlert accentedAlert = new WeatherAlert("São Paulo",
           mockAlerts, mockRecommendations, mockCurrentConditions);
       mockedModel.when(() -> WeatherAlertModel.getWeatherAlerts(
-          "São Paulo", null, null)).thenReturn(accentedAlert);
+          "São Paulo", null, null))
+          .thenReturn(accentedAlert);
 
       mockMvc.perform(get("/alert/weather")
           .param("city", "São Paulo")
@@ -154,10 +160,7 @@ public class AlertTest {
     }
   }
 
-  /**
-   * Test: Edge case - coordinates at extreme values.
-   * Tests coordinates at the boundaries of valid latitude/longitude ranges.
-   */
+
   @Test
   void testGetWeatherAlertsWithExtremeCoordinates() throws Exception {
     try (MockedStatic<WeatherAlertModel> mockedModel =
@@ -165,7 +168,8 @@ public class AlertTest {
       WeatherAlert extremeAlert = new WeatherAlert("90.0000, 180.0000",
           mockAlerts, mockRecommendations, mockCurrentConditions);
       mockedModel.when(() -> WeatherAlertModel.getWeatherAlerts(
-          null, 90.0, 180.0)).thenReturn(extremeAlert);
+          null, 90.0, 180.0))
+          .thenReturn(extremeAlert);
 
       mockMvc.perform(get("/alert/weather")
           .param("lat", "90.0")
@@ -177,10 +181,7 @@ public class AlertTest {
     }
   }
 
-  /**
-   * Test: Invalid input - no parameters provided.
-   * Tests the validation when neither city nor coordinates are provided.
-   */
+
   @Test
   void testGetWeatherAlertsWithNoParameters() throws Exception {
     mockMvc.perform(get("/alert/weather")
@@ -188,10 +189,7 @@ public class AlertTest {
         .andExpect(status().isBadRequest());
   }
 
-  /**
-   * Test: Invalid input - only latitude provided.
-   * Tests validation when only one coordinate is provided.
-   */
+
   @Test
   void testGetWeatherAlertsWithOnlyLatitude() throws Exception {
     mockMvc.perform(get("/alert/weather")
@@ -199,5 +197,4 @@ public class AlertTest {
         .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isBadRequest());
   }
-
 }

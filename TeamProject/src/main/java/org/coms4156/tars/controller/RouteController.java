@@ -62,7 +62,9 @@ public class RouteController {
    * @return A ResponseEntity indicating the result of the operation.
   */
   @PostMapping({"/clients/{clientId}/users/{userId}"})
-  public ResponseEntity<String> createClientUserRoute(@PathVariable String userId) {
+  public ResponseEntity<String> createClientUserRoute(
+      @PathVariable String clientId,
+      @PathVariable String userId) {
     // Logic to create a user would go here.
     return new ResponseEntity<>(
         "User route created for userId: " + userId, HttpStatus.CREATED

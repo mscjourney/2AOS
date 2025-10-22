@@ -11,9 +11,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import org.coms4156.tars.model.User;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -33,6 +37,29 @@ public class UserTest {
     
   @Autowired
   private MockMvc mockMvc;
+
+
+  @BeforeEach
+  void seedUsers() throws Exception {
+    ObjectMapper mapper = new ObjectMapper();
+
+    // Seed user 2 (ignore if already exists)
+    User user2 = new User(2,
+        List.of("rainy"),
+        List.of("60F", "67F"),
+        List.of("New York",  "Paris"));
+
+    mockMvc.perform(put("/user/2/add")
+        .contentType("application/json")
+        .content(mapper.writeValueAsString(user2)))
+        // Accept either 200 (added) or 409 (already exists)
+        .andExpect(result -> {
+          int status = result.getResponse().getStatus();
+          if (status != 200 && status != 409) {
+            throw new AssertionError("Unexpected status when seeding user 2: " + status);
+          }
+        });
+  }
 
   @Test
   public void indexTest() throws Exception {

@@ -9,6 +9,7 @@ import java.util.List;
 import org.coms4156.tars.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
@@ -19,27 +20,37 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class TarsService {
+
   private static final Logger logger = LoggerFactory.getLogger(TarsService.class);
-  private static final String USER_FILENAME = "src/main/resources/data/userPreferences.json";
   private final File userFile;
   private final ObjectMapper mapper = new ObjectMapper();
   private List<User> users;
 
   /**
-   * Constructor for TarsService.
-   * Initializes the userFile.
+   * Constructor with path injected from application properties.
+   * If the property 'tars.data.path' is not set,
+   * defaults to ./data/userPreferences.json (writable location)
    */
-  public TarsService() {
-    this.userFile = new File(USER_FILENAME);
-    if (!this.userFile.exists()) {
+  public TarsService(
+      @Value("${tars.data.path:./data/userPreferences.json}") String userFilePath) {
+    this.userFile = new File(userFilePath);
+    if (!userFile.exists()) {
       try {
-        this.userFile.getParentFile().mkdirs();
-        mapper.writeValue(this.userFile, new ArrayList<User>());
+        File parent = userFile.getParentFile();
+        if (parent != null) {
+          parent.mkdirs();
+        }
+        mapper.writeValue(userFile, new ArrayList<User>());
+        logger.info("Created new user preferences file at: {}", 
+            userFile.getAbsolutePath());
       } catch (IOException e) {
         if (logger.isErrorEnabled()) {
-          logger.error("Failed to create user preferences file: {}", USER_FILENAME, e);
+          logger.error("Failed to create user preferences file: {}", userFilePath, e);
         }
       }
+    } else {
+      logger.info("Using existing user preferences file at: {}", 
+          userFile.getAbsolutePath());
     }
     this.users = loadData();
   }
@@ -49,10 +60,10 @@ public class TarsService {
    */
   private List<User> loadData() {
     try {
-      return mapper.readValue(this.userFile, new TypeReference<List<User>>(){});
+      return mapper.readValue(this.userFile, new TypeReference<List<User>>() {});
     } catch (IOException e) {
       if (logger.isErrorEnabled()) {
-        logger.error("Failed to load users from {}", USER_FILENAME, e);
+        logger.error("Failed to load users from {}", userFile.getPath(), e);
       }
       return new ArrayList<>();
     }
@@ -66,7 +77,7 @@ public class TarsService {
       mapper.writeValue(this.userFile, users);
     } catch (IOException e) {
       if (logger.isErrorEnabled()) {
-        logger.error("Failed to write users to {}", USER_FILENAME, e);
+        logger.error("Failed to write users to {}", userFile.getPath(), e);
       }
     }
   }
@@ -119,7 +130,7 @@ public class TarsService {
       users = loadData();
     }
     if (logger.isInfoEnabled()) {
-      users.forEach(user -> logger.info("User: {}", user));
+      users.forEach(u -> logger.info("User: {}", u));
     }
   }
 }
