@@ -11,7 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests parameter validation and basic functionality
+ * Tests parameter validation and basic functionality.
  */
 public class WeatherAlertModelTest {
 

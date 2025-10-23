@@ -13,7 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests all constructors, getters, setters, and the toString method
+ * Tests all constructors, getters, setters, and the toString method.
  */
 public class WeatherAlertTest {
 

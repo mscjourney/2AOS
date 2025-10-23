@@ -134,37 +134,37 @@ public class RouteController {
   }
 
   /**
-     * Handles GET requests to retrieve weather alerts for a specified location.
-     *
-     * @param city the name of the city (optional if lat/lon provided)
-     * @param lat the latitude coordinate (optional if city provided)
-     * @param lon the longitude coordinate (optional if city provided)
-     * @return a ResponseEntity containing a WeatherAlert if successful,
-     *         or an error status if validation fails or an exception occurs
-     */
-    @GetMapping("/alert/weather")
-    public ResponseEntity<WeatherAlert> getWeatherAlerts(
-        @RequestParam(required = false) String city,
-        @RequestParam(required = false) Double lat,
-        @RequestParam(required = false) Double lon) {
+   * Handles GET requests to retrieve weather alerts for a specified location.
+   *
+   * @param city the name of the city (optional if lat/lon provided)
+   * @param lat the latitude coordinate (optional if city provided)
+   * @param lon the longitude coordinate (optional if city provided)
+   * @return a ResponseEntity containing a WeatherAlert if successful,
+   *         or an error status if validation fails or an exception occurs
+   */
+  @GetMapping("/alert/weather")
+  public ResponseEntity<WeatherAlert> getWeatherAlerts(
+      @RequestParam(required = false) String city,
+      @RequestParam(required = false) Double lat,
+      @RequestParam(required = false) Double lon) {
 
-      try {
-        if (city == null && (lat == null || lon == null)) {
-          return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-
-        WeatherAlert alert = WeatherAlertModel.getWeatherAlerts(city, lat, lon);
-
-        return ResponseEntity.ok(alert);
-
-      } catch (IllegalArgumentException e) {
-        System.err.println(e);
+    try {
+      if (city == null && (lat == null || lon == null)) {
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-      } catch (Exception e) {
-        System.err.println(e);
-        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
       }
+
+      WeatherAlert alert = WeatherAlertModel.getWeatherAlerts(city, lat, lon);
+
+      return ResponseEntity.ok(alert);
+
+    } catch (IllegalArgumentException e) {
+      System.err.println(e);
+      return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    } catch (Exception e) {
+      System.err.println(e);
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
+  }
 
   /**
    * Handles GET requests to retrieve weather alerts for the specified user 

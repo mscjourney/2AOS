@@ -35,6 +35,7 @@ public class UserModelTest {
 
     assertThrows(IllegalArgumentException.class, () -> new User(-1));
   }
+
   @Test
   void testWeatherPreferences() {
     assertEquals(user.getWeatherPreferences(), new ArrayList());

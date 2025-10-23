@@ -99,7 +99,8 @@ public class UserTest {
 
     // Use a unique user ID based on current timestamp to avoid conflicts
     int uniqueUserId = (int) (System.currentTimeMillis() % 10000) + 1000;
-    User newUser = new User(uniqueUserId, weatherPreferences, temperaturePreferences, cityPreferences);
+    User newUser = new User(uniqueUserId, weatherPreferences, temperaturePreferences, 
+                              cityPreferences);
 
     this.mockMvc.perform(put("/user/" + uniqueUserId + "/add")
       .contentType("application/json")
