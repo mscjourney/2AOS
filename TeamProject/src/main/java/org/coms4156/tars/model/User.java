@@ -18,6 +18,9 @@ public class User {
    * @param id the id of the user
    */
   public User(int id) {
+    if (id < 0) {
+      throw new IllegalArgumentException("User Id cannot be negative.");
+    }
     this.id = id;
     this.weatherPreferences = new ArrayList<>();
     this.temperaturePreferences = new ArrayList<>();
@@ -33,6 +36,9 @@ public class User {
    */
   public User(int id, List<String> weatherPrefs, 
                 List<String> temperaturePrefs, List<String> cityPrefs) {
+    if (id < 0) {
+      throw new IllegalArgumentException("User Id cannot be negative.");
+    }
     this.id = id;
     this.weatherPreferences = weatherPrefs;
     this.temperaturePreferences = temperaturePrefs;
