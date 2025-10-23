@@ -97,7 +97,7 @@ public class RouteController {
    */
   @GetMapping({"/user/{id}"})
   public ResponseEntity<?> getUser(@PathVariable int id) {
-    for (User user : tarsService.getUsers()) {
+    for (User user : tarsService.getUserList()) {
       if (user.getId() == id) {
         return new ResponseEntity<>(user, HttpStatus.OK);
       }
