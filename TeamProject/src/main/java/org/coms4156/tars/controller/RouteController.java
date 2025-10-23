@@ -2,6 +2,7 @@ package org.coms4156.tars.controller;
 
 import org.coms4156.tars.model.CrimeModel;
 import org.coms4156.tars.model.CrimeSummary;
+import java.util.List;
 import org.coms4156.tars.model.User;
 import org.coms4156.tars.model.WeatherAlert;
 import org.coms4156.tars.model.WeatherAlertModel;
@@ -11,7 +12,6 @@ import org.coms4156.tars.service.TarsService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -116,7 +116,7 @@ public class RouteController {
    * @return a ResponseEntity containing a WeatherRecommendation
    *         if successful, or an error status if validation fails or an exception occurs
    */
-  @GetMapping("/recommendation/weather")
+  @GetMapping("/recommendation/weather/")
   public ResponseEntity<WeatherRecommendation> getWeatherRecommendation(
           @RequestParam String city,
           @RequestParam int days) {
@@ -136,29 +136,61 @@ public class RouteController {
   }
 
   /**
-   * Handles GET requests to retrieve weather alerts for a specified location.
-   *
-   * @param city the name of the city (optional if lat/lon provided)
-   * @param lat the latitude coordinate (optional if city provided)
-   * @param lon the longitude coordinate (optional if city provided)
-   * @return a ResponseEntity containing a WeatherAlert if successful,
-   *         or an error status if validation fails or an exception occurs
-   */
-  @GetMapping("/alert/weather")
-  public ResponseEntity<WeatherAlert> getWeatherAlerts(
-      @RequestParam(required = false) String city,
-      @RequestParam(required = false) Double lat,
-      @RequestParam(required = false) Double lon) {
+     * Handles GET requests to retrieve weather alerts for a specified location.
+     *
+     * @param city the name of the city (optional if lat/lon provided)
+     * @param lat the latitude coordinate (optional if city provided)
+     * @param lon the longitude coordinate (optional if city provided)
+     * @return a ResponseEntity containing a WeatherAlert if successful,
+     *         or an error status if validation fails or an exception occurs
+     */
+    @GetMapping("/alert/weather")
+    public ResponseEntity<WeatherAlert> getWeatherAlerts(
+        @RequestParam(required = false) String city,
+        @RequestParam(required = false) Double lat,
+        @RequestParam(required = false) Double lon) {
 
-    try {
-      if (city == null && (lat == null || lon == null)) {
+      try {
+        if (city == null && (lat == null || lon == null)) {
+          return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        WeatherAlert alert = WeatherAlertModel.getWeatherAlerts(city, lat, lon);
+
+        return ResponseEntity.ok(alert);
+
+      } catch (IllegalArgumentException e) {
+        System.err.println(e);
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+      } catch (Exception e) {
+        System.err.println(e);
+        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+    }
+
+  /**
+   * Handles GET requests to retrieve weather alerts for the specified user 
+   * based on their city preferences.
+   *
+   * @param userId the user id of the user we are getting weather alerts for
+   * @return a ResponseEntity containing a list of WeatherAlerts if successful,
+   *         or an error status if an exception occurs
+   */
+  @GetMapping("/alert/weather/user/{userId}")
+  public ResponseEntity<?> getUserWeatherAlerts(@PathVariable int userId) {
+    try {
+      User user = tarsService.getUser(userId);
+      if (userId < 0) {
+        return new ResponseEntity<>("User Id cannot be less than zero.", HttpStatus.BAD_REQUEST);
       }
 
-      WeatherAlert alert = WeatherAlertModel.getWeatherAlerts(city, lat, lon);
-
-      return ResponseEntity.ok(alert);
-
+      if (user == null) {
+        return new ResponseEntity<>("No such user.", HttpStatus.NOT_FOUND);
+      }
+      
+      List<WeatherAlert> alertList = WeatherAlertModel.getUserAlerts(user);
+      return ResponseEntity.ok(alertList);
+      
     } catch (IllegalArgumentException e) {
       System.err.println(e);
       return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
