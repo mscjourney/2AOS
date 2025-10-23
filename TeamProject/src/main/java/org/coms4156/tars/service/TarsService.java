@@ -87,7 +87,7 @@ public class TarsService {
    *
    * @return a List of User objects representing all users stored in the service
    */
-  public synchronized List<User> getUsers() {
+  public synchronized List<User> getUserList() {
     if (users == null) {
       users = loadData();
     }
