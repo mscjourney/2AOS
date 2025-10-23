@@ -1,5 +1,7 @@
 package org.coms4156.tars.controller;
 
+import org.coms4156.tars.model.CrimeModel;
+import org.coms4156.tars.model.CrimeSummary;
 import java.util.List;
 import org.coms4156.tars.model.User;
 import org.coms4156.tars.model.WeatherAlert;
@@ -197,4 +199,52 @@ public class RouteController {
       return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
+  /**
+   * Handles GET requests to retrieve crime summary data for a specified state and offense type.
+   * Offense types:
+   *   V – Violent Crime (aggregate: ASS, RPE, ROB, HOM)
+   *   ASS – Aggravated Assault
+   *   BUR – Burglary
+   *   LAR – Larceny-Theft
+   *   MVT – Motor Vehicle Theft
+   *   HOM – Homicide (Murder and Nonnegligent Manslaughter)
+   *   RPE – Rape
+   *   ROB – Robbery
+   *   ARS – Arson
+   *   P – Property Crime (aggregate: BUR, LAR, MVT, ARS)
+   *
+   * @param state   the U.S. state abbreviation (e.g., "CA", "NY", "TX")
+   * @param offense the offense code (e.g., "ASS", "BUR", "HOM", "ROB")
+   * @param month the month of interest (e.g., "10" for October)
+   * @param year the year of interest (e.g., "2025")
+   * @return a ResponseEntity containing a CrimeSummary or an error message
+   */
+  @GetMapping("/crime/summary")
+  public ResponseEntity<?> getCrimeSummary(
+          @RequestParam String state,
+          @RequestParam String offense,
+          @RequestParam String month,
+          @RequestParam String year) {
+
+    try {
+      CrimeModel model = new CrimeModel();
+      String result = model.getCrimeSummary(state, offense, month, year);
+
+      CrimeSummary summary = new CrimeSummary(
+              state,
+              month,
+              year,
+              "Fetched crime data successfully for " + offense + " : " + result
+      );
+
+      return ResponseEntity.ok(summary);
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+
 }
