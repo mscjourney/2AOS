@@ -16,221 +16,269 @@
 **Platform:**  Linux
 
 
-# TARS Service
+# Travel Alert and Recommendation Service (TARS)
 
-A Spring Boot REST API for storing user weather preference profiles and retrieving weather recommendations and alerts.
+TARS is a Spring Boot REST API that lets clients:
+- Register users with preference profiles (weather types, temperature ranges, favorite cities).
+- Retrieve stored user profiles.
+- Get weather recommendations (best upcoming days).
+- Get real-time weather alerts for a location or for a user's saved cities.
+- Fetch basic crime summary info for a state/offense.
 
-## Contents
-- Features
-- Requirements
-- Build & Run
-- Configuration
-- Data Storage
-- API Reference
-  - Users
-  - Weather Recommendation
-  - Weather Alerts
-  - Client Placeholder Endpoints
-- Domain Models (JSON shapes)
-- Examples (curl)
-- Testing
-- Common Issues
-- Notes & Caveats
-- Roadmap
-- License
+## Quick Start
 
----
-
-## Features
-- Persist user weather, temperature, and city preferences (JSON file storage).
-- Retrieve user preference profiles by ID.
-- Generate weather recommendations (model-based stub).
-- Retrieve weather alerts by city or coordinates.
-- Configurable data file path via `tars.data.path`.
-
-## Requirements
+### Prerequisites
 - Java 17+
-- Maven 3.8+
-- curl (optional for manual endpoint testing)
+- Maven 3.9+
+- Internet access (for external weather/crime data if implemented in models)
 
-## Build & Run
+### Build & Run
 
 ```bash
-# From repository root
-cd TeamProject
 mvn clean package
-
-# Run (development)
 mvn spring-boot:run
-
-# Or run the built JAR
-java -jar target/Tars-0.0.1-SNAPSHOT.jar
 ```
 
-Default port: `8080`
-
----
+Server defaults to: `http://localhost:8080`
 
 ## Configuration
 
-| Property | Default | Description |
-|----------|---------|-------------|
-| `tars.data.path` | `src/main/resources/data/userPreferences.json` (override recommended) | Path to JSON file for user persistence |
+The user preferences are persisted as JSON.
 
-Override examples:
+Property | Purpose | Default
+-------- | ------- | -------
+`tars.data.path` | Filesystem path for user preferences JSON | `./data/userPreferences.json`
 
+Override in `src/main/resources/application.properties`:
 ```properties
-# application.properties
 tars.data.path=./data/userPreferences.json
 ```
 
-Environment variable + command line:
-```bash
-export TARS_DATA_PATH=./data/userPreferences.json
-mvn spring-boot:run -Dtars.data.path=${TARS_DATA_PATH}
+For test isolation (already present):
+```properties
+# src/test/resources/application.properties
+tars.data.path=target/test-userPreferences.json
 ```
 
-Recommended:
-- Runtime: `./data/userPreferences.json`
-- Tests: `target/test-userPreferences.json`
+Directory `./data` is created automatically if missing.
 
----
-
-## Data Storage
-
-- Users stored as a JSON array in the configured file.
-- File and parent directory created if missing (initialized to `[]`).
-- Full overwrite on each change (non-atomic).
-- Not suitable for large scale or high concurrency without refactoring.
-
----
-
-## API Reference
-
-Base URL: `http://localhost:8080`
-
-### Users
-
-| Method | Endpoint | Description | Request Body | Success (200) | Errors |
-|--------|----------|-------------|--------------|---------------|--------|
-| GET | `/user/{id}` | Retrieve user preferences by ID | — | User JSON | 404 (not found) |
-| PUT | `/user/{id}/add` | Create a user with given ID | User JSON | User JSON | 409 (duplicate), 400 (invalid body) |
-
-### Weather Recommendation
-
-| Method | Endpoint | Params | Description | Success (200) | Errors |
-|--------|----------|--------|-------------|---------------|--------|
-| GET | `/recommendation/weather` | `city` (string), `days` (1–14) | Get recommendation data | Recommendation JSON | 400 (bad params), 500 (internal) |
-
-### Weather Alerts
-
-| Method | Endpoint | Params | Description | Success (200) | Errors |
-|--------|----------|--------|-------------|---------------|--------|
-| GET | `/alert/weather` | Either `city` OR (`lat`, `lon`) | Retrieve current alerts | Alert JSON | 400 (invalid/missing params), 500 (internal) |
-
-### Client Placeholder Endpoints
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/clients/{clientId}` | Placeholder response |
-| POST | `/clients/{clientId}/users/{userId}` | Placeholder response |
-| GET | `/` or `/index` | Welcome message |
-
----
-
-## Domain Models
+## Data Model Overview
 
 ### User
 ```json
 {
-  "id": 2,
-  "weatherPreferences": ["rainy"],
-  "temperaturePreferences": ["60F", "67F"],
-  "cityPreferences": ["New York", "Paris"]
+  "id": 1,
+  "weatherPreferences": ["Sunny", "Rain"],
+  "temperaturePreferences": ["Mild", "Cold"],
+  "cityPreferences": ["New York", "Boston"]
+}
+```
+
+- `id` must be non-negative and unique.
+- Lists may be empty; null lists are normalized to empty.
+
+### WeatherRecommendation
+```json
+{
+  "city": "Raleigh",
+  "recommendedDays": ["2025-10-24", "2025-10-26"],
+  "message": "2 clear days found in the next 5-day window."
 }
 ```
 
 ### WeatherAlert
 ```json
 {
-  "location": "New York",
+  "location": "Raleigh",
+  "timestamp": "Thu Oct 23 10:15:00 EDT 2025",
   "alerts": [
-    {
-      "severity": "INFO",
-      "type": "CLEAR",
-      "message": "No weather alerts at this time"
-    }
+    { "severity": "Moderate", "type": "Wind", "message": "Gusts up to 30mph" }
   ],
-  "recommendations": [
-    "Great weather for outdoor activities"
-  ],
+  "recommendations": ["Delay outdoor activities", "Secure loose items"],
   "currentConditions": {
-    "temperature_celsius": 22.5,
-    "humidity_percent": 65.0,
-    "wind_speed_kmh": 15.0,
-    "precipitation_mm": 0.0,
-    "weather_code": 1
+    "temperatureF": 57.2,
+    "humidity": 0.62,
+    "status": "Windy"
   }
 }
 ```
 
-### WeatherRecommendation (example)
+### CrimeSummary
 ```json
 {
-  "city": "Boston",
-  "daysRequested": 3,
-  "recommendedDays": ["2025-10-22", "2025-10-23"],
-  "notes": "Bring a light jacket"
+  "state": "NC",
+  "month": "10",
+  "year": "2025",
+  "message": "Fetched crime data successfully for ASS : <raw API summary>"
 }
 ```
 
----
+## Endpoints
 
-## curl Examples
+Base path: `http://localhost:8080`
 
-### Add a User
-```bash
-curl -X PUT http://localhost:8080/user/3/add \
-  -H "Content-Type: application/json" \
-  -d '{"id":3,"weatherPreferences":["snowy"],"temperaturePreferences":["88F","15C"],"cityPreferences":["Rome","Sydney"]}'
+### Health / Index
+GET `/` or `/index`  
+Response: `"Welcome to the TARS Home Page!"`
+
+### Users
+
+PUT `/user/{id}/add`  
+Add a new user profile.
+
+Request body:
+```json
+{
+  "id": 5,
+  "weatherPreferences": ["Rain", "Cloudy"],
+  "temperaturePreferences": ["Cool"],
+  "cityPreferences": ["Chicago"]
+}
 ```
 
-### Get a User
-```bash
-curl http://localhost:8080/user/3
-```
+Responses:
+- `200 OK` – returns created user JSON
+- `409 CONFLICT` – ID already exists
+- `400 BAD REQUEST` – malformed body (implicit via validation exceptions if added later)
+
+GET `/user/{id}`  
+Retrieve a user by ID.
+
+Responses:
+- `200 OK` – user JSON
+- `404 NOT FOUND` – user absent
 
 ### Weather Recommendation
-```bash
-curl "http://localhost:8080/recommendation/weather?city=Boston&days=3"
+
+GET `/recommendation/weather?city={city}&days={days}`
+
+Query params:
+- `city` (required)
+- `days` (required, 1–14)
+
+Responses:
+- `200 OK` – `WeatherRecommendation`
+- `400 BAD REQUEST` – invalid `days` range (≤0 or >14)
+- `500 INTERNAL SERVER ERROR` – unexpected failure
+
+Example:
+```
+GET /recommendation/weather?city=Raleigh&days=5
 ```
 
-### Weather Alerts (City)
-```bash
-curl "http://localhost:8080/alert/weather?city=New%20York"
+### Weather Alerts (Location)
+
+GET `/alert/weather?city={city}`  
+OR  
+GET `/alert/weather?lat={lat}&lon={lon}`
+
+Rules:
+- Either `city` OR both `lat` and `lon` must be provided.
+
+Responses:
+- `200 OK` – `WeatherAlert`
+- `400 BAD REQUEST` – missing or invalid parameters
+- `500 INTERNAL SERVER ERROR` – unexpected failure
+
+### Weather Alerts (User Preferences)
+
+GET `/alert/weather/user/{userId}`
+
+Uses the user's `cityPreferences` to aggregate alerts.
+
+Responses:
+- `200 OK` – list of `WeatherAlert` objects
+- `400 BAD REQUEST` – negative user ID
+- `404 NOT FOUND` – no such user
+- `500 INTERNAL SERVER ERROR` – unexpected failure
+
+### Crime Summary
+
+GET `/crime/summary?state={state}&offense={offense}&month={MM}&year={YYYY}`
+
+Parameters:
+- `state`: US state abbreviation (e.g., `NC`, `CA`)
+- `offense`: allowed codes (e.g., `ASS`, `BUR`, `HOM`, `ROB`, `RPE`, `LAR`, `MVT`, `ARS`, `V`, `P`)
+- `month`: two-digit month `01`–`12`
+- `year`: four-digit year
+
+Responses:
+- `200 OK` – `CrimeSummary`
+- `500 INTERNAL SERVER ERROR` – failure
+
+Example:
+```
+GET /crime/summary?state=NC&offense=ASS&month=10&year=2025
 ```
 
-### Weather Alerts (Coordinates)
+## Persistence Behavior
+
+- Users stored in JSON file at `tars.data.path`.
+- On startup: if file missing, a new empty JSON array is created.
+- All write operations (`addUser`) are synchronized for thread safety.
+- Reads return defensive copies (mutating returned list does not persist changes).
+
+## Error Handling Summary
+
+Error Type | Cause | HTTP Code
+---------- | ----- | ---------
+Duplicate user ID | Existing ID match | 409
+User not found | ID absent in store | 404
+Invalid days | `days <= 0 || days > 14` | 400
+Missing alert params | Neither city nor lat/lon | 400
+Negative user ID | `userId < 0` | 400
+Unexpected exception | Uncaught runtime errors | 500
+
+## Example cURL Session
+
+Create user:
 ```bash
-curl "http://localhost:8080/alert/weather?lat=40.7128&lon=-74.0060"
+curl -X PUT http://localhost:8080/user/7/add \
+  -H "Content-Type: application/json" \
+  -d '{"id":7,"weatherPreferences":["Sunny"],"temperaturePreferences":["Warm"],"cityPreferences":["Austin"]}'
 ```
 
----
+Fetch user:
+```bash
+curl http://localhost:8080/user/7
+```
+
+Weather recommendation:
+```bash
+curl "http://localhost:8080/recommendation/weather?city=Austin&days=5"
+```
+
+Weather alerts by city:
+```bash
+curl "http://localhost:8080/alert/weather?city=Austin"
+```
+
+Weather alerts by user:
+```bash
+curl http://localhost:8080/alert/weather/user/7
+```
+
+Crime summary:
+```bash
+curl "http://localhost:8080/crime/summary?state=TX&offense=ASS&month=10&year=2025"
+```
 
 ## Testing
 
+Run all tests:
 ```bash
-cd TeamProject
-mvn clean test
+mvn test
 ```
 
-Test classes:
-- `UserTest` – user add/retrieve flow.
-- `AlertTest` – alert endpoint slice test (static mocks + `@WebMvcTest`).
+Test config overrides persistence path (`target/test-userPreferences.json`) to avoid polluting real data.
 
-Test data isolation from production data (recommended and implemented):
-```properties
-# src/test/resources/application.properties
-tars.data.path=target/test-userPreferences.json
-```
+## Extensibility Ideas
+
+- Implement client-to-user relationship in `/clients` routes.
+- Add authentication and rate limiting.
+
+## License
+
+See `LICENSE` file in repository.
 
 ---

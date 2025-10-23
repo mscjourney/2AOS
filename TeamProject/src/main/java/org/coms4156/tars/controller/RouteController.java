@@ -1,8 +1,8 @@
 package org.coms4156.tars.controller;
 
+import java.util.List;
 import org.coms4156.tars.model.CrimeModel;
 import org.coms4156.tars.model.CrimeSummary;
-import java.util.List;
 import org.coms4156.tars.model.User;
 import org.coms4156.tars.model.WeatherAlert;
 import org.coms4156.tars.model.WeatherAlertModel;
@@ -42,15 +42,19 @@ public class RouteController {
    * Request Method: POST
    * Returns a new client resource.
    *
-   * @param clientId The ID of the client.
-   *
+   * @param client The client object to be created.
    * @return A ResponseEntity indicating the result of the operation.
    */
-  @PostMapping({"/clients/{clientId}"})
-  public ResponseEntity<String> createClientRoute(@PathVariable String clientId) {
-    // Logic to create a client would go here.
+  @PostMapping({"/clients"})
+  public ResponseEntity<String> createClientRoute(@RequestBody User client) {
+    // Create client logic here.
+    // Actual logic to be used to generate a new client resource.
+    // If creation is successful, return success response.
+    // Users will be associated with clients in future implementations.
+    // Not yet implemented: logic to create a new client resource in the system.
     return new ResponseEntity<>(
-        "Client route created for clientId: " + clientId, HttpStatus.CREATED
+      "createClientRoute is not yet implemented.",
+      HttpStatus.NOT_IMPLEMENTED
       );
   }
 
@@ -59,20 +63,23 @@ public class RouteController {
    * Handles POST requests to create a user for a specific client.
    *
    * @param clientId The ID of the client.
-   * @param userId The ID of the user.
    *
    * @return A ResponseEntity indicating the result of the operation.
   */
-  @PostMapping({"/clients/{clientId}/users/{userId}"})
-  public ResponseEntity<String> createClientUserRoute(
-      @PathVariable String clientId,
-      @PathVariable String userId) {
-    // Logic to create a user would go here.
+  @PostMapping({"/clients/{clientId}/newUser"})
+  public ResponseEntity<String> addClientUser(
+      @PathVariable String clientId) {
+    // Example: User creation logic here.
+    // Actual logic to be used to generate a new user ID and attach to the client.
+    // If clientId is valid and user creation is successful, return success response.
+    // Generated user will be the next available integer ID.
+    // Not yet implemented: logic to create a new user for the specified client.
     return new ResponseEntity<>(
-        "User route created for userId: " + userId, HttpStatus.CREATED
+      "addClientUser is not yet implemented.",
+      HttpStatus.NOT_IMPLEMENTED
       );
   }
-  
+
   /**
    * Handles PUT requests to add a new user's preferences.
    *
