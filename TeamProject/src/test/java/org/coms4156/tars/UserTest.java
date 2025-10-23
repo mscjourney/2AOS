@@ -97,19 +97,22 @@ public class UserTest {
     
     ObjectMapper mapper = new ObjectMapper();
 
-    User newUser = new User(3, weatherPreferences, temperaturePreferences, cityPreferences);
+    // Use a unique user ID based on current timestamp to avoid conflicts
+    int uniqueUserId = (int) (System.currentTimeMillis() % 10000) + 1000;
+    User newUser = new User(uniqueUserId, weatherPreferences, temperaturePreferences, cityPreferences);
 
-    this.mockMvc.perform(put("/user/3/add")
+    this.mockMvc.perform(put("/user/" + uniqueUserId + "/add")
       .contentType("application/json")
       .content(mapper.writeValueAsString(newUser)))
         .andDo(print())
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id", is(3)))
+        .andExpect(jsonPath("$.id", is(uniqueUserId)))
         .andExpect(jsonPath("$.weatherPreferences", contains("snowy")))
         .andExpect(jsonPath("$.temperaturePreferences", contains("88F", "15C")))
         .andExpect(jsonPath("$.cityPreferences", contains("Rome", "Syndey")));
 
-    this.mockMvc.perform(put("/user/3/add")
+    // Test adding the same user again should fail
+    this.mockMvc.perform(put("/user/" + uniqueUserId + "/add")
       .contentType("application/json")
       .content(mapper.writeValueAsString(newUser)))
         .andDo(print())
