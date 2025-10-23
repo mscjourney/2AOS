@@ -293,4 +293,25 @@ public class WeatherAlertModel {
 
     return new WeatherAlert(locationName, alerts, recommendations, currentConditions);
   }
+
+  /**
+   * Gets weather alerts for all city preferences of the provided user.
+   *
+   * @param user the user to generate weather alerts for
+   * @return a list of WeatherAlert Objects containing the alerts for the user's city preferences.
+   * @throws IllegalArgumentException if an invalid user is specified
+   */
+  public static List<WeatherAlert> getUserAlerts(User user) {
+    if (user == null) {
+      throw new IllegalArgumentException("User cannot be null");
+    }
+
+    List<WeatherAlert> alertList = new ArrayList<>();
+    for (String city : user.getCityPreferences()) {
+      WeatherAlert alert = getWeatherAlerts(city, null, null);
+      alertList.add(alert);
+    }
+
+    return alertList;
+  }
 }
