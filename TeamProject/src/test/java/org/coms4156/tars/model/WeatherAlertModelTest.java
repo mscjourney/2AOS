@@ -93,4 +93,66 @@ public class WeatherAlertModelTest {
     assertNotNull(result);
     assertEquals("-90.0000, -180.0000", result.getLocation());
   }
+
+  @Test
+  void testGetWeatherAlertsWithCityParameter() {
+    WeatherAlert result = WeatherAlertModel.getWeatherAlerts("New York", null, null);
+
+    assertNotNull(result);
+    assertEquals("New York", result.getLocation());
+    assertNotNull(result.getTimestamp());
+    assertNotNull(result.getAlerts());
+    assertNotNull(result.getRecommendations());
+    assertNotNull(result.getCurrentConditions());
+  }
+
+  @Test
+  void testGetWeatherAlertsWithExtremeCoordinateValues() {
+    WeatherAlert result1 = WeatherAlertModel.getWeatherAlerts(null, 90.0, 180.0);
+    assertNotNull(result1);
+    assertEquals("90.0000, 180.0000", result1.getLocation());
+
+    WeatherAlert result2 = WeatherAlertModel.getWeatherAlerts(null, -90.0, -180.0);
+    assertNotNull(result2);
+    assertEquals("-90.0000, -180.0000", result2.getLocation());
+
+    WeatherAlert result3 = WeatherAlertModel.getWeatherAlerts(null, 0.0, 0.0);
+    assertNotNull(result3);
+    assertEquals("0.0000, 0.0000", result3.getLocation());
+  }
+
+  @Test
+  void testGetUserAlertsWithMultipleCities() {
+    List<String> multipleCities = new ArrayList<>();
+    multipleCities.add("New York");
+    multipleCities.add("London");
+    multipleCities.add("Tokyo");
+    multipleCities.add("Sydney");
+    
+    User userWithMultipleCities = new User(3, 3, new ArrayList<>(), new ArrayList<>(), multipleCities);
+    
+    List<WeatherAlert> result = WeatherAlertModel.getUserAlerts(userWithMultipleCities);
+
+    assertNotNull(result);
+    assertEquals(4, result.size());
+    assertEquals("New York", result.get(0).getLocation());
+    assertEquals("London", result.get(1).getLocation());
+    assertEquals("Tokyo", result.get(2).getLocation());
+    assertEquals("Sydney", result.get(3).getLocation());
+  }
+
+
+  @Test
+  void testGetWeatherAlertsBoundaryConditions() {
+    WeatherAlert result1 = WeatherAlertModel.getWeatherAlerts(null, 40.7128, -74.0060);
+    WeatherAlert result2 = WeatherAlertModel.getWeatherAlerts(null, 40.7129, -74.0061);
+    
+    assertNotNull(result1);
+    assertNotNull(result2);
+    assertTrue(!result1.getLocation().equals(result2.getLocation()));
+
+    WeatherAlert result3 = WeatherAlertModel.getWeatherAlerts(null, 89.9999, 179.9999);
+    assertNotNull(result3);
+    assertEquals("89.9999, 179.9999", result3.getLocation());
+  }
 }
