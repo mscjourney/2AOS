@@ -86,7 +86,7 @@ public class AlertTest {
     cityPreferences.add("New York");
     cityPreferences.add("Paris");
 
-    mockUser = new User(2, weatherPreferences, temperaturePreferences, cityPreferences);
+    mockUser = new User(2, 2, weatherPreferences, temperaturePreferences, cityPreferences);
   }
 
   @Test
