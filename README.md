@@ -281,4 +281,15 @@ Test config overrides persistence path (`target/test-userPreferences.json`) to a
 
 See `LICENSE` file in repository.
 
+## Other Resources
+
+- [JIRA Board](https://2aos.atlassian.net/jira/software/projects/SCRUM/boards/1)
+- [PMD output result](TeamProject/pmd.txt)
+
+Run new PMD with the followin command from within the `TeamProject` directory
+
+```
+pmd check -d './'  -R rulesets/java/quickstart.xml -r pmd.txt
+```
+
 ---
