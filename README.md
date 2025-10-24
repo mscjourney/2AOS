@@ -286,7 +286,7 @@ See `LICENSE` file in repository.
 - [JIRA Board](https://2aos.atlassian.net/jira/software/projects/SCRUM/boards/1)
 - [PMD output result](TeamProject/pmd.txt)
 
-Run new PMD with the followin command from within the `TeamProject` directory
+For new PMD result, from within the `TeamProject` directory, run:
 
 ```
 pmd check -d './'  -R rulesets/java/quickstart.xml -r pmd.txt
