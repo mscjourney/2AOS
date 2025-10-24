@@ -20,20 +20,23 @@ public class UserModelTest {
 
   @BeforeEach
   public void setUpUserForTesting() {
-    user = new User(1);
+    user = new User(1, 1);
   }
 
   @Test
-  void testUserId() {
+  void testUserAndClientId() {
     assertEquals(user.getId(), 1);
+    assertEquals(user.getClientId(), 1);
 
     user = new User();
     assertEquals(user.getId(), 0);
+    assertEquals(user.getClientId(), -1);
 
-    user = new User(10);
+    user = new User(10, 15);
     assertEquals(user.getId(), 10);
+    assertEquals(user.getClientId(), 15);
 
-    assertThrows(IllegalArgumentException.class, () -> new User(-1));
+    assertThrows(IllegalArgumentException.class, () -> new User(-1, 5));
   }
 
   @Test
@@ -84,10 +87,10 @@ public class UserModelTest {
 
   @Test
   void testEqualsUser() {
-    User newUser = new User(1);
+    User newUser = new User(1, 1);
     assertTrue(user.equals(newUser));
 
-    newUser = new User(2);
+    newUser = new User(2, 1);
     assertFalse(user.equals(newUser));
 
     newUser = new User();

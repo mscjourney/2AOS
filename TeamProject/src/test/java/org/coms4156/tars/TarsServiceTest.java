@@ -1,21 +1,21 @@
 package org.coms4156.tars;
 
-import java.util.ArrayList;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import java.util.List;
-
-import org.coms4156.tars.model.User;
-import org.coms4156.tars.service.TarsService;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.coms4156.tars.model.User;
+import org.coms4156.tars.service.TarsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-
 import org.springframework.boot.test.context.SpringBootTest;
 
+/**
+ * This class contains the tests for the TarsService class.
+ */
 @SpringBootTest
 public class TarsServiceTest {
   
@@ -25,15 +25,16 @@ public class TarsServiceTest {
   void setUp() {
     service = new TarsService("");
 
-    User user1 = new User(1, List.of("sunny"), List.of("70F"), List.of("Boston"));
-    User user2 = new User(2, List.of("rainy"), List.of("60F", "67F"), List.of("New York", "Paris"));
+    User user1 = new User(1, 1, List.of("sunny"), List.of("70F"), List.of("Boston"));
+    User user2 = new User(2, 2, List.of("rainy"), List.of("60F", "67F"), 
+                            List.of("New York", "Paris"));
 
     service.addUser(user1);
     service.addUser(user2);
   }
 
   @Test
-  void TestgetUserList() {
+  void getUserListTest() {
     List<User> userList = service.getUserList();
     User user = userList.get(0);
     assertEquals(user.getId(), 1);
@@ -52,7 +53,7 @@ public class TarsServiceTest {
   }
 
   @Test
-  void TestgetUser() {
+  void getUserTest() {
     User user = service.getUser(0);
     assertEquals(user, null);
 
@@ -77,8 +78,8 @@ public class TarsServiceTest {
   }
 
   @Test
-  void TestaddUser() {
-    User user1 = new User(1, List.of("sunny"), List.of("70F"), List.of("Boston"));
+  void addUserTest() {
+    User user1 = new User(1, 1, List.of("sunny"), List.of("70F"), List.of("Boston"));
 
     assertEquals(service.getUser(1), user1);
     assertFalse(service.addUser(user1)); // Duplicate User

@@ -8,6 +8,7 @@ import java.util.List;
  */
 public class User {
   private final int id;
+  private final int clientId;
   private List<String> weatherPreferences;
   private List<String> temperaturePreferences;
   private List<String> cityPreferences;
@@ -16,12 +17,14 @@ public class User {
    * Basic User constructor.
    *
    * @param id the id of the user
+   * @param clientId the id of the client in charge of this user
    */
-  public User(int id) {
+  public User(int id, int clientId) {
     if (id < 0) {
       throw new IllegalArgumentException("User Id cannot be negative.");
     }
     this.id = id;
+    this.clientId = clientId;
     this.weatherPreferences = new ArrayList<>();
     this.temperaturePreferences = new ArrayList<>();
     this.cityPreferences = new ArrayList<>();
@@ -30,16 +33,18 @@ public class User {
   /**
    * Complete User constructor.
    *
+   * @param clientId the id of the client in charge of this user
    * @param weatherPrefs a list containing the user's weather preferences
    * @param temperaturePrefs a list containing the user's temperature preferences
    * @param cityPrefs a list containing the user's city preferences
    */
-  public User(int id, List<String> weatherPrefs, 
+  public User(int id, int clientId, List<String> weatherPrefs, 
                 List<String> temperaturePrefs, List<String> cityPrefs) {
     if (id < 0) {
       throw new IllegalArgumentException("User Id cannot be negative.");
     }
     this.id = id;
+    this.clientId = clientId;
     this.weatherPreferences = weatherPrefs;
     this.temperaturePreferences = temperaturePrefs;
     this.cityPreferences = cityPrefs;
@@ -50,6 +55,7 @@ public class User {
    */
   public User() {
     this.id = 0;
+    this.clientId = -1;
     this.weatherPreferences = new ArrayList<>();
     this.temperaturePreferences = new ArrayList<>();
     this.cityPreferences = new ArrayList<>();
@@ -108,6 +114,10 @@ public class User {
 
   public int getId() {
     return this.id;
+  }
+
+  public int getClientId() {
+    return this.clientId;
   }
 
   @Override
