@@ -22,7 +22,7 @@ public class WeatherAlertModelTest {
     List<String> cityPreferences = new ArrayList<>();
     cityPreferences.add("New York");
     cityPreferences.add("London");
-    testUser = new User(1, new ArrayList<>(), new ArrayList<>(), cityPreferences);
+    testUser = new User(1, 1, new ArrayList<>(), new ArrayList<>(), cityPreferences);
   }
 
   @Test
@@ -55,7 +55,7 @@ public class WeatherAlertModelTest {
 
   @Test
   void testGetUserAlertsWithEmptyCityPreferences() {
-    User userWithNoCities = new User(2, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+    User userWithNoCities = new User(2, 2, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
     
     List<WeatherAlert> result = WeatherAlertModel.getUserAlerts(userWithNoCities);
 

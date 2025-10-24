@@ -44,7 +44,7 @@ public class UserTest {
     ObjectMapper mapper = new ObjectMapper();
 
     // Seed user 2 (ignore if already exists)
-    User user2 = new User(2,
+    User user2 = new User(2, 2,
         List.of("rainy"),
         List.of("60F", "67F"),
         List.of("New York",  "Paris"));
@@ -98,8 +98,9 @@ public class UserTest {
     ObjectMapper mapper = new ObjectMapper();
 
     // Use a unique user ID based on current timestamp to avoid conflicts
+    // Uses a placeholder ID for some given client
     int uniqueUserId = (int) (System.currentTimeMillis() % 10000) + 1000;
-    User newUser = new User(uniqueUserId, weatherPreferences, temperaturePreferences, 
+    User newUser = new User(uniqueUserId, 2, weatherPreferences, temperaturePreferences, 
                               cityPreferences);
 
     this.mockMvc.perform(put("/user/" + uniqueUserId + "/add")

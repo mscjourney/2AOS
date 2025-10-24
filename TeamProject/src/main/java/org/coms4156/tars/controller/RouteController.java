@@ -37,6 +37,13 @@ public class RouteController {
     this.tarsService = tarsService;
   }
 
+  /**
+   * The index route of the API.
+   * Request Method: GET
+   * Returns a welcome message.
+   *
+   * @return A welcome string message.
+   */
   @GetMapping({"/", "/index"})
   public String index() {
     if (logger.isInfoEnabled()) {
