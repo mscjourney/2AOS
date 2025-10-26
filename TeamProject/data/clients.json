@@ -1,0 +1,28 @@
+[{"clients" :
+    [
+            {"id":"0000000001",
+            "clientName" : "WeatherAlertClient",
+            "clientVersion" : "1.0.0",
+            "apiBaseUrl" : "https://api.weather.com/v3/wx/alerts",
+            "apiKey" : "YOUR_WEATHER_API_KEY",
+            "RateLimitPerMinute" : 60,
+            "MaxConcurrentRequests" : 5
+            },
+            {"id":"0000000002",
+            "clientName" : "CrimeAlertClient",
+            "clientVersion" : "2.1.0",
+            "apiBaseUrl" : "https://api.crimealerts.com/v2/summary",
+            "apiKey" : "YOUR_CRIME_API_KEY",
+            "RateLimitPerMinute" : 60,
+            "MaxConcurrentRequests" : 5
+            },
+            {"id":"0000000003",
+            "clientName" : "NewsAlertClient",
+            "clientVersion" : "3.0.5",
+            "apiBaseUrl" : "https://api.newsalerts.com/v1/headlines",
+            "apiKey" : "YOUR_NEWS_API_KEY",
+            "RateLimitPerMinute" : 100,
+            "MaxConcurrentRequests" : 10
+            }
+    ]
+}]
