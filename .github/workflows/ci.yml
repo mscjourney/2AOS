@@ -144,6 +144,7 @@ jobs:
       #     name: checkstyle-cache
       #     path: TeamProject/target/checkstyle-cachefile
 
+  # The build and deploy jobs are currently disabled until deployment details are finalized.
   # build:
   #   runs-on: ubuntu-latest
   #   needs: [pmd-analysis, test, checkstyle]
