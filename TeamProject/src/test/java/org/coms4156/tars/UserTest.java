@@ -136,12 +136,12 @@ public class UserTest {
   @Test
   public void getUserList() throws Exception {
     this.mockMvc.perform(get("/userList"))
-      .andExpect(status().isOk())
-      .andExpect(jsonPath("$[0].id", is(1)))
-      .andExpect(jsonPath("$[0].clientId", is(1)))
-      .andExpect(jsonPath("$[0].weatherPreferences", contains("sunny")))
-      .andExpect(jsonPath("$[1].id", is(2)))
-      .andExpect(jsonPath("$[1].clientId", is(2)))
-      .andExpect(jsonPath("$[1].weatherPreferences", contains("rainy")));
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].id", is(1)))
+        .andExpect(jsonPath("$[0].clientId", is(1)))
+        .andExpect(jsonPath("$[0].weatherPreferences", contains("sunny")))
+        .andExpect(jsonPath("$[1].id", is(2)))
+        .andExpect(jsonPath("$[1].clientId", is(2)))
+        .andExpect(jsonPath("$[1].weatherPreferences", contains("rainy")));
   }
 }

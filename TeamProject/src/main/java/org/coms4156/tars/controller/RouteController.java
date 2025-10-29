@@ -3,8 +3,6 @@ package org.coms4156.tars.controller;
 import java.util.List;
 // import org.coms4156.tars.model.CrimeModel;
 // import org.coms4156.tars.model.CrimeSummary;
-
-import org.apache.catalina.connector.Response;
 import org.coms4156.tars.model.User;
 import org.coms4156.tars.model.WeatherAlert;
 import org.coms4156.tars.model.WeatherAlertModel;
@@ -164,7 +162,8 @@ public class RouteController {
     } catch (Exception e) {
       return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
-  } 
+  }
+
   /**
    * Handles GET requests to retrieve weather recommendations for a specified city
    * and number of forecast days.
