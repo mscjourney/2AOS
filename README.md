@@ -23,13 +23,14 @@ TARS is a Spring Boot REST API that lets clients:
 - Retrieve stored user profiles.
 - Get weather recommendations (best upcoming days).
 - Get real-time weather alerts for a location or for a user's saved cities.
+- Fetch basic crime summary info for a state/offense.
 
 ## Quick Start
 
 ### Prerequisites
 - Java 17+
 - Maven 3.9+
-- Internet access (for external weather data if implemented in models)
+- Internet access (for external weather/crime data if implemented in models)
 
 ### Build & Run
 
@@ -102,6 +103,16 @@ Directory `./data` is created automatically if missing.
 }
 ```
 
+### CrimeSummary
+```json
+{
+  "state": "NC",
+  "month": "10",
+  "year": "2025",
+  "message": "Fetched crime data successfully for ASS : <raw API summary>"
+}
+```
+
 ## Endpoints
 
 Base path: `http://localhost:8080`
@@ -136,6 +147,13 @@ Retrieve a user by ID.
 Responses:
 - `200 OK` – user JSON
 - `404 NOT FOUND` – user absent
+
+GET `/userList`
+Retrieve all existing users
+
+Reponses:
+- `200 OK` - list of users JSON
+- `500 INTERNAL SERVER ERROR` - unexpected failure
 
 ### Weather Recommendation
 
@@ -180,6 +198,25 @@ Responses:
 - `400 BAD REQUEST` – negative user ID
 - `404 NOT FOUND` – no such user
 - `500 INTERNAL SERVER ERROR` – unexpected failure
+
+### Crime Summary
+
+GET `/crime/summary?state={state}&offense={offense}&month={MM}&year={YYYY}`
+
+Parameters:
+- `state`: US state abbreviation (e.g., `NC`, `CA`)
+- `offense`: allowed codes (e.g., `ASS`, `BUR`, `HOM`, `ROB`, `RPE`, `LAR`, `MVT`, `ARS`, `V`, `P`)
+- `month`: two-digit month `01`–`12`
+- `year`: four-digit year
+
+Responses:
+- `200 OK` – `CrimeSummary`
+- `500 INTERNAL SERVER ERROR` – failure
+
+Example:
+```
+GET /crime/summary?state=NC&offense=ASS&month=10&year=2025
+```
 
 ## Persistence Behavior
 
@@ -226,6 +263,11 @@ curl "http://localhost:8080/alert/weather?city=Austin"
 Weather alerts by user:
 ```bash
 curl http://localhost:8080/alert/weather/user/7
+```
+
+Crime summary:
+```bash
+curl "http://localhost:8080/crime/summary?state=TX&offense=ASS&month=10&year=2025"
 ```
 
 ## Testing

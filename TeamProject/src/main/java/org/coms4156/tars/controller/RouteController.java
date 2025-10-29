@@ -1,8 +1,8 @@
 package org.coms4156.tars.controller;
 
 import java.util.List;
-// import org.coms4156.tars.model.CrimeModel;
-// import org.coms4156.tars.model.CrimeSummary;
+import org.coms4156.tars.model.CrimeModel;
+import org.coms4156.tars.model.CrimeSummary;
 import org.coms4156.tars.model.User;
 import org.coms4156.tars.model.WeatherAlert;
 import org.coms4156.tars.model.WeatherAlertModel;
@@ -149,6 +149,22 @@ public class RouteController {
   }
 
   /**
+   * Handles GET requests to retrieve information about all the existing users.
+   *
+   * @return a ResponseEntity containing the User Preferences data in json format for all users
+   *          if successful. Otherwise, return the status code INTERNAL_SERVER_ERROR. 
+   */
+  @GetMapping("/userList")
+  public ResponseEntity<List<User>> getUserList() {
+    try {
+      List<User> userList = tarsService.getUserList();
+      return new ResponseEntity<>(userList, HttpStatus.OK);
+    } catch (Exception e) {
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /**
    * Handles GET requests to retrieve weather recommendations for a specified city
    * and number of forecast days.
    */
@@ -269,6 +285,51 @@ public class RouteController {
     } catch (Exception e) {
       if (logger.isErrorEnabled()) {
         logger.error("Error retrieving user alerts userId={}", userId, e);
+      }
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /**
+   * Handles GET requests to retrieve crime summary data.
+   */
+  @GetMapping("/crime/summary")
+  public ResponseEntity<?> getCrimeSummary(
+      @RequestParam String state,
+      @RequestParam String offense,
+      @RequestParam String month,
+      @RequestParam String year) {
+
+    if (logger.isInfoEnabled()) {
+      logger.info("GET /crime/summary state={} offense={} month={} year={}", 
+          state, offense, month, year);
+    }
+
+    try {
+      CrimeModel model = new CrimeModel();
+      String result = model.getCrimeSummary(state, offense, month, year);
+
+      if (logger.isDebugEnabled()) {
+        logger.debug("Raw crime summary API result state={} offense={} month={} year={}: {}", 
+            state, offense, month, year, result);
+      }
+
+      CrimeSummary summary = new CrimeSummary(
+          state,
+          month,
+          year,
+          "Fetched crime data successfully for " + offense + " : " + result
+      );
+
+      if (logger.isInfoEnabled()) {
+        logger.info("Crime summary constructed state={} offense={}", state, offense);
+      }
+      return ResponseEntity.ok(summary);
+
+    } catch (Exception e) {
+      if (logger.isErrorEnabled()) {
+        logger.error("Error fetching crime summary state={} offense={} month={} year={}", 
+            state, offense, month, year, e);
       }
       return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
