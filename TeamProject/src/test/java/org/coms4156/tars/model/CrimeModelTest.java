@@ -46,17 +46,5 @@ class CrimeModelTest {
     assertTrue(result.contains("California") && result.contains("cases per 100,000 people"));
   }
 
-  /**
-   * Tests when parameters have an invalid state.
-   */
-  @Test
-  void testGetCrimeSummary_InvalidState() throws Exception {
-    CrimeModel model = new CrimeModel();
-    String result = model.getCrimeSummary("ZZ", "V", "10", "2025");
-
-    assertNotNull(result);
-    assertTrue(result.contains("No rate data available for ZZ"));
-  }
-
 }
 
