@@ -43,11 +43,22 @@ public class UserTest {
   void seedUsers() throws Exception {
     ObjectMapper mapper = new ObjectMapper();
 
-    // Seed user 2 (ignore if already exists)
+    User user1 = new User(1, 1, List.of("sunny"), List.of("70F"), List.of("Boston"));
     User user2 = new User(2, 2,
         List.of("rainy"),
         List.of("60F", "67F"),
         List.of("New York",  "Paris"));
+
+    mockMvc.perform(put("/user/1/add")
+        .contentType("application/json")
+        .content(mapper.writeValueAsString(user1)))
+        // Accept either 200 (added) or 409 (already exists)
+        .andExpect(result -> {
+          int status = result.getResponse().getStatus();
+          if (status != 200 && status != 409) {
+            throw new AssertionError("Unexpected status when seeding user 2: " + status);
+          }
+        });
 
     mockMvc.perform(put("/user/2/add")
         .contentType("application/json")
@@ -120,5 +131,17 @@ public class UserTest {
         .andDo(print())
         .andExpect(status().isConflict())
         .andExpect(content().string(containsString("User Id already exists.")));
+  }
+
+  @Test
+  public void getUserList() throws Exception {
+    this.mockMvc.perform(get("/userList"))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$[0].id", is(1)))
+      .andExpect(jsonPath("$[0].clientId", is(1)))
+      .andExpect(jsonPath("$[0].weatherPreferences", contains("sunny")))
+      .andExpect(jsonPath("$[1].id", is(2)))
+      .andExpect(jsonPath("$[1].clientId", is(2)))
+      .andExpect(jsonPath("$[1].weatherPreferences", contains("rainy")));
   }
 }
