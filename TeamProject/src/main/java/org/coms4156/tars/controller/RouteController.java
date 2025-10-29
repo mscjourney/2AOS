@@ -149,6 +149,22 @@ public class RouteController {
   }
 
   /**
+   * Handles GET requests to retrieve information about all the existing users.
+   *
+   * @return a ResponseEntity containing the User Preferences data in json format for all users
+   *          if successful. Otherwise, return the status code INTERNAL_SERVER_ERROR. 
+   */
+  @GetMapping("/userList")
+  public ResponseEntity<List<User>> getUserList() {
+    try {
+      List<User> userList = tarsService.getUserList();
+      return new ResponseEntity<>(userList, HttpStatus.OK);
+    } catch (Exception e) {
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /**
    * Handles GET requests to retrieve weather recommendations for a specified city
    * and number of forecast days.
    */
