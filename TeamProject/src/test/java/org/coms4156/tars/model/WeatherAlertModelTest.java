@@ -129,7 +129,8 @@ public class WeatherAlertModelTest {
     multipleCities.add("Tokyo");
     multipleCities.add("Sydney");
     
-    User userWithMultipleCities = new User(3, 3, new ArrayList<>(), new ArrayList<>(), multipleCities);
+    User userWithMultipleCities = new User(3, 3, new ArrayList<>(), 
+                                            new ArrayList<>(), multipleCities);
     
     List<WeatherAlert> result = WeatherAlertModel.getUserAlerts(userWithMultipleCities);
 

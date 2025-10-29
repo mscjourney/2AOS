@@ -148,6 +148,13 @@ Responses:
 - `200 OK` – user JSON
 - `404 NOT FOUND` – user absent
 
+GET `/userList`
+Retrieve all existing users
+
+Reponses:
+- `200 OK` - list of users JSON
+- `500 INTERNAL SERVER ERROR` - unexpected failure
+
 ### Weather Recommendation
 
 GET `/recommendation/weather?city={city}&days={days}`
