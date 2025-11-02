@@ -10,9 +10,9 @@ import org.coms4156.tars.model.WeatherAlert;
 import org.coms4156.tars.model.WeatherAlertModel;
 import org.coms4156.tars.model.WeatherModel;
 import org.coms4156.tars.model.WeatherRecommendation;
-// import org.coms4156.tars.model.Client; // Not used currently
+import org.coms4156.tars.model.Client;
 import org.coms4156.tars.service.TarsService;
-//import org.coms4156.tars.service.ClientService; // Not used currently
+import org.coms4156.tars.service.ClientService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -31,13 +31,17 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class RouteController {
 
-  private static final Logger logger = LoggerFactory.getLogger(RouteController.class);
+private static final Logger logger = LoggerFactory.getLogger(RouteController.class);
 
-  private final TarsService tarsService;
+private final TarsService tarsService;
+private final ClientService clientService;
+private final TarsUserService tarsUserService;
 
-  public RouteController(TarsService tarsService) {
-    this.tarsService = tarsService;
-  }
+public RouteController(TarsService tarsService, ClientService clientService, TarsUserService tarsUserService) {
+  this.tarsService = tarsService;
+  this.clientService = clientService;
+  this.tarsUserService = tarsUserService;
+}
 
   /**
    * The index route of the API.
@@ -97,11 +101,17 @@ public class RouteController {
     }
 
     // Ensure that newUserObject has valid key fields and values
-    if (newUserObject.getClientId() == null || newUserObject.getClientId() < 0) {
+    if (newUserObject.getClientId() == null) {
       if (logger.isWarnEnabled()) {
-        logger.warn("Invalid clientId: {}", newUserObject.getClientId());
+        logger.warn("Invalid clientId: null");
       }
       return new ResponseEntity<>("Invalid clientId.", HttpStatus.BAD_REQUEST);
+    }
+    if (newUserObject.getUsername() == null || (newUserObject.getUsername() != null && newUserObject.getUsername().isBlank())) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("Username cannot be blank");
+      }
+      return new ResponseEntity<>("Username cannot be blank.", HttpStatus.BAD_REQUEST);
     }
     if (newUserObject.getUsername() == null || newUserObject.getUsername().isBlank()) {
       if (logger.isWarnEnabled()) {
@@ -109,29 +119,58 @@ public class RouteController {
       }
       return new ResponseEntity<>("Username cannot be blank.", HttpStatus.BAD_REQUEST);
     }
-    if (newUserObject.getRole() == null || newUserObject.getRole().isBlank()) {
+    if (newUserObject.getRole() == null || (newUserObject.getRole() != null && newUserObject.getRole().isBlank())) {
       if (logger.isWarnEnabled()) {
         logger.warn("Role cannot be blank");
       }
       return new ResponseEntity<>("Role cannot be blank.", HttpStatus.BAD_REQUEST);
     }
 
-    // Create the new user via TarsUserService
-    TarsUserService tarsUserService = TarsUserService.getInstance();
-    TarsUser createdUser = tarsUserService.createUser(newUserObject);
+    // Verify that the clientId exists
+    Client client = clientService.getClient(newUserObject.getClientId());
+
+    if (client == null) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("Client with id {} does not exist.", newUserObject.getClientId());
+      }
+      return new ResponseEntity<>("Client does not exist.", HttpStatus.BAD_REQUEST);
+    }
+
+    // With Client verified, sanitize and validate input before creating the new user
+    String sanitizedUsername = newUserObject.getUsername().trim();
+    String sanitizedRole = newUserObject.getRole().trim();
+
+    if (sanitizedUsername.isEmpty()) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("Sanitized username is empty");
+      }
+      return new ResponseEntity<>("Username cannot be blank after sanitization.", HttpStatus.BAD_REQUEST);
+    }
+    if (sanitizedRole.isEmpty()) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("Sanitized role is empty");
+      }
+      return new ResponseEntity<>("Role cannot be blank after sanitization.", HttpStatus.BAD_REQUEST);
+    }
+
+    TarsUser createdUser = tarsUserService.createUser(
+        newUserObject.getClientId(),
+        sanitizedUsername,
+        sanitizedRole
+    );
+
     if (createdUser == null) {
       if (logger.isErrorEnabled()) {
         logger.error("Failed to create user for clientId={}", newUserObject.getClientId());
       }
       return new ResponseEntity<>("Failed to create user.", HttpStatus.INTERNAL_SERVER_ERROR);
+    } else {
+      if (logger.isInfoEnabled()) {
+        logger.info("User created successfully id={} clientId={}", 
+            createdUser.getUserId(), createdUser.getClientId());
+      }
+      return new ResponseEntity<>("User created successfully.", HttpStatus.CREATED);
     }
-    if (logger.isInfoEnabled()) {
-      logger.info("User created successfully: userId={} clientId={}", 
-          createdUser.getUserId(), createdUser.getClientId());
-    }
-
-
-    return new ResponseEntity<>("User created successfuly!", HttpStatus.CREATED);
 
   }
 

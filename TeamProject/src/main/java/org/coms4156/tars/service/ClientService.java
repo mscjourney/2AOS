@@ -142,7 +142,7 @@ public class ClientService {
    * @param clientId the unique identifier for the client
    * @return the {@code Client} object if found, or null if not found
    */
-  public synchronized Client getClient(int clientId) {
+  public synchronized Client getClient(long clientId) {
     if (clients == null) {
       clients = loadData();
     }
