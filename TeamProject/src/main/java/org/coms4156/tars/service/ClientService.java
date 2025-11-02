@@ -58,6 +58,44 @@ public class ClientService {
   }
 
   /**
+   * {@code generateApiKey} Generates a new API key for a client.
+   *
+   * @return
+   */
+  private String generateApiKey() {
+    // Simple random 32-char hex token
+    byte[] bytes = new byte[16];
+    new java.security.SecureRandom().nextBytes(bytes);
+    StringBuilder sb = new StringBuilder();
+    for (byte b : bytes) {
+      sb.append(String.format("%02x", b));
+    }
+    return sb.toString();
+  }
+
+  /**
+   * {@code rotateApiKey} Rotates the API key for a given client.
+   * @param clientId the ID of the client whose API key is to be rotated
+   *
+   * @return the new API key, or null if client not found
+   */
+  public synchronized String rotateApiKey(long clientId) {
+    Client c = getClient((int) clientId);
+    if (c == null) {
+      logger.warn("rotateApiKey: client not found id={}", clientId);
+      return null;
+    }
+    String newKey = generateApiKey();
+    c.setApiKey(newKey);
+    saveData();
+    if (logger.isInfoEnabled()) {
+      logger.info("API key rotated for client id={} (key suffix={})",
+        clientId, newKey.substring(newKey.length() - 4));
+    }
+    return newKey;
+  }
+
+  /**
    * Loads the existing client data from the JSON file.
    *
    * @return a list of {@code Client} objects
@@ -130,19 +168,19 @@ public class ClientService {
    *
    * @return the next available client ID (starts at 1 if no clients exist)
    */
-  private synchronized int getNextClientId() {
+  private synchronized long getNextClientId() {
     if (clients == null) {
       clients = loadData();
     }
     
-    int maxId = 0;
+    long maxId = 0;
     for (Client client : clients) {
       if (client.getClientId() > maxId) {
         maxId = client.getClientId();
       }
     }
     
-    int nextId = maxId + 1;
+    long nextId = maxId + 1;
     if (logger.isDebugEnabled()) {
       logger.debug("Generated next client ID: {}", nextId);
     }
@@ -150,64 +188,56 @@ public class ClientService {
   }
 
   /**
-   * Creates a new client with an auto-generated ID.
-   * The client ID is automatically assigned based on the last used ID in the datastore.
+   * {@code uniqueNameCheck} Checks if a client name is unique.
+   * @param newClient the client name to check for uniqueness
+   * Clienrt name comparison is case-insensitive.
    *
-   * @param ipAddress the IP address of the new client
-   * @param port the port number of the new client
-   * @return the newly created {@code Client} object with auto-generated ID
+   * @return true if the client name is unique, false otherwise
    */
-  public synchronized Client createClient(String ipAddress, int port) {
-    if (clients == null) {
-      clients = loadData();
-    }
-    
-    int newClientId = getNextClientId();
-    Client newClient = new Client(newClientId, ipAddress, port);
-    
-    clients.add(newClient);
-    saveData();
-    
-    if (logger.isInfoEnabled()) {
-      logger.info("Client created successfully with auto-generated id={} ip={} port={}", 
-          newClientId, ipAddress, port);
-    }
-    
-    return newClient;
-  }
-
-  /**
-   * Adds a new client to the data store with a pre-specified client ID.
-   * Use {@link #createClient(String, int)} for auto-generated IDs.
-   *
-   * @param newClient the {@code Client} object to be added
-   * @return true if the client was successfully added, false if the clientId already exists
-   *         or if the client is null
-   */
-  public synchronized boolean addClient(Client newClient) {
-    if (clients == null) {
-      clients = loadData();
-    }
-    if (newClient == null) {
-      if (logger.isWarnEnabled()) {
-        logger.warn("Attempted to add null client");
-      }
+  public synchronized boolean uniqueNameCheck(String newClientName) {
+    if (newClientName == null) {
       return false;
     }
     for (Client client : clients) {
-      if (client.getClientId() == newClient.getClientId()) {
+      String existing = client.getName();
+      if (existing != null && existing.equalsIgnoreCase(newClientName)) { // choose policy
         if (logger.isWarnEnabled()) {
-          logger.warn("Client already exists with id={}", newClient.getClientId());
+          logger.warn("Client name already exists: {}", newClientName);
         }
         return false;
       }
     }
-    clients.add(newClient);
+    return true;
+  }
+
+  /**
+   * Creates a new client with an auto-generated ID.
+   * The client ID is automatically assigned based on the last used ID in the datastore.
+   * @param name the name of the client. Ensure it's unique.
+   *
+   * @return the created {@code Client} object with assigned ID
+   */
+  public synchronized Client createClient(String name) {
+    if (name == null || name.isBlank()) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("Attempted to create client with blank name");
+      }
+      return null;
+    }
+    if (!uniqueNameCheck(name)) {
+      return null;
+    }
+    long newId = getNextClientId();
+    Client client = new Client();
+    client.setClientId(newId);
+    client.setName(name);
+    client.setApiKey(generateApiKey());
+    clients.add(client);
     saveData();
     if (logger.isInfoEnabled()) {
-      logger.info("Client added successfully id={}", newClient.getClientId());
+      logger.info("Client created successfully id={} name={}", newId, name);
     }
-    return true;
+    return client;
   }
 
   /**
@@ -241,41 +271,56 @@ public class ClientService {
    * @return true if the client was found and updated, false otherwise
    */
   public synchronized boolean updateClient(Client updatedClient) {
-    if (clients == null) {
-      clients = loadData();
-    }
     if (updatedClient == null) {
-      if (logger.isWarnEnabled()) {
-        logger.warn("Attempted to update with null client");
-      }
+      logger.warn("Attempted to update with null client");
+      return false;
+    }
+    Long updatedId = updatedClient.getClientId();
+    if (updatedId == null) {
+      logger.warn("Updated client missing clientId");
+      return false;
+    }
+    // Validate name if changed
+    String newName = updatedClient.getName();
+    if (newName == null || newName.isBlank()) {
+      logger.warn("Attempted to update client id={} with blank name", updatedId);
       return false;
     }
     for (int i = 0; i < clients.size(); i++) {
-      if (clients.get(i).getClientId() == updatedClient.getClientId()) {
+      Client existing = clients.get(i);
+      Long existingId = existing.getClientId();
+      // uniqueness check if name changed
+      if (!existing.getName().equalsIgnoreCase(newName) && !uniqueNameCheck(newName)) {
+        logger.warn("Name '{}' already in use. Update aborted.", newName);
+        return false;
+      }
+      if (existingId != null && existingId.equals(updatedId)) {
+        // Preserve apiKey if omitted
+        if (updatedClient.getApiKey() == null) {
+          updatedClient.setApiKey(existing.getApiKey());
+        }
         clients.set(i, updatedClient);
         saveData();
-        if (logger.isInfoEnabled()) {
-          logger.info("Client updated successfully id={}", updatedClient.getClientId());
-        }
+        logger.info("Client updated successfully id={}", updatedId);
         return true;
       }
     }
-    if (logger.isWarnEnabled()) {
-      logger.warn("Client not found for update id={}", updatedClient.getClientId());
-    }
+    logger.warn("Client not found for update id={}", updatedId);
     return false;
   }
 
   /**
-   * Prints all clients currently stored in the service.
+   * {@code printClients} Logs all clients at info level.
    */
   public synchronized void printClients() {
-    if (clients == null) {
-      clients = loadData();
-    }
-    if (logger.isInfoEnabled()) {
-      clients.forEach(c -> logger.info("Client: id={} ip={} port={}", 
-          c.getClientId(), c.getIpAddress(), c.getPort()));
+    for (Client client : clients) {
+      if (logger.isInfoEnabled()) {
+        logger.info("Client: id={} name={} rateLimit={} concurrent={}",
+            client.getClientId(), client.getName(),
+            client.getRateLimitPerMinute(),
+            client.getMaxConcurrentRequests());
+      }
     }
   }
+
 }

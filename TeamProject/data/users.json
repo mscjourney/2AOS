@@ -6,7 +6,8 @@
             "username": "alice",
             "role": "admin",
             "active": true,
-            "last_login": "2024-06-15T10:20:30Z"
+            "signUpDate": "2023-01-15T09:30:00Z",
+            "lastLogin": "2024-06-15T10:20:30Z"
         },
         {
             "id": 2,
@@ -14,7 +15,8 @@
             "username": "bob",
             "role": "user",
             "active": false,
-            "last_login": "2024-05-10T14:50:00Z"
+            "signUpDate": "2022-11-20T11:45:00Z",
+            "lastLogin": "2024-05-10T14:50:00Z"
         },
         {
             "id": 3,
@@ -22,7 +24,8 @@
             "username": "charlie",
             "role": "user",
             "active": true,
-            "last_login": "2024-06-20T08:15:45Z"
+            "signUpDate": "2024-03-05T08:00:00Z",
+            "lastLogin": "2024-06-18T16:30:15Z"
         }
 
     ]

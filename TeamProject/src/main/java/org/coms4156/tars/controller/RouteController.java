@@ -3,6 +3,8 @@ package org.coms4156.tars.controller;
 import java.util.List;
 import org.coms4156.tars.model.CrimeModel;
 import org.coms4156.tars.model.CrimeSummary;
+import org.coms4156.tars.model.TarsUser;
+import org.coms4156.tars.service.TarsUserService;
 import org.coms4156.tars.model.User;
 import org.coms4156.tars.model.WeatherAlert;
 import org.coms4156.tars.model.WeatherAlertModel;
@@ -74,19 +76,63 @@ public class RouteController {
 
   /**
    * Handles POST requests to create a user for a specific client.
+   * Pass new user information in the request body as a JSON object.
+   * @param newUserObject JSON object containing new user information.
    *
-   * @param clientId The ID of the client.
-   * @return A ResponseEntity indicating the result of the operation.
+   * @return A resource indicating that the user was created (not implemented).
   */
-  @PostMapping({"/clients/{clientId}/newUser"})
-  public ResponseEntity<String> addClientUser(@PathVariable String clientId) {
-    if (logger.isInfoEnabled()) {
-      logger.info("POST /clients/{}/newUser invoked (not implemented)", clientId);
+  @PostMapping({"/client/createUser"})
+  public ResponseEntity<String> createNewClientUser(@RequestBody TarsUser newUserObject) {
+
+    // If newUserObject is null or invalid, return BAD_REQUEST
+    if (newUserObject == null) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("POST /client/addNewUser failed: request body is null");
+      }
+      return new ResponseEntity<>("User body cannot be null.", HttpStatus.BAD_REQUEST);
     }
-    return new ResponseEntity<>(
-      "addClientUser is not yet implemented.",
-      HttpStatus.NOT_IMPLEMENTED
-    );
+
+    if (logger.isInfoEnabled()) {
+      logger.info("POST /client/createUser invoked");
+    }
+
+    // Ensure that newUserObject has valid key fields and values
+    if (newUserObject.getClientId() == null || newUserObject.getClientId() < 0) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("Invalid clientId: {}", newUserObject.getClientId());
+      }
+      return new ResponseEntity<>("Invalid clientId.", HttpStatus.BAD_REQUEST);
+    }
+    if (newUserObject.getUsername() == null || newUserObject.getUsername().isBlank()) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("Username cannot be blank");
+      }
+      return new ResponseEntity<>("Username cannot be blank.", HttpStatus.BAD_REQUEST);
+    }
+    if (newUserObject.getRole() == null || newUserObject.getRole().isBlank()) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("Role cannot be blank");
+      }
+      return new ResponseEntity<>("Role cannot be blank.", HttpStatus.BAD_REQUEST);
+    }
+
+    // Create the new user via TarsUserService
+    TarsUserService tarsUserService = TarsUserService.getInstance();
+    TarsUser createdUser = tarsUserService.createUser(newUserObject);
+    if (createdUser == null) {
+      if (logger.isErrorEnabled()) {
+        logger.error("Failed to create user for clientId={}", newUserObject.getClientId());
+      }
+      return new ResponseEntity<>("Failed to create user.", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    if (logger.isInfoEnabled()) {
+      logger.info("User created successfully: userId={} clientId={}", 
+          createdUser.getUserId(), createdUser.getClientId());
+    }
+
+
+    return new ResponseEntity<>("User created successfuly!", HttpStatus.CREATED);
+
   }
 
   /**
