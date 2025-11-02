@@ -8,12 +8,25 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class TarsUser {
 
+    @JsonProperty("userId")
     private Long userId;
+    
+    @JsonProperty("clientId")
     private Long clientId;
+    
+    @JsonProperty("username")
     private String username;
+    
+    @JsonProperty("role")
     private String role;
+    
+    @JsonProperty("active")
     private boolean active;
+    
+    @JsonProperty("signUpDate")
     private String signUpDate;
+    
+    @JsonProperty("lastLogin")
     private String lastLogin;
 
 
@@ -65,7 +78,7 @@ public class TarsUser {
         this.role = role;
     }
 
-    public boolean isActive() {
+    public boolean getActive() {
         return active;
     }
 
@@ -101,6 +114,4 @@ public class TarsUser {
                 ", lastLogin='" + lastLogin + '\'' +
                 '}';
     }
-
-    // how to send a json object {"clientId": 1233, "username": "bob", "role": user}in post request java spring boot endpoint
 }

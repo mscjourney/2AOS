@@ -1,14 +1,25 @@
 package org.coms4156.tars.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * {@code Client} A class to represent a client model in the Tars system.
  */
 public class Client {
 
+    @JsonProperty("clientId")
     private Long clientId;
+    
+    @JsonProperty("name")
     private String name;
+    
+    @JsonProperty("apiKey")
     private String apiKey;
+    
+    @JsonProperty("rateLimitPerMinute")
     private int rateLimitPerMinute;
+    
+    @JsonProperty("maxConcurrentRequests")
     private int maxConcurrentRequests;
 
     /**
@@ -99,7 +110,7 @@ public class Client {
         }
 
         Client client = (Client) obj;
-        return client.clientId == this.clientId;
+        return clientId != null && clientId.equals(client.clientId);
     }
 
     @Override

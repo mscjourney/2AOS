@@ -1,32 +1,29 @@
-[{"users" :
-    [
-        {
-            "id": 1,
-            "clientId": "0000000001",
-            "username": "alice",
-            "role": "admin",
-            "active": true,
-            "signUpDate": "2023-01-15T09:30:00Z",
-            "lastLogin": "2024-06-15T10:20:30Z"
-        },
-        {
-            "id": 2,
-            "clientId": "0000000002",
-            "username": "bob",
-            "role": "user",
-            "active": false,
-            "signUpDate": "2022-11-20T11:45:00Z",
-            "lastLogin": "2024-05-10T14:50:00Z"
-        },
-        {
-            "id": 3,
-            "clientId": "0000000003",
-            "username": "charlie",
-            "role": "user",
-            "active": true,
-            "signUpDate": "2024-03-05T08:00:00Z",
-            "lastLogin": "2024-06-18T16:30:15Z"
-        }
-
-    ]
-}]
+[
+    {
+        "userId": 1,
+        "clientId": 1,
+        "username": "alice",
+        "role": "admin",
+        "active": true,
+        "signUpDate": "2023-01-15T09:30:00Z",
+        "lastLogin": "2024-06-15T10:20:30Z"
+    },
+    {
+        "userId": 2,
+        "clientId": 2,
+        "username": "bob",
+        "role": "user",
+        "active": false,
+        "signUpDate": "2022-11-20T11:45:00Z",
+        "lastLogin": "2024-05-10T14:50:00Z"
+    },
+    {
+        "userId": 3,
+        "clientId": 3,
+        "username": "charlie",
+        "role": "user",
+        "active": true,
+        "signUpDate": "2024-03-05T08:00:00Z",
+        "lastLogin": "2024-06-18T16:30:15Z"
+    }
+]

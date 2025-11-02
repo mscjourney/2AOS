@@ -1,6 +1,7 @@
 package org.coms4156.tars.controller;
 
 import java.util.List;
+import java.util.Map;
 import org.coms4156.tars.model.CrimeModel;
 import org.coms4156.tars.model.CrimeSummary;
 import org.coms4156.tars.model.TarsUser;
@@ -62,116 +63,168 @@ public RouteController(TarsService tarsService, ClientService clientService, Tar
    * An endpoint to create a new client.
    * Request Method: POST
    * Returns a new client resource.
+   * @param name The name of the new client.
    *
-   * @param client The client object to be created.
    * @return A ResponseEntity indicating the result of the operation.
    */
-  @PostMapping({"/clients"})
-  public ResponseEntity<String> createClientRoute(@RequestBody User client) {
+  @PostMapping({"/client/create"})
+  public ResponseEntity<?> createClient(@RequestBody Map<String, String> body) {
     if (logger.isInfoEnabled()) {
-      logger.info("POST /clients invoked (not implemented). Incoming body userId={}", 
-          client != null ? client.getId() : "null");
+      logger.info("POST /client/create invoked");
     }
-    return new ResponseEntity<>(
-      "createClientRoute is not yet implemented.",
-      HttpStatus.NOT_IMPLEMENTED
+    if (body == null) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("POST /client/create failed: request body is null");
+      }
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Missing 'name'.");
+    }
+    if (logger.isDebugEnabled()) {
+      logger.debug("POST /client/create raw body keys={}", body.keySet());
+    }
+    if (!body.containsKey("name")) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("POST /client/create failed: 'name' field missing");
+      }
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Missing 'name'.");
+    }
+    String name = body.get("name") == null ? "" : body.get("name").trim();
+    if (name.isEmpty()) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("POST /client/create failed: blank name provided");
+      }
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Client name cannot be blank.");
+    }
+    if (!clientService.uniqueNameCheck(name)) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("POST /client/create conflict: name '{}' already exists", name);
+      }
+      return ResponseEntity.status(HttpStatus.CONFLICT).body("Client name already exists.");
+    }
+    Client created = clientService.createClient(name);
+    if (created == null) {
+      if (logger.isErrorEnabled()) {
+        logger.error("POST /client/create internal error: client creation returned null name='{}'", name);
+      }
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to create client.");
+    }
+    
+    if (logger.isInfoEnabled()) {
+      logger.info("POST /client/create success: clientId={} (view key in admin portal)", 
+          created.getClientId());
+    }
+
+    Map<String, Object> response = Map.of(
+        "clientId", created.getClientId(),
+        "name", created.getName(),
+        "message", "Client created successfully. Log in to the admin portal to retrieve your API key.",
+        "portalUrl", "https://admin.tars.example.com/clients/" + created.getClientId() + "/credentials"
     );
+    return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
   /**
    * Handles POST requests to create a user for a specific client.
    * Pass new user information in the request body as a JSON object.
-   * @param newUserObject JSON object containing new user information.
+   * @param newUserRequestBody JSON object containing new user information.
    *
    * @return A resource indicating that the user was created (not implemented).
   */
   @PostMapping({"/client/createUser"})
-  public ResponseEntity<String> createNewClientUser(@RequestBody TarsUser newUserObject) {
-
-    // If newUserObject is null or invalid, return BAD_REQUEST
-    if (newUserObject == null) {
-      if (logger.isWarnEnabled()) {
-        logger.warn("POST /client/addNewUser failed: request body is null");
-      }
-      return new ResponseEntity<>("User body cannot be null.", HttpStatus.BAD_REQUEST);
-    }
-
+  public ResponseEntity<?> createClientUser(@RequestBody TarsUser newUserRequestBody) {
     if (logger.isInfoEnabled()) {
       logger.info("POST /client/createUser invoked");
     }
-
-    // Ensure that newUserObject has valid key fields and values
-    if (newUserObject.getClientId() == null) {
+    if (newUserRequestBody == null) {
       if (logger.isWarnEnabled()) {
-        logger.warn("Invalid clientId: null");
+        logger.warn("POST /client/createUser failed: body null");
       }
-      return new ResponseEntity<>("Invalid clientId.", HttpStatus.BAD_REQUEST);
+      return ResponseEntity.badRequest().body("Body cannot be null.");
     }
-    if (newUserObject.getUsername() == null || (newUserObject.getUsername() != null && newUserObject.getUsername().isBlank())) {
+    Long clientId = newUserRequestBody.getClientId();
+    if (clientId == null || clientId < 0) {
       if (logger.isWarnEnabled()) {
-        logger.warn("Username cannot be blank");
+        logger.warn(
+          "POST /client/createUser failed: invalid clientId={}",
+          clientId
+          );
       }
-      return new ResponseEntity<>("Username cannot be blank.", HttpStatus.BAD_REQUEST);
+      return ResponseEntity.badRequest().body("Invalid clientId.");
     }
-    if (newUserObject.getUsername() == null || newUserObject.getUsername().isBlank()) {
+    String username = newUserRequestBody.getUsername() == null ? "" : newUserRequestBody.getUsername().trim();
+    String role = newUserRequestBody.getRole() == null ? "" : newUserRequestBody.getRole().trim();
+    if (username.isEmpty()) {
       if (logger.isWarnEnabled()) {
-        logger.warn("Username cannot be blank");
+        logger.warn(
+          "POST /client/createUser failed: blank username clientId={}",
+          clientId
+          );
       }
-      return new ResponseEntity<>("Username cannot be blank.", HttpStatus.BAD_REQUEST);
+      return ResponseEntity.badRequest().body("Username cannot be blank.");
     }
-    if (newUserObject.getRole() == null || (newUserObject.getRole() != null && newUserObject.getRole().isBlank())) {
+    if (role.isEmpty()) {
       if (logger.isWarnEnabled()) {
-        logger.warn("Role cannot be blank");
+        logger.warn(
+          "POST /client/createUser failed: blank role username='{}' clientId={}",
+          username, clientId
+          );
       }
-      return new ResponseEntity<>("Role cannot be blank.", HttpStatus.BAD_REQUEST);
+      return ResponseEntity.badRequest().body("Role cannot be blank.");
     }
-
-    // Verify that the clientId exists
-    Client client = clientService.getClient(newUserObject.getClientId());
-
+    if (logger.isDebugEnabled()) {
+      logger.debug(
+        "POST /client/createUser validation passed clientId={} username='{}' role='{}'",
+        clientId, username, role
+        );
+    }
+    
+    Client client = clientService.getClient(clientId.intValue());
     if (client == null) {
       if (logger.isWarnEnabled()) {
-        logger.warn("Client with id {} does not exist.", newUserObject.getClientId());
+        logger.warn("POST /client/createUser failed: client not found clientId={}", clientId);
       }
-      return new ResponseEntity<>("Client does not exist.", HttpStatus.BAD_REQUEST);
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Client not found.");
     }
 
-    // With Client verified, sanitize and validate input before creating the new user
-    String sanitizedUsername = newUserObject.getUsername().trim();
-    String sanitizedRole = newUserObject.getRole().trim();
-
-    if (sanitizedUsername.isEmpty()) {
+    // Check username uniqueness
+    if (tarsUserService.existsByClientIdAndUsername(clientId, username)) {
       if (logger.isWarnEnabled()) {
-        logger.warn("Sanitized username is empty");
+        logger.warn(
+          "POST /client/createUser conflict: username='{}' exists for clientId={}",
+          username, clientId
+          );
       }
-      return new ResponseEntity<>("Username cannot be blank after sanitization.", HttpStatus.BAD_REQUEST);
-    }
-    if (sanitizedRole.isEmpty()) {
-      if (logger.isWarnEnabled()) {
-        logger.warn("Sanitized role is empty");
-      }
-      return new ResponseEntity<>("Role cannot be blank after sanitization.", HttpStatus.BAD_REQUEST);
+      return ResponseEntity.status(
+        HttpStatus.CONFLICT).body(
+          "Username already exists for this client."
+          );
     }
 
-    TarsUser createdUser = tarsUserService.createUser(
-        newUserObject.getClientId(),
-        sanitizedUsername,
-        sanitizedRole
-    );
-
-    if (createdUser == null) {
+    TarsUser created = tarsUserService.createUser(clientId, username, role);
+    if (created == null) {
       if (logger.isErrorEnabled()) {
-        logger.error("Failed to create user for clientId={}", newUserObject.getClientId());
+        logger.error(
+          "POST /client/createUser internal error after create clientId={} username='{}'",
+          clientId,
+          username
+          );
       }
-      return new ResponseEntity<>("Failed to create user.", HttpStatus.INTERNAL_SERVER_ERROR);
-    } else {
-      if (logger.isInfoEnabled()) {
-        logger.info("User created successfully id={} clientId={}", 
-            createdUser.getUserId(), createdUser.getClientId());
-      }
-      return new ResponseEntity<>("User created successfully.", HttpStatus.CREATED);
+      return ResponseEntity.status(
+        HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to create user.");
     }
-
+    if (logger.isInfoEnabled()) {
+      logger.info(
+        "POST /client/createUser success: newUserId={} clientId={} username='{}'",
+        created.getUserId(), clientId, username
+        );
+    }
+    if (logger.isDebugEnabled()) {
+      logger.debug(
+        "POST /client/createUser created user detail active={} role='{}'",
+        created.getActive(),
+        created.getRole()
+        );
+    }
+    return ResponseEntity.status(HttpStatus.CREATED).body(created);
   }
 
   /**
@@ -310,7 +363,10 @@ public RouteController(TarsService tarsService, ClientService clientService, Tar
       WeatherAlert alert = WeatherAlertModel.getWeatherAlerts(city, lat, lon);
 
       if (logger.isInfoEnabled()) {
-        logger.info("Weather alert retrieved for location city={} lat={} lon={}", city, lat, lon);
+        logger.info(
+          "Weather alert retrieved for location city={} lat={} lon={}",
+          city, lat, lon
+          );
       }
       if (logger.isDebugEnabled()) {
         logger.debug("Alert detail: {}", alert);
@@ -325,7 +381,9 @@ public RouteController(TarsService tarsService, ClientService clientService, Tar
       return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     } catch (Exception e) {
       if (logger.isErrorEnabled()) {
-        logger.error("Error retrieving weather alerts city={} lat={} lon={}", city, lat, lon, e);
+        logger.error(
+          "Error retrieving weather alerts city={} lat={} lon={}",
+          city, lat, lon, e);
       }
       return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
