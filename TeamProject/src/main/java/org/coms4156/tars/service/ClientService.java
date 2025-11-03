@@ -60,7 +60,7 @@ public class ClientService {
   /**
    * {@code generateApiKey} Generates a new API key for a client.
    *
-   * @return
+   * @return the generated API key as a String
    */
   private String generateApiKey() {
     // Simple random 32-char hex token
@@ -75,8 +75,8 @@ public class ClientService {
 
   /**
    * {@code rotateApiKey} Rotates the API key for a given client.
-   * @param clientId the ID of the client whose API key is to be rotated
    *
+   * @param clientId the ID of the client whose API key is to be rotated
    * @return the new API key, or null if client not found
    */
   public synchronized String rotateApiKey(long clientId) {
@@ -90,7 +90,7 @@ public class ClientService {
     saveData();
     if (logger.isInfoEnabled()) {
       logger.info("API key rotated for client id={} (key suffix={})",
-        clientId, newKey.substring(newKey.length() - 4));
+          clientId, newKey.substring(newKey.length() - 4));
     }
     return newKey;
   }
@@ -189,9 +189,8 @@ public class ClientService {
 
   /**
    * {@code uniqueNameCheck} Checks if a client name is unique.
-   * @param newClient the client name to check for uniqueness
-   * Clienrt name comparison is case-insensitive.
    *
+   * @param newClientName the client name to check for uniqueness; comparison is case-insensitive.
    * @return true if the client name is unique, false otherwise
    */
   public synchronized boolean uniqueNameCheck(String newClientName) {
@@ -213,8 +212,8 @@ public class ClientService {
   /**
    * Creates a new client with an auto-generated ID.
    * The client ID is automatically assigned based on the last used ID in the datastore.
-   * @param name the name of the client. Ensure it's unique.
    *
+   * @param name the name of the client. Ensure it's unique.
    * @return the created {@code Client} object with assigned ID
    */
   public synchronized Client createClient(String name) {

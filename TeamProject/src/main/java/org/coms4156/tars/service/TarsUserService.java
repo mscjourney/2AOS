@@ -23,265 +23,260 @@ import org.springframework.stereotype.Service;
  */
 @Service 
 public class TarsUserService {
-    private static final Logger logger = LoggerFactory.getLogger(TarsUserService.class);
-    private final ObjectMapper mapper = new ObjectMapper();
-    private final File userFile;
-    private final AtomicLong idCounter = new AtomicLong(0);
-    private List<TarsUser> users;
+  private static final Logger logger = LoggerFactory.getLogger(TarsUserService.class);
+  private final ObjectMapper mapper = new ObjectMapper();
+  private final File userFile;
+  private final AtomicLong idCounter = new AtomicLong(0);
+  private List<TarsUser> users;
 
-    /**
-     * {@code TarsUserService} constructor.
-     * Initializes a new instance of TarsUserService.
-     * Loads user data from the JSON user database.
-     */
-    public TarsUserService(
-        @Value("${tars.users.path:./data/users.json}") String userFilePath) {
-        this.userFile = new File(userFilePath);
-        ensureFile();
-        this.users = load();
-        
-        // Initialize counter to max existing id
-        long maxUserId = 0;
-        for (TarsUser existingUser : users) {
-            Long userId = existingUser.getUserId();
-            if (userId != null && userId > maxUserId) {
-                maxUserId = userId;
-            }
-        }
-        idCounter.set(maxUserId);
+  /**
+   * {@code TarsUserService} constructor.
+   * Initializes a new instance of TarsUserService.
+   * Loads user data from the JSON user database.
+   */
+  public TarsUserService(
+      @Value("${tars.users.path:./data/users.json}") String userFilePath) {
+    this.userFile = new File(userFilePath);
+    ensureFile();
+    this.users = load();
+    
+    // Initialize counter to max existing id
+    long maxUserId = 0;
+    for (TarsUser existingUser : users) {
+      Long userId = existingUser.getUserId();
+      if (userId != null && userId > maxUserId) {
+        maxUserId = userId;
+      }
     }
+    idCounter.set(maxUserId);
+  }
 
-    /**
-     * {@code ensureFile} Ensures the user database file exists.
-     * If it does not exist, creates an empty JSON array file.
-     */
-    private void ensureFile() {
-        if (!userFile.exists()) {
-            try {
-                File parent = userFile.getParentFile();
-                if (parent != null) {
-                    parent.mkdirs();
-                }
-                mapper.writeValue(userFile, new ArrayList<TarsUser>());
-                if (logger.isInfoEnabled()) {
-                    logger.info(
-                        "Created user store at {}",
-                        userFile.getAbsolutePath()
-                        );
-                }
-            } catch (IOException ioException) {
-                if (logger.isErrorEnabled()) {
-                    logger.error(
-                        "Failed to initialize user store {}",
-                        userFile.getPath(),
-                        ioException
-                        );
-                }
-            }
+  /**
+   * {@code ensureFile} Ensures the user database file exists.
+   * If it does not exist, creates an empty JSON array file.
+   */
+  private void ensureFile() {
+    if (!userFile.exists()) {
+      try {
+        File parent = userFile.getParentFile();
+        if (parent != null) {
+          parent.mkdirs();
         }
-    }
-
-    /**
-     * {@code load} Loads the user data from the JSON user database.
-     * 
-     * @return List of TarsUser objects
-     */
-    private synchronized List<TarsUser> load() {
-        try {
-            return mapper.readValue(userFile, new TypeReference<List<TarsUser>>() {});
-        } catch (IOException ioException) {
-            if (logger.isErrorEnabled()) {
-                logger.error(
-                    "Failed to read users file {}",
-                    userFile.getPath(),
-                    ioException
-                    );
-            }
-            return new ArrayList<>();
-        }
-    }
-
-    /**
-     * {@code persist} Persists the current users list to the JSON user database.
-     * Handles atomic file replacement to avoid data corruption.
-     */
-    private synchronized void persist() {
-        File tempFile = new File(userFile.getParent(), userFile.getName() + ".tmp");
-        try {
-            mapper.writeValue(tempFile, users);
-            Files.move(
-                tempFile.toPath(),
-                userFile.toPath(),
-                StandardCopyOption.REPLACE_EXISTING,
-                StandardCopyOption.ATOMIC_MOVE
-            );
-        } catch (IOException ioException) {
-            if (logger.isErrorEnabled()) {
-                logger.error(
-                    "Failed to persist users to {}",
-                    userFile.getPath(),
-                    ioException
-                    );
-            }
-            if (tempFile.exists()) {
-                tempFile.delete();
-            }
-        }
-    }
-
-    /**
-     * {@code listUsers} Returns an unmodifiable list of all TarsUsers.
-     * 
-     * @return List of TarsUser objects
-     */
-    public synchronized List<TarsUser> listUsers() {
-        return Collections.unmodifiableList(new ArrayList<>(users));
-    }
-
-    /**
-     * {@code findById} Finds a TarsUser by their userId.
-     * @param userId the unique identifier for the user
-     *
-     * @return the TarsUser object if found, or null if not found
-     */
-    public synchronized TarsUser findById(Long userId) {
-        if (userId == null) {
-            return null;
-        }
-        for (TarsUser existingUser : users) {
-            if (userId.equals(existingUser.getUserId())) {
-                return existingUser;
-            }
-        }
-        return null;
-    }
-
-    /**
-     * {@code createUser} Creates a new TarsUser with enforced username uniqueness per client.
-     *
-     * @param clientId client association (required)
-     * @param username chosen username (required, trimmed, case-insensitive uniqueness)
-     * @param role role string (required)
-     *
-     * @return created user or null if invalid inputs or username already exists
-     */
-    public synchronized TarsUser createUser(Long clientId, String username, String role) {
-        if (clientId == null || username == null || role == null) {
-            if (logger.isWarnEnabled()) {
-                logger.warn(
-                    "createUser rejected: null parameters clientId={} username={} role={}",
-                    clientId, username, role);
-            }
-            return null;
-        }
-
-        String normalizedUsername = username.trim();
-        String normalizedRole = role.trim();
-
-        if (normalizedUsername.isEmpty()) {
-            if (logger.isWarnEnabled()) {
-                logger.warn("createUser rejected: blank username clientId={}",
-                clientId);
-            }
-            return null;
-        }
-
-        if (normalizedRole.isEmpty()) {
-            if (logger.isWarnEnabled()) {
-                logger.warn("createUser rejected: blank role clientId={} username='{}'",
-                clientId, normalizedUsername);
-            }
-            return null;
-        }
-
-        // Uniqueness check removed - controller is responsible for this validation
-
-        long newUserId = idCounter.incrementAndGet();
-        TarsUser newUser = new TarsUser(clientId, normalizedUsername, normalizedRole);
-        newUser.setUserId(newUserId);
-        newUser.setSignUpDate(Instant.now().toString());
-        newUser.setLastLogin("");
-        newUser.setActive(true);
-
-        users.add(newUser);
-        persist();
-        
+        mapper.writeValue(userFile, new ArrayList<TarsUser>());
         if (logger.isInfoEnabled()) {
-            logger.info("Created TarsUser id={} clientId={} username='{}'",
-            newUserId, clientId, normalizedUsername);
+          logger.info(
+              "Created user store at {}",
+              userFile.getAbsolutePath());
         }
-        return newUser;
+      } catch (IOException ioException) {
+        if (logger.isErrorEnabled()) {
+          logger.error(
+              "Failed to initialize user store {}",
+              userFile.getPath(),
+              ioException);
+        }
+      }
+    }
+  }
+
+  /**
+   * {@code load} Loads the user data from the JSON user database.
+   *
+   * @return List of TarsUser objects
+   */
+  private synchronized List<TarsUser> load() {
+    try {
+      return mapper.readValue(userFile, new TypeReference<List<TarsUser>>() {});
+    } catch (IOException ioException) {
+      if (logger.isErrorEnabled()) {
+        logger.error(
+            "Failed to read users file {}",
+            userFile.getPath(),
+            ioException);
+      }
+      return new ArrayList<>();
+    }
+  }
+
+  /**
+   * {@code persist} Persists the current users list to the JSON user database.
+   * Handles atomic file replacement to avoid data corruption.
+   */
+  private synchronized void persist() {
+    File tempFile = new File(userFile.getParent(), userFile.getName() + ".tmp");
+    try {
+      mapper.writeValue(tempFile, users);
+      Files.move(
+          tempFile.toPath(),
+          userFile.toPath(),
+          StandardCopyOption.REPLACE_EXISTING,
+          StandardCopyOption.ATOMIC_MOVE);
+    } catch (IOException ioException) {
+      if (logger.isErrorEnabled()) {
+        logger.error(
+            "Failed to persist users to {}",
+            userFile.getPath(),
+            ioException);
+      }
+      if (tempFile.exists()) {
+        tempFile.delete();
+      }
+    }
+  }
+
+  /**
+   * {@code listUsers} Returns an unmodifiable list of all TarsUsers.
+   *
+   * @return List of TarsUser objects
+   */
+  public synchronized List<TarsUser> listUsers() {
+    return Collections.unmodifiableList(new ArrayList<>(users));
+  }
+
+  /**
+   * {@code findById} Finds a TarsUser by their userId.
+   *
+   * @param userId the unique identifier for the user
+   * @return the TarsUser object if found, or null if not found
+   */
+  public synchronized TarsUser findById(Long userId) {
+    if (userId == null) {
+      return null;
+    }
+    for (TarsUser existingUser : users) {
+      if (userId.equals(existingUser.getUserId())) {
+        return existingUser;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * {@code createUser} Creates a new TarsUser with enforced username uniqueness per client.
+   *
+   * @param clientId client association (required)
+   * @param username chosen username (required, trimmed, case-insensitive uniqueness)
+   * @param role role string (required)
+   *
+   * @return created user or null if invalid inputs or username already exists
+   */
+  public synchronized TarsUser createUser(Long clientId, String username, String role) {
+    if (clientId == null || username == null || role == null) {
+      if (logger.isWarnEnabled()) {
+        logger.warn(
+            "createUser rejected: null parameters clientId={} username={} role={}",
+            clientId, username, role);
+      }
+      return null;
     }
 
-    /**
-     * {@code deactivateUser} Deactivates a user by setting their active status to false.
-     * @param userId the unique identifier for the user
-     *
-     * @return Boolean indicating success
-     */
-    public synchronized boolean deactivateUser(Long userId) {
-        TarsUser targetUser = findById(userId);
-        if (targetUser == null) {
-            if (logger.isWarnEnabled()) {
-                logger.warn("deactivateUser: user not found id={}", userId);
-            }
-            return false;
-        }
-        targetUser.setActive(false);
-        persist();
-        if (logger.isInfoEnabled()) {
-            logger.info("User deactivated id={}", userId);
-        }
-        return true;
+    String normalizedUsername = username.trim();
+    String normalizedRole = role.trim();
+
+    if (normalizedUsername.isEmpty()) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("createUser rejected: blank username clientId={}",
+            clientId);
+      }
+      return null;
     }
 
-    /**
-     * {@code updateLastLogin} Updates the lastLogin timestamp for a user to the current time.
-     * @param userId the unique identifier for the user
-     *
-     * @return Boolean indicating success
-     */
-    public synchronized boolean updateLastLogin(Long userId) {
-        TarsUser targetUser = findById(userId);
-        if (targetUser == null) {
-            if (logger.isWarnEnabled()) {
-                logger.warn("updateLastLogin: user not found id={}", userId);
-            }
-            return false;
-        }
-        targetUser.setLastLogin(Instant.now().toString());
-        persist();
-        if (logger.isInfoEnabled()) {
-            logger.info("Updated lastLogin for user id={}", userId);
-        }
-        return true;
+    if (normalizedRole.isEmpty()) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("createUser rejected: blank role clientId={} username='{}'",
+            clientId, normalizedUsername);
+      }
+      return null;
     }
 
-    /**
-     * {@code existsByClientIdAndUsername} Checks if a username already exists for a client.
-     * 
-     * @param clientId the client identifier
-     * @param username the username to check (case-insensitive)
-     * @return true if username exists for this client, false otherwise
-     */
-    public synchronized boolean existsByClientIdAndUsername(Long clientId, String username) {
-        if (clientId == null || username == null) {
-            return false;
-        }
-        String normalizedUsernameLowerCase = username.trim().toLowerCase(Locale.ROOT);
-        for (TarsUser existingUser : users) {
-            Long existingClientId = existingUser.getClientId();
-            String existingUsername = existingUser.getUsername();
-            
-            if (existingClientId != null && existingUsername != null) {
-                if (existingClientId.equals(clientId)) {
-                    String existingUsernameLowerCase = existingUsername.trim().toLowerCase(Locale.ROOT);
-                    if (existingUsernameLowerCase.equals(normalizedUsernameLowerCase)) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
+    // Uniqueness check removed - controller is responsible for this validation
+
+    long newUserId = idCounter.incrementAndGet();
+    TarsUser newUser = new TarsUser(clientId, normalizedUsername, normalizedRole);
+    newUser.setUserId(newUserId);
+    newUser.setSignUpDate(Instant.now().toString());
+    newUser.setLastLogin("");
+    newUser.setActive(true);
+
+    users.add(newUser);
+    persist();
+    
+    if (logger.isInfoEnabled()) {
+      logger.info("Created TarsUser id={} clientId={} username='{}'",
+          newUserId, clientId, normalizedUsername);
     }
+    return newUser;
+  }
+
+  /**
+   * {@code deactivateUser} Deactivates a user by setting their active status to false.
+   *
+   * @param userId the unique identifier for the user
+   * @return Boolean indicating success
+   */
+  public synchronized boolean deactivateUser(Long userId) {
+    TarsUser targetUser = findById(userId);
+    if (targetUser == null) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("deactivateUser: user not found id={}", userId);
+      }
+      return false;
+    }
+    targetUser.setActive(false);
+    persist();
+    if (logger.isInfoEnabled()) {
+      logger.info("User deactivated id={}", userId);
+    }
+    return true;
+  }
+
+  /**
+   * {@code updateLastLogin} Updates the lastLogin timestamp for a user to the current time.
+   *
+   * @param userId the unique identifier for the user
+   * @return Boolean indicating success
+   */
+  public synchronized boolean updateLastLogin(Long userId) {
+    TarsUser targetUser = findById(userId);
+    if (targetUser == null) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("updateLastLogin: user not found id={}", userId);
+      }
+      return false;
+    }
+    targetUser.setLastLogin(Instant.now().toString());
+    persist();
+    if (logger.isInfoEnabled()) {
+      logger.info("Updated lastLogin for user id={}", userId);
+    }
+    return true;
+  }
+
+  /**
+   * {@code existsByClientIdAndUsername} Checks if a username already exists for a client.
+   *
+   * @param clientId the client identifier
+   * @param username the username to check (case-insensitive)
+   * @return true if username exists for this client, false otherwise
+   */
+  public synchronized boolean existsByClientIdAndUsername(Long clientId, String username) {
+    if (clientId == null || username == null) {
+      return false;
+    }
+    String normalizedUsernameLowerCase = username.trim().toLowerCase(Locale.ROOT);
+    for (TarsUser existingUser : users) {
+      Long existingClientId = existingUser.getClientId();
+      String existingUsername = existingUser.getUsername();
+      
+      if (existingClientId != null && existingUsername != null) {
+        if (existingClientId.equals(clientId)) {
+          String existingUsernameLowerCase = existingUsername.trim().toLowerCase(Locale.ROOT);
+          if (existingUsernameLowerCase.equals(normalizedUsernameLowerCase)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
 }

@@ -2,18 +2,18 @@ package org.coms4156.tars.controller;
 
 import java.util.List;
 import java.util.Map;
+import org.coms4156.tars.model.Client;
 import org.coms4156.tars.model.CrimeModel;
 import org.coms4156.tars.model.CrimeSummary;
 import org.coms4156.tars.model.TarsUser;
-import org.coms4156.tars.service.TarsUserService;
 import org.coms4156.tars.model.User;
 import org.coms4156.tars.model.WeatherAlert;
 import org.coms4156.tars.model.WeatherAlertModel;
 import org.coms4156.tars.model.WeatherModel;
 import org.coms4156.tars.model.WeatherRecommendation;
-import org.coms4156.tars.model.Client;
-import org.coms4156.tars.service.TarsService;
 import org.coms4156.tars.service.ClientService;
+import org.coms4156.tars.service.TarsService;
+import org.coms4156.tars.service.TarsUserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -32,17 +32,25 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class RouteController {
 
-private static final Logger logger = LoggerFactory.getLogger(RouteController.class);
+  private static final Logger logger = LoggerFactory.getLogger(RouteController.class);
 
-private final TarsService tarsService;
-private final ClientService clientService;
-private final TarsUserService tarsUserService;
+  private final TarsService tarsService;
+  private final ClientService clientService;
+  private final TarsUserService tarsUserService;
 
-public RouteController(TarsService tarsService, ClientService clientService, TarsUserService tarsUserService) {
-  this.tarsService = tarsService;
-  this.clientService = clientService;
-  this.tarsUserService = tarsUserService;
-}
+  /**
+   * Constructor for {@code RouteController}.
+   *
+   * @param tarsService The TarsService instance.
+   * @param clientService The ClientService instance.
+   * @param tarsUserService The TarsUserService instance.
+   */
+  public RouteController(
+      TarsService tarsService, ClientService clientService, TarsUserService tarsUserService) {
+    this.tarsService = tarsService;
+    this.clientService = clientService;
+    this.tarsUserService = tarsUserService;
+  }
 
   /**
    * The index route of the API.
@@ -63,7 +71,8 @@ public RouteController(TarsService tarsService, ClientService clientService, Tar
    * An endpoint to create a new client.
    * Request Method: POST
    * Returns a new client resource.
-   * @param name The name of the new client.
+   *
+   * @param body JSON object containing the new client's name.
    *
    * @return A ResponseEntity indicating the result of the operation.
    */
@@ -103,9 +112,12 @@ public RouteController(TarsService tarsService, ClientService clientService, Tar
     Client created = clientService.createClient(name);
     if (created == null) {
       if (logger.isErrorEnabled()) {
-        logger.error("POST /client/create internal error: client creation returned null name='{}'", name);
+        logger.error("POST /client/create internal error: client creation returned null name='{}'",
+            name);
       }
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to create client.");
+      return ResponseEntity.status(
+        HttpStatus.INTERNAL_SERVER_ERROR
+        ).body("Failed to create client.");
     }
     
     if (logger.isInfoEnabled()) {
@@ -116,8 +128,13 @@ public RouteController(TarsService tarsService, ClientService clientService, Tar
     Map<String, Object> response = Map.of(
         "clientId", created.getClientId(),
         "name", created.getName(),
-        "message", "Client created successfully. Log in to the admin portal to retrieve your API key.",
-        "portalUrl", "https://admin.tars.example.com/clients/" + created.getClientId() + "/credentials"
+        "message",
+        "Client created successfully. "
+         + "Log in to the admin portal to retrieve your API key.",
+        "portalUrl",
+          "https://admin.tars.example.com/clients/"
+          + created.getClientId()
+          + "/credentials"
     );
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
@@ -125,6 +142,7 @@ public RouteController(TarsService tarsService, ClientService clientService, Tar
   /**
    * Handles POST requests to create a user for a specific client.
    * Pass new user information in the request body as a JSON object.
+   *
    * @param newUserRequestBody JSON object containing new user information.
    *
    * @return A resource indicating that the user was created (not implemented).
@@ -144,37 +162,35 @@ public RouteController(TarsService tarsService, ClientService clientService, Tar
     if (clientId == null || clientId < 0) {
       if (logger.isWarnEnabled()) {
         logger.warn(
-          "POST /client/createUser failed: invalid clientId={}",
-          clientId
-          );
+            "POST /client/createUser failed: invalid clientId={}",
+            clientId);
       }
       return ResponseEntity.badRequest().body("Invalid clientId.");
     }
-    String username = newUserRequestBody.getUsername() == null ? "" : newUserRequestBody.getUsername().trim();
+    String username = newUserRequestBody.getUsername() == null
+        ? ""
+        : newUserRequestBody.getUsername().trim();
     String role = newUserRequestBody.getRole() == null ? "" : newUserRequestBody.getRole().trim();
     if (username.isEmpty()) {
       if (logger.isWarnEnabled()) {
         logger.warn(
-          "POST /client/createUser failed: blank username clientId={}",
-          clientId
-          );
+            "POST /client/createUser failed: blank username clientId={}",
+            clientId);
       }
       return ResponseEntity.badRequest().body("Username cannot be blank.");
     }
     if (role.isEmpty()) {
       if (logger.isWarnEnabled()) {
         logger.warn(
-          "POST /client/createUser failed: blank role username='{}' clientId={}",
-          username, clientId
-          );
+            "POST /client/createUser failed: blank role username='{}' clientId={}",
+            username, clientId);
       }
       return ResponseEntity.badRequest().body("Role cannot be blank.");
     }
     if (logger.isDebugEnabled()) {
       logger.debug(
-        "POST /client/createUser validation passed clientId={} username='{}' role='{}'",
-        clientId, username, role
-        );
+          "POST /client/createUser validation passed clientId={} username='{}' role='{}'",
+          clientId, username, role);
     }
     
     Client client = clientService.getClient(clientId.intValue());
@@ -189,9 +205,8 @@ public RouteController(TarsService tarsService, ClientService clientService, Tar
     if (tarsUserService.existsByClientIdAndUsername(clientId, username)) {
       if (logger.isWarnEnabled()) {
         logger.warn(
-          "POST /client/createUser conflict: username='{}' exists for clientId={}",
-          username, clientId
-          );
+            "POST /client/createUser conflict: username='{}' exists for clientId={}",
+            username, clientId);
       }
       return ResponseEntity.status(
         HttpStatus.CONFLICT).body(
@@ -203,26 +218,21 @@ public RouteController(TarsService tarsService, ClientService clientService, Tar
     if (created == null) {
       if (logger.isErrorEnabled()) {
         logger.error(
-          "POST /client/createUser internal error after create clientId={} username='{}'",
-          clientId,
-          username
-          );
+            "POST /client/createUser internal error after create clientId={} username='{}'",
+            clientId, username);
       }
       return ResponseEntity.status(
         HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to create user.");
     }
     if (logger.isInfoEnabled()) {
       logger.info(
-        "POST /client/createUser success: newUserId={} clientId={} username='{}'",
-        created.getUserId(), clientId, username
-        );
+          "POST /client/createUser success: newUserId={} clientId={} username='{}'",
+          created.getUserId(), clientId, username);
     }
     if (logger.isDebugEnabled()) {
       logger.debug(
-        "POST /client/createUser created user detail active={} role='{}'",
-        created.getActive(),
-        created.getRole()
-        );
+          "POST /client/createUser created user detail active={} role='{}'",
+          created.getActive(), created.getRole());
     }
     return ResponseEntity.status(HttpStatus.CREATED).body(created);
   }
@@ -364,9 +374,8 @@ public RouteController(TarsService tarsService, ClientService clientService, Tar
 
       if (logger.isInfoEnabled()) {
         logger.info(
-          "Weather alert retrieved for location city={} lat={} lon={}",
-          city, lat, lon
-          );
+            "Weather alert retrieved for location city={} lat={} lon={}",
+            city, lat, lon);
       }
       if (logger.isDebugEnabled()) {
         logger.debug("Alert detail: {}", alert);
@@ -382,8 +391,8 @@ public RouteController(TarsService tarsService, ClientService clientService, Tar
     } catch (Exception e) {
       if (logger.isErrorEnabled()) {
         logger.error(
-          "Error retrieving weather alerts city={} lat={} lon={}",
-          city, lat, lon, e);
+            "Error retrieving weather alerts city={} lat={} lon={}",
+            city, lat, lon, e);
       }
       return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }

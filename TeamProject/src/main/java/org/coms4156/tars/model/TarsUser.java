@@ -8,110 +8,126 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class TarsUser {
 
-    @JsonProperty("userId")
-    private Long userId;
-    
-    @JsonProperty("clientId")
-    private Long clientId;
-    
-    @JsonProperty("username")
-    private String username;
-    
-    @JsonProperty("role")
-    private String role;
-    
-    @JsonProperty("active")
-    private boolean active;
-    
-    @JsonProperty("signUpDate")
-    private String signUpDate;
-    
-    @JsonProperty("lastLogin")
-    private String lastLogin;
+  @JsonProperty("userId")
+  private Long userId;
+  
+  @JsonProperty("clientId")
+  private Long clientId;
+  
+  @JsonProperty("username")
+  private String username;
+  
+  @JsonProperty("role")
+  private String role;
+  
+  @JsonProperty("active")
+  private boolean active;
+  
+  @JsonProperty("signUpDate")
+  private String signUpDate;
+  
+  @JsonProperty("lastLogin")
+  private String lastLogin;
 
 
-    @JsonCreator
-    public TarsUser(
-            @JsonProperty("clientId") Long clientId,
-            @JsonProperty("username") String username,
-            @JsonProperty("role") String role
-            ) {
-        this.clientId = clientId;
-        this.username = username;
-        this.role = role;
-        this.active = true; // Default to active when created
-        this.signUpDate = "";
-        this.lastLogin = "";
-        this.userId = null; // userId to be set later
-    }
+  /**
+   * {@code TarsUser} empty constructor. Initializes a new instance of TarsUser.
+   */
+  public TarsUser() {
+    this.userId = null;
+    this.clientId = null;
+    this.username = "";
+    this.role = "user"; // Default role
+    this.active = true; // Default to active
+    this.signUpDate = "";
+    this.lastLogin = "";
+  }
 
-    // Getters and Setters
-    public Long getUserId() {
-        return userId;
-    }
+  /**
+   * {@code TarsUser} parameterized constructor.
+   * Initializes a new instance of TarsUser with specified values.
+   *
+   * @param clientId The client ID associated with the user.
+   * @param username The username of the user.
+   * @param role The role of the user (e.g., "admin", "user").
+   */
+  @JsonCreator
+  public TarsUser(
+        @JsonProperty("clientId") Long clientId,
+        @JsonProperty("username") String username,
+        @JsonProperty("role") String role) {
+    this.clientId = clientId;
+    this.username = username;
+    this.role = role;
+    this.active = true; // Default to active when created
+    this.signUpDate = "";
+    this.lastLogin = "";
+    this.userId = null; // userId to be set later
+  }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
+  // Getters and Setters
+  public Long getUserId() {
+    return userId;
+  }
 
-    public Long getClientId() {
-        return clientId;
-    }
+  public void setUserId(Long userId) {
+    this.userId = userId;
+  }
 
-    public void setClientId(Long clientId) {
-        this.clientId = clientId;
-    }
+  public Long getClientId() {
+    return clientId;
+  }
 
-    public String getUsername() {
-        return username;
-    }
+  public void setClientId(Long clientId) {
+    this.clientId = clientId;
+  }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+  public String getUsername() {
+    return username;
+  }
 
-    public String getRole() {
-        return role;
-    }
+  public void setUsername(String username) {
+    this.username = username;
+  }
 
-    public void setRole(String role) {
-        this.role = role;
-    }
+  public String getRole() {
+    return role;
+  }
 
-    public boolean getActive() {
-        return active;
-    }
+  public void setRole(String role) {
+    this.role = role;
+  }
 
-    public void setActive(boolean active) {
-        this.active = active;
-    }
+  public boolean getActive() {
+    return active;
+  }
 
-    public String getSignUpDate() {
-        return signUpDate;
-    }
+  public void setActive(boolean active) {
+    this.active = active;
+  }
 
-    public void setSignUpDate(String signUpDate) {
-        this.signUpDate = signUpDate;
-    }
+  public String getSignUpDate() {
+    return signUpDate;
+  }
 
-    public String getLastLogin() {
-        return lastLogin;
-    }
+  public void setSignUpDate(String signUpDate) {
+    this.signUpDate = signUpDate;
+  }
 
-    public void setLastLogin(String lastLogin) {
-        this.lastLogin = lastLogin;
-    }
+  public String getLastLogin() {
+    return lastLogin;
+  }
 
-    @Override
-    public String toString() {
-        return "TarsUser{" +
-                "userId=" + userId +
-                ", clientId=" + clientId +
-                ", username='" + username + '\'' +
-                ", role='" + role + '\'' +
-                ", active=" + active +
-                ", signUpDate='" + signUpDate + '\'' +
-                ", lastLogin='" + lastLogin + '\'' +
-                '}';
-    }
+  public void setLastLogin(String lastLogin) {
+    this.lastLogin = lastLogin;
+  }
+
+  @Override
+  public String toString() {
+    return "TarsUser{"
+      + "userId=" + userId + ", clientId=" + clientId
+      + ", username='" + username + '\'' + ", role='" + role + '\''
+      + ", active=" + active + ", signUpDate='" + signUpDate + '\''
+      + ", lastLogin='" + lastLogin + '\'' + '}';
+  }
 }
