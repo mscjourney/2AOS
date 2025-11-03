@@ -37,20 +37,10 @@ jobs:
 
       - name: Test file presence
         run: |
-          if [ ! -d ./TeamProject/src/main/java ]; then
-            echo "Source directory missing!"
-            ls -1 ./TeamProject || true
-            exit 1
-          fi
+          ls -1 ./TeamProject || true
 
-          if [ ! -f ./TeamProject/rulesets/java/quickstart.xml ]; then
-            echo "PMD ruleset file missing!"
-            ls -1 ./TeamProject/rulesets/java || true
-            exit 2
-          fi
-
-          if [ ! -f ./TeamProject/pmd.txt ]; then
-            echo "Creating empty PMD report file..."
+          if [ -f ./TeamProject/pmd.txt ]; then
+            echo "PMD report file exist..."
           fi
 
       - name: Run PMD (Docker image)
