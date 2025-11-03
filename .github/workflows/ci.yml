@@ -3,6 +3,7 @@
 # Date: 10/26/2025
 
 name: CI Pipeline
+run-name: CI Pipeline
 
 on:
   push:
@@ -45,7 +46,7 @@ jobs:
             -R ./TeamProject/rulesets/java/quickstart.xml
             -f text
             -r ./TeamProject/pmd.txt
-            --fail-on-violation false
+            --no-fail-on-violation
             --minimum-priority 3
 
       - name: Show PMD Summary
