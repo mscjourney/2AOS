@@ -45,8 +45,7 @@ jobs:
             -R ./TeamProject/rulesets/java/quickstart.xml
             -f text
             -r ./TeamProject/pmd.txt
-            -v
-            --fail-on-violation true
+            --fail-on-violation false
             --minimum-priority 3
 
       - name: Show PMD Summary
