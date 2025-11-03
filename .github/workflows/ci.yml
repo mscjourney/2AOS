@@ -35,6 +35,24 @@ jobs:
           java-version: 17
           cache: maven
 
+      - name: Test file presence
+        run: |
+          if [ ! -d ./TeamProject/src/main/java ]; then
+            echo "Source directory missing!"
+            ls -1 ./TeamProject || true
+            exit 1
+          fi
+
+          if [ ! -f ./TeamProject/rulesets/java/quickstart.xml ]; then
+            echo "PMD ruleset file missing!"
+            ls -1 ./TeamProject/rulesets/java || true
+            exit 2
+          fi
+
+          if [ ! -f ./TeamProject/pmd.txt ]; then
+            echo "Creating empty PMD report file..."
+          fi
+
       - name: Run PMD (Docker image)
         uses: docker://pmdcode/pmd:latest
         with:
@@ -48,13 +66,14 @@ jobs:
             --minimum-priority 3
 
       - name: Show PMD Summary
+        working-directory: ./TeamProject
         run: |
-          if [ -f TeamProject/pmd.txt ]; then
+          if [ -f pmd.txt ]; then
             echo "=== PMD Report Summary ==="
-            wc -l TeamProject/pmd.txt
+            wc -l pmd.txt
             echo ""
             echo "First 50 lines:"
-            head -50 TeamProject/pmd.txt
+            head -50 pmd.txt
           else
             echo "⚠️ PMD report not generated"
           fi
@@ -63,8 +82,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pmd-report
-          path: TeamProject/pmd.txt
-          retention-days: 10  # Auto-delete after 30 days
+          path: ./TeamProject/pmd.txt
+          retention-days: 5  # Auto-delete after 5 days
 
   test:
     runs-on: ubuntu-latest
