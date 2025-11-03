@@ -43,7 +43,7 @@ jobs:
             -d ./TeamProject/src/main/java
             -R ./TeamProject/rulesets/java/quickstart.xml
             -f text
-            -r TeamProject/pmd.txt
+            -r ./TeamProject/pmd.txt
             --fail-on-violation true
             --minimum-priority 3
 
