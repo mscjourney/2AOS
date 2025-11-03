@@ -35,13 +35,6 @@ jobs:
           java-version: 17
           cache: maven
 
-      - name: Test file presence
-        run: |
-          ls -1 ./TeamProject || true
-
-          if [ -f ./TeamProject/pmd.txt ]; then
-            echo "PMD report file exist..."
-          fi
 
       - name: Run PMD (Docker image)
         uses: docker://pmdcode/pmd:latest
@@ -52,6 +45,7 @@ jobs:
             -R ./TeamProject/rulesets/java/quickstart.xml
             -f text
             -r ./TeamProject/pmd.txt
+            -v
             --fail-on-violation true
             --minimum-priority 3
 
