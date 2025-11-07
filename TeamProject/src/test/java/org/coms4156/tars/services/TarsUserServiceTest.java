@@ -6,15 +6,15 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.coms4156.tars.model.Client;
-import org.coms4156.tars.service.ClientService;
+import org.coms4156.tars.model.TarsUser;
+import org.coms4156.tars.service.TarsUserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 /**
- * {@code ClientServiceTest} Unit tests for ClientService.
+ * {@code UserServiceTest} Unit tests for UserService.
  */
-public class ClientServiceTest {
+public class TarsUserServiceTest {
     
 }

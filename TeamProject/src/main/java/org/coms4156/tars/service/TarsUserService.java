@@ -161,8 +161,9 @@ public class TarsUserService {
    *
    * @return created user or null if invalid inputs or username already exists
    */
-  public synchronized TarsUser createUser(Long clientId, String username, String userEmail, String role) {
-    if (clientId == null || username == null || userEmail == null ||role == null) {
+  public synchronized TarsUser createUser(
+      Long clientId, String username, String userEmail, String role) {
+    if (clientId == null || username == null || userEmail == null || role == null) {
       if (logger.isWarnEnabled()) {
         logger.warn(
             "createUser rejected: null parameters clientId={} username={} userEmail={} role={}",
@@ -183,7 +184,7 @@ public class TarsUserService {
       return null;
     }
 
-    if( normalizedUserEmail.isEmpty()) {
+    if (normalizedUserEmail.isEmpty()) {
       if (logger.isWarnEnabled()) {
         logger.warn("createUser rejected: blank email clientId={} username='{}'",
             clientId, normalizedUsername);
@@ -203,7 +204,7 @@ public class TarsUserService {
 
     long newUserId = idCounter.incrementAndGet();
     TarsUser newUser = new TarsUser(
-      clientId, normalizedUsername, normalizedUserEmail, normalizedRole);
+        clientId, normalizedUsername, normalizedUserEmail, normalizedRole);
     newUser.setUserId(newUserId);
     newUser.setSignUpDate(Instant.now().toString());
     newUser.setLastLogin("");
@@ -264,7 +265,8 @@ public class TarsUserService {
   }
 
   /**
-   * {@code existsByClientIdAndUsername} Checks if a tarsUser with username already exist in a client.
+   * {@code existsByClientIdAndUsername} Checks if a tarsUser 
+   * with username already exist in a client.
    *
    * @param clientId the client identifier
    * @param username the username to check (case-insensitive)

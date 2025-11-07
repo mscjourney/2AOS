@@ -164,7 +164,8 @@ public class ClientService {
   }
 
   /**
-   * {@code getNextClientId} Generates the next available client ID based on the highest existing ID.
+   * {@code getNextClientId} Generates the next 
+   * available client ID based on the highest existing ID.
    *
    * @return the next available client ID (starts at 1 if no clients exist)
    */
@@ -213,7 +214,7 @@ public class ClientService {
    * {@code uniqueEmailCheck} Checks if a client email is unique.
    *
    * @param email the client email to check for uniqueness; comparison is case-insensitive.
-   * @return
+   * @return true if the client email is unique, false otherwise
    */
   public synchronized boolean uniqueEmailCheck(String email) {
     if (email == null) {
@@ -247,7 +248,7 @@ public class ClientService {
       return null;
     }
 
-    if( email == null || email.isBlank()) {
+    if (email == null || email.isBlank()) {
       if (logger.isWarnEnabled()) {
         logger.warn("Attempted to create client with blank email");
       }

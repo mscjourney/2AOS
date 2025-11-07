@@ -43,7 +43,7 @@ public class TarsService {
         mapper.writeValue(userFile, new ArrayList<User>());
         if (logger.isInfoEnabled()) {
           logger.info("Created new user preferences file at: {}", 
-            userFile.getAbsolutePath());
+              userFile.getAbsolutePath());
         }
       } catch (IOException e) {
         if (logger.isErrorEnabled()) {
@@ -53,7 +53,7 @@ public class TarsService {
     } else {
       if (logger.isInfoEnabled()) {
         logger.info("Using existing user preferences file at: {}", 
-          userFile.getAbsolutePath());
+            userFile.getAbsolutePath());
       }
     }
     this.users = loadData();
