@@ -112,7 +112,7 @@ public class ClientService {
   }
 
   /**
-   * Writes the current list of clients to the JSON file.
+   * {@code saveData} Writes the current list of clients to the JSON file.
    */
   public synchronized void saveData() {
     try {
@@ -125,7 +125,7 @@ public class ClientService {
   }
 
   /**
-   * Returns a defensive copy of the list of clients stored in the service.
+   * {@code getClientList} Returns a defensive copy of the list of clients stored in the service.
    *
    * @return a List of {@code Client} objects representing all clients
    */
@@ -137,7 +137,7 @@ public class ClientService {
   }
 
   /**
-   * Retrieves a {@code Client} by its clientId.
+   * {@code getClient} Retrieves a {@code Client} by its clientId.
    *
    * @param clientId the unique identifier for the client
    * @return the {@code Client} object if found, or null if not found
@@ -164,7 +164,7 @@ public class ClientService {
   }
 
   /**
-   * Generates the next available client ID based on the highest existing ID.
+   * {@code getNextClientId} Generates the next available client ID based on the highest existing ID.
    *
    * @return the next available client ID (starts at 1 if no clients exist)
    */
@@ -199,7 +199,7 @@ public class ClientService {
     }
     for (Client client : clients) {
       String existing = client.getName();
-      if (existing != null && existing.equalsIgnoreCase(newClientName)) { // choose policy
+      if (existing != null && existing.equalsIgnoreCase(newClientName)) {
         if (logger.isWarnEnabled()) {
           logger.warn("Client name already exists: {}", newClientName);
         }
@@ -208,39 +208,79 @@ public class ClientService {
     }
     return true;
   }
+  
+  /**
+   * {@code uniqueEmailCheck} Checks if a client email is unique.
+   *
+   * @param email the client email to check for uniqueness; comparison is case-insensitive.
+   * @return
+   */
+  public synchronized boolean uniqueEmailCheck(String email) {
+    if (email == null) {
+      return false;
+    }
+    for (Client client : clients) {
+      String existing = client.getEmail();
+      if (existing != null && existing.equalsIgnoreCase(email)) {
+        if (logger.isWarnEnabled()) {
+          logger.warn("Client email already exists: {}", email);
+        }
+        return false;
+      }
+    }
+    return true;
+  }
 
   /**
-   * Creates a new client with an auto-generated ID.
+   * {@code createClient} Creates a new client with an auto-generated ID.
    * The client ID is automatically assigned based on the last used ID in the datastore.
    *
    * @param name the name of the client. Ensure it's unique.
+   * @param email the email address of the client. Ensure it's unique.
    * @return the created {@code Client} object with assigned ID
    */
-  public synchronized Client createClient(String name) {
+  public synchronized Client createClient(String name, String email) {
     if (name == null || name.isBlank()) {
       if (logger.isWarnEnabled()) {
         logger.warn("Attempted to create client with blank name");
       }
       return null;
     }
+
+    if( email == null || email.isBlank()) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("Attempted to create client with blank email");
+      }
+      return null;
+    }
+
+
+    // Check name uniqueness
     if (!uniqueNameCheck(name)) {
       return null;
     }
+
+    // Check email uniqueness
+    if (!uniqueEmailCheck(email)) {
+      return null;
+    }
+
     long newId = getNextClientId();
     Client client = new Client();
     client.setClientId(newId);
     client.setName(name);
+    client.setEmail(email);
     client.setApiKey(generateApiKey());
     clients.add(client);
     saveData();
     if (logger.isInfoEnabled()) {
-      logger.info("Client created successfully id={} name={}", newId, name);
+      logger.info("Client created successfully id={} name={} email={}", newId, name, email);
     }
     return client;
   }
 
   /**
-   * Removes a client from the data store by clientId.
+   * {@code removeClient} Removes a client from the data store by clientId.
    *
    * @param clientId the unique identifier of the client to remove
    * @return true if the client was found and removed, false otherwise
@@ -264,7 +304,7 @@ public class ClientService {
   }
 
   /**
-   * Updates an existing client's information.
+   * {@code updateClient} Updates an existing client's information.
    *
    * @param updatedClient the {@code Client} object with updated information
    * @return true if the client was found and updated, false otherwise
@@ -314,8 +354,8 @@ public class ClientService {
   public synchronized void printClients() {
     for (Client client : clients) {
       if (logger.isInfoEnabled()) {
-        logger.info("Client: id={} name={} rateLimit={} concurrent={}",
-            client.getClientId(), client.getName(),
+        logger.info("Client: id={} name={} email={} rateLimit={} concurrent={}",
+            client.getClientId(), client.getName(), client.getEmail(),
             client.getRateLimitPerMinute(),
             client.getMaxConcurrentRequests());
       }

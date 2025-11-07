@@ -72,7 +72,7 @@ public class RouteController {
    * Request Method: POST
    * Returns a new client resource.
    *
-   * @param body JSON object containing the new client's name.
+   * @param body JSON object containing the new client's name and email.
    *
    * @return A ResponseEntity indicating the result of the operation.
    */
@@ -81,15 +81,19 @@ public class RouteController {
     if (logger.isInfoEnabled()) {
       logger.info("POST /client/create invoked");
     }
+
+    // Validate request body
     if (body == null) {
       if (logger.isWarnEnabled()) {
         logger.warn("POST /client/create failed: request body is null");
       }
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Missing 'name'.");
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Missing 'name' and 'email'.");
     }
     if (logger.isDebugEnabled()) {
       logger.debug("POST /client/create raw body keys={}", body.keySet());
     }
+
+    // Validate name
     if (!body.containsKey("name")) {
       if (logger.isWarnEnabled()) {
         logger.warn("POST /client/create failed: 'name' field missing");
@@ -103,13 +107,39 @@ public class RouteController {
       }
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Client name cannot be blank.");
     }
+
+    // Validate email
+    if (!body.containsKey("email")) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("POST /client/create failed: 'email' field missing");
+      }
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Missing 'email'.");
+    }
+    String email = body.get("email") == null ? "" : body.get("email").trim();
+    if (email.isEmpty()) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("POST /client/create failed: blank email provided");
+      }
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Client email cannot be blank.");
+    }
+
+    // Check name uniqueness
     if (!clientService.uniqueNameCheck(name)) {
       if (logger.isWarnEnabled()) {
         logger.warn("POST /client/create conflict: name '{}' already exists", name);
       }
       return ResponseEntity.status(HttpStatus.CONFLICT).body("Client name already exists.");
     }
-    Client created = clientService.createClient(name);
+
+    // Check email uniqueness
+    if (!clientService.uniqueEmailCheck(email)) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("POST /client/create conflict: email '{}' already exists", email);
+      }
+      return ResponseEntity.status(HttpStatus.CONFLICT).body("Client email already exists.");
+    }
+    
+    Client created = clientService.createClient(name, email);
     if (created == null) {
       if (logger.isErrorEnabled()) {
         logger.error("POST /client/create internal error: client creation returned null name='{}'",
@@ -145,7 +175,7 @@ public class RouteController {
    *
    * @param newUserRequestBody JSON object containing new user information.
    *
-   * @return A resource indicating that the user was created (not implemented).
+   * @return A resource indicating that the user was created.
   */
   @PostMapping({"/client/createUser"})
   public ResponseEntity<?> createClientUser(@RequestBody TarsUser newUserRequestBody) {
@@ -158,6 +188,8 @@ public class RouteController {
       }
       return ResponseEntity.badRequest().body("Body cannot be null.");
     }
+
+    // Validate clientId
     Long clientId = newUserRequestBody.getClientId();
     if (clientId == null || clientId < 0) {
       if (logger.isWarnEnabled()) {
@@ -167,10 +199,11 @@ public class RouteController {
       }
       return ResponseEntity.badRequest().body("Invalid clientId.");
     }
+
+    // Validate username
     String username = newUserRequestBody.getUsername() == null
         ? ""
         : newUserRequestBody.getUsername().trim();
-    String role = newUserRequestBody.getRole() == null ? "" : newUserRequestBody.getRole().trim();
     if (username.isEmpty()) {
       if (logger.isWarnEnabled()) {
         logger.warn(
@@ -179,6 +212,22 @@ public class RouteController {
       }
       return ResponseEntity.badRequest().body("Username cannot be blank.");
     }
+
+    // validate email
+    String userEmail = newUserRequestBody.getUserEmail() == null
+        ? ""
+        : newUserRequestBody.getUserEmail().trim();
+    if (userEmail.isEmpty()) {
+      if (logger.isWarnEnabled()) {
+        logger.warn(
+            "POST /client/createUser failed: blank userEmail username='{}' clientId={}",
+            username, clientId);
+      }
+      return ResponseEntity.badRequest().body("Email cannot be blank.");
+    }
+
+    // Validate role
+    String role = newUserRequestBody.getRole() == null ? "" : newUserRequestBody.getRole().trim();
     if (role.isEmpty()) {
       if (logger.isWarnEnabled()) {
         logger.warn(
@@ -187,12 +236,15 @@ public class RouteController {
       }
       return ResponseEntity.badRequest().body("Role cannot be blank.");
     }
+
+    // Log validation success
     if (logger.isDebugEnabled()) {
       logger.debug(
           "POST /client/createUser validation passed clientId={} username='{}' role='{}'",
           clientId, username, role);
     }
     
+    // Check if client exists
     Client client = clientService.getClient(clientId.intValue());
     if (client == null) {
       if (logger.isWarnEnabled()) {
@@ -205,7 +257,8 @@ public class RouteController {
     if (tarsUserService.existsByClientIdAndUsername(clientId, username)) {
       if (logger.isWarnEnabled()) {
         logger.warn(
-            "POST /client/createUser conflict: username='{}' exists for clientId={}",
+            "POST /client/createUser conflict: a user "
+            + "with username='{}' exists for clientId={}",
             username, clientId);
       }
       return ResponseEntity.status(
@@ -214,11 +267,25 @@ public class RouteController {
           );
     }
 
-    TarsUser created = tarsUserService.createUser(clientId, username, role);
+    // Check email uniqueness
+    if (tarsUserService.existsByClientIdAndUserEmail(clientId, userEmail)) {
+      if (logger.isWarnEnabled()) {
+        logger.warn(
+            "POST /client/createUser conflict: userEmail='{}' exists for clientId={}",
+            userEmail, clientId);
+      }
+      return ResponseEntity.status(
+        HttpStatus.CONFLICT).body(
+          "A user with the email already exists for this client."
+          );
+    }
+
+    TarsUser created = tarsUserService.createUser(clientId, username, userEmail, role);
     if (created == null) {
       if (logger.isErrorEnabled()) {
         logger.error(
-            "POST /client/createUser internal error after create clientId={} username='{}'",
+            "POST /client/createUser internal error after create "
+            + "clientId={} username='{}' usserEmail='{}' role='{}'",
             clientId, username);
       }
       return ResponseEntity.status(

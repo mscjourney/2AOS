@@ -1,1 +1,42 @@
-[{"clientId":1,"username":"alice","role":"admin","userId":1,"active":true,"signUpDate":"2023-01-15T09:30:00Z","lastLogin":"2024-06-15T10:20:30Z"},{"clientId":2,"username":"bob","role":"user","userId":2,"active":false,"signUpDate":"2022-11-20T11:45:00Z","lastLogin":"2024-05-10T14:50:00Z"},{"clientId":3,"username":"charlie","role":"user","userId":3,"active":true,"signUpDate":"2024-03-05T08:00:00Z","lastLogin":"2024-06-18T16:30:15Z"},{"clientId":4,"username":"jdoe","role":"ADMIN","userId":4,"active":true,"signUpDate":"2025-11-03T01:05:06.944919Z","lastLogin":""}]
+[
+  {
+    "clientId": 1,
+    "username": "alice",
+    "userEmail": "alice@gmail.com",
+    "role": "admin",
+    "userId": 1,
+    "active": true,
+    "signUpDate": "2023-01-15T09:30:00Z",
+    "lastLogin": "2024-06-15T10:20:30Z"
+  },
+  {
+    "clientId": 2,
+    "username": "bob",
+    "userEmail": "bob@bobandsons.com",
+    "role": "user",
+    "userId": 2,
+    "active": false,
+    "signUpDate": "2022-11-20T11:45:00Z",
+    "lastLogin": "2024-05-10T14:50:00Z"
+  },
+  {
+    "clientId": 3,
+    "username": "charlie",
+    "userEmail": "charlie@yahoo.com",
+    "role": "user",
+    "userId": 3,
+    "active": true,
+    "signUpDate": "2024-03-05T08:00:00Z",
+    "lastLogin": "2024-06-18T16:30:15Z"
+  },
+  {
+    "clientId": 4,
+    "username": "jdoe",
+    "userEmail": "jdoe@employed.com",
+    "role": "ADMIN",
+    "userId": 4,
+    "active": true,
+    "signUpDate": "2025-11-03T01:05:06.944919Z",
+    "lastLogin": ""
+  }
+]

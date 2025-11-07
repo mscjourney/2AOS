@@ -41,16 +41,20 @@ public class TarsService {
           parent.mkdirs();
         }
         mapper.writeValue(userFile, new ArrayList<User>());
-        logger.info("Created new user preferences file at: {}", 
+        if (logger.isInfoEnabled()) {
+          logger.info("Created new user preferences file at: {}", 
             userFile.getAbsolutePath());
+        }
       } catch (IOException e) {
         if (logger.isErrorEnabled()) {
           logger.error("Failed to create user preferences file: {}", userFilePath, e);
         }
       }
     } else {
-      logger.info("Using existing user preferences file at: {}", 
+      if (logger.isInfoEnabled()) {
+        logger.info("Using existing user preferences file at: {}", 
           userFile.getAbsolutePath());
+      }
     }
     this.users = loadData();
   }

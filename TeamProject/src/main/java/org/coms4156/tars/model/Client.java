@@ -12,6 +12,9 @@ public class Client {
     
   @JsonProperty("name")
   private String name;
+
+  @JsonProperty("email")
+  private String email;
     
   @JsonProperty("apiKey")
   private String apiKey;
@@ -28,6 +31,7 @@ public class Client {
   public Client() {
     this.clientId = null;
     this.name = "";
+    this.email = "";
     this.apiKey = "";
     this.rateLimitPerMinute = 60; // Default value
     this.maxConcurrentRequests = 5; // Default value
@@ -38,12 +42,14 @@ public class Client {
    *  Initializes a new instance of Client with specified values.
    *
    * @param clientId The unique identifier for the client.
-   * @param name The name of the client.
+   * @param name The name of the client. Must be unique.
+   * @param email The email address of the client. Must be unique.
    * @param apiKey The API key associated with the client.
    */
-  public Client(Long clientId, String name, String apiKey) {
+  public Client(Long clientId, String name, String email, String apiKey) {
     this.clientId = clientId;
     this.name = name;
+    this.email = email;
     this.apiKey = apiKey;
     this.rateLimitPerMinute = 60; // Default value
     this.maxConcurrentRequests = 5; // Default value
@@ -64,6 +70,14 @@ public class Client {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  public String getEmail() {
+    return email;
+  }
+
+  public void setEmail(String email) {
+    this.email = email;
   }
 
   public String getApiKey() {
@@ -94,7 +108,8 @@ public class Client {
   public String toString() {
     return "Client{"
       + "clientId=" + clientId
-      + ", name='" + name + '\'' 
+      + ", name='" + name + '\''
+      + ", email='" + email + '\''
       + ", rateLimitPerMinute=" + rateLimitPerMinute
       + ", maxConcurrentRequests=" + maxConcurrentRequests + '}';
   }

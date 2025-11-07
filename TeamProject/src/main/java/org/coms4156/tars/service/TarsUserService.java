@@ -156,21 +156,23 @@ public class TarsUserService {
    *
    * @param clientId client association (required)
    * @param username chosen username (required, trimmed, case-insensitive uniqueness)
+   * @param userEmail user's email (required, trimmed, case-insensitive uniqueness)
    * @param role role string (required)
    *
    * @return created user or null if invalid inputs or username already exists
    */
-  public synchronized TarsUser createUser(Long clientId, String username, String role) {
-    if (clientId == null || username == null || role == null) {
+  public synchronized TarsUser createUser(Long clientId, String username, String userEmail, String role) {
+    if (clientId == null || username == null || userEmail == null ||role == null) {
       if (logger.isWarnEnabled()) {
         logger.warn(
-            "createUser rejected: null parameters clientId={} username={} role={}",
-            clientId, username, role);
+            "createUser rejected: null parameters clientId={} username={} userEmail={} role={}",
+            clientId, username, userEmail, role);
       }
       return null;
     }
 
     String normalizedUsername = username.trim();
+    String normalizedUserEmail = userEmail.trim();
     String normalizedRole = role.trim();
 
     if (normalizedUsername.isEmpty()) {
@@ -181,10 +183,18 @@ public class TarsUserService {
       return null;
     }
 
+    if( normalizedUserEmail.isEmpty()) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("createUser rejected: blank email clientId={} username='{}'",
+            clientId, normalizedUsername);
+      }
+      return null;
+    }
+
     if (normalizedRole.isEmpty()) {
       if (logger.isWarnEnabled()) {
-        logger.warn("createUser rejected: blank role clientId={} username='{}'",
-            clientId, normalizedUsername);
+        logger.warn("createUser rejected: blank role clientId={} username='{}' userEmail='{}'",
+            clientId, normalizedUsername, normalizedUserEmail);
       }
       return null;
     }
@@ -192,7 +202,8 @@ public class TarsUserService {
     // Uniqueness check removed - controller is responsible for this validation
 
     long newUserId = idCounter.incrementAndGet();
-    TarsUser newUser = new TarsUser(clientId, normalizedUsername, normalizedRole);
+    TarsUser newUser = new TarsUser(
+      clientId, normalizedUsername, normalizedUserEmail, normalizedRole);
     newUser.setUserId(newUserId);
     newUser.setSignUpDate(Instant.now().toString());
     newUser.setLastLogin("");
@@ -202,8 +213,8 @@ public class TarsUserService {
     persist();
     
     if (logger.isInfoEnabled()) {
-      logger.info("Created TarsUser id={} clientId={} username='{}'",
-          newUserId, clientId, normalizedUsername);
+      logger.info("Created TarsUser id={} clientId={} username='{}' userEmail='{}'",
+          newUserId, clientId, normalizedUsername, normalizedUserEmail, normalizedRole);
     }
     return newUser;
   }
@@ -253,11 +264,11 @@ public class TarsUserService {
   }
 
   /**
-   * {@code existsByClientIdAndUsername} Checks if a username already exists for a client.
+   * {@code existsByClientIdAndUsername} Checks if a tarsUser with username already exist in a client.
    *
    * @param clientId the client identifier
    * @param username the username to check (case-insensitive)
-   * @return true if username exists for this client, false otherwise
+   * @return true if tarsUser with username exists for per this client, false otherwise
    */
   public synchronized boolean existsByClientIdAndUsername(Long clientId, String username) {
     if (clientId == null || username == null) {
@@ -279,4 +290,33 @@ public class TarsUserService {
     }
     return false;
   }
+
+  /**
+   * {@code existsByClientIdAndUserEmail} Checks if a tarsUser with email already exist in a client.
+   *
+   * @param clientId the client identifier
+   * @param userEmail the email to check (case-insensitive)
+   * @return true if tarsUser with email exists for per this client, false otherwise
+   */
+  public synchronized boolean existsByClientIdAndUserEmail(Long clientId, String userEmail) {
+    if (clientId == null || userEmail == null) {
+      return false;
+    }
+    String normalizedEmailLowerCase = userEmail.trim().toLowerCase(Locale.ROOT);
+    for (TarsUser existingUser : users) {
+      Long existingClientId = existingUser.getClientId();
+      String existingEmail = existingUser.getUserEmail();
+      
+      if (existingClientId != null && existingEmail != null) {
+        if (existingClientId.equals(clientId)) {
+          String existingEmailLowerCase = existingEmail.trim().toLowerCase(Locale.ROOT);
+          if (existingEmailLowerCase.equals(normalizedEmailLowerCase)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
 }
