@@ -96,4 +96,29 @@ public class UserModelTest {
     newUser = new User();
     assertFalse(user.equals(newUser));
   }
+
+  @Test
+  void testEqualsWithNull() {
+    assertFalse(user.equals(null));
+  }
+
+  @Test
+  void testEqualsWithSameObject() {
+    assertTrue(user.equals(user));
+  }
+
+  @Test
+  void testEqualsWithDifferentClass() {
+    assertFalse(user.equals("not a user"));
+  }
+
+  @Test
+  void testHashCode() {
+    User user1 = new User(1, 1);
+    User user2 = new User(1, 2);
+    assertEquals(user1.hashCode(), user2.hashCode());
+    
+    User user3 = new User(2, 1);
+    assertTrue(user1.hashCode() != user3.hashCode() || user1.getId() != user3.getId());
+  }
 }

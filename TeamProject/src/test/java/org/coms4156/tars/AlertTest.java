@@ -136,6 +136,25 @@ public class AlertTest {
   }
 
   @Test
+  void testGetUserAlertsWithValidIdButEmptyAlerts() throws Exception {
+    Mockito.when(tarsService.getUser(3)).thenReturn(mockUser);
+
+    try (MockedStatic<WeatherAlertModel> mockedModel =
+        Mockito.mockStatic(WeatherAlertModel.class)) {
+      List<WeatherAlert> emptyList = new ArrayList<>();
+      mockedModel.when(() -> WeatherAlertModel.getUserAlerts(mockUser))
+          .thenReturn(emptyList);
+
+      mockMvc.perform(get("/alert/weather/user/3")
+          .contentType(MediaType.APPLICATION_JSON))
+          .andExpect(status().isOk())
+          .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+          .andExpect(jsonPath("$").isArray())
+          .andExpect(jsonPath("$").isEmpty());
+    }
+  }
+
+  @Test
   void testGetWeatherAlertsWithValidCity() throws Exception {
     try (MockedStatic<WeatherAlertModel> mockedModel =
         Mockito.mockStatic(WeatherAlertModel.class)) {
