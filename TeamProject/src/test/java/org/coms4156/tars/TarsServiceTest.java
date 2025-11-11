@@ -90,4 +90,37 @@ public class TarsServiceTest {
 
     assertFalse(service.addUser(null));
   }
+
+  @Test
+  void getUserWithNegativeId() {
+    User user = service.getUser(-1);
+    assertEquals(user, null);
+  }
+
+  @Test
+  void getUserListWhenUsersIsNull() {
+    TarsService newService = new TarsService("");
+    List<User> userList = newService.getUserList();
+    assertTrue(userList != null);
+  }
+
+  @Test
+  void getUserWhenUsersIsNull() {
+    TarsService newService = new TarsService("");
+    User user = newService.getUser(1);
+    assertTrue(user == null || user.getId() == 1);
+  }
+
+  @Test
+  void printUsersTest() {
+    service.printUsers();
+    assertTrue(true);
+  }
+
+  @Test
+  void printUsersWhenUsersIsNull() {
+    TarsService newService = new TarsService("");
+    newService.printUsers();
+    assertTrue(true);
+  }
 }

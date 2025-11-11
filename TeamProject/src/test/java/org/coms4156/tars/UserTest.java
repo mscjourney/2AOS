@@ -80,6 +80,21 @@ public class UserTest {
   }
 
   @Test
+  public void indexTestWithIndexPath() throws Exception {
+    this.mockMvc.perform(get("/index")).andDo(print())
+      .andExpect(status().isOk())
+      .andExpect(content().string(containsString("Welcome to the TARS Home Page!")));
+  }
+
+  @Test
+  public void indexTestResponseContentType() throws Exception {
+    this.mockMvc.perform(get("/"))
+      .andExpect(status().isOk())
+      .andExpect(content().contentType("text/plain;charset=UTF-8"))
+      .andExpect(content().string(containsString("Welcome to the TARS Home Page!")));
+  }
+
+  @Test
   public void getUserTest() throws Exception {
     this.mockMvc.perform(get("/user/2")).andDo(print())
       .andExpect(status().isOk())
@@ -89,6 +104,23 @@ public class UserTest {
       .andExpect(jsonPath("$.cityPreferences", contains("New York", "Paris")));
 
     this.mockMvc.perform(get("/user/0")).andDo(print())
+      .andExpect(status().isNotFound())
+      .andExpect(content().string(containsString("User not found.")));
+  }
+
+  @Test
+  public void getUserTestWithValidId1() throws Exception {
+    this.mockMvc.perform(get("/user/1")).andDo(print())
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.id", is(1)))
+      .andExpect(jsonPath("$.clientId", is(1)))
+      .andExpect(jsonPath("$.weatherPreferences", contains("sunny")))
+      .andExpect(jsonPath("$.cityPreferences", contains("Boston")));
+  }
+
+  @Test
+  public void getUserTestWithNonExistentId() throws Exception {
+    this.mockMvc.perform(get("/user/9999")).andDo(print())
       .andExpect(status().isNotFound())
       .andExpect(content().string(containsString("User not found.")));
   }
@@ -131,6 +163,16 @@ public class UserTest {
         .andDo(print())
         .andExpect(status().isConflict())
         .andExpect(content().string(containsString("User Id already exists.")));
+  }
+
+  @Test
+  public void addUserTestWithNullBody() throws Exception {
+    // Spring rejects empty body with 400 before reaching controller
+    this.mockMvc.perform(put("/user/100/add")
+      .contentType("application/json")
+      .content(""))
+        .andDo(print())
+        .andExpect(status().isBadRequest());
   }
 
   @Test
