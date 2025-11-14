@@ -18,7 +18,7 @@ public class TarsUser {
   private String username;
 
   @JsonProperty("email")
-  private String userEmail;
+  private String email;
   
   @JsonProperty("role")
   private String role;
@@ -40,7 +40,7 @@ public class TarsUser {
     this.userId = null;
     this.clientId = null;
     this.username = "";
-    this.userEmail = "";
+    this.email = "";
     this.role = "user"; // Default role
     this.active = true; // Default to active
     this.signUpDate = "";
@@ -59,11 +59,11 @@ public class TarsUser {
   public TarsUser(
         @JsonProperty("clientId") Long clientId,
         @JsonProperty("username") String username,
-        @JsonProperty("userEmail") String userEmail,
+        @JsonProperty("email") String email,
         @JsonProperty("role") String role) {
     this.clientId = clientId;
     this.username = username;
-    this.userEmail = userEmail;
+    this.email = email;
     this.role = role;
     this.active = true; // Default to active when created
     this.signUpDate = "";
@@ -97,11 +97,11 @@ public class TarsUser {
   }
 
   public String getUserEmail() {
-    return userEmail;
+    return email;
   }
 
-  public void setEmail(String userEmail) {
-    this.userEmail = userEmail;
+  public void setEmail(String email) {
+    this.email = email;
   }
 
   public String getRole() {
@@ -140,7 +140,7 @@ public class TarsUser {
   public String toString() {
     return "TarsUser{"
       + "userId= " + userId + ", clientId= " + clientId
-      + ", username= '" + username + "', userEmail= '" + userEmail + "'"
+      + ", username= '" + username + "', email= '" + email + "'"
       + ", role='" + role + "'"
       + ", active=" + active + ", signUpDate= '" + signUpDate + "'"
       + ", lastLogin= '" + lastLogin + "'" + '}';

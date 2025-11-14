@@ -214,13 +214,13 @@ public class RouteController {
     }
 
     // validate email
-    String userEmail = newUserRequestBody.getUserEmail() == null
+    String email = newUserRequestBody.getUserEmail() == null
         ? ""
         : newUserRequestBody.getUserEmail().trim();
-    if (userEmail.isEmpty()) {
+    if (email.isEmpty()) {
       if (logger.isWarnEnabled()) {
         logger.warn(
-            "POST /client/createUser failed: blank userEmail username='{}' clientId={}",
+            "POST /client/createUser failed: blank email username='{}' clientId={}",
             username, clientId);
       }
       return ResponseEntity.badRequest().body("Email cannot be blank.");
@@ -268,11 +268,11 @@ public class RouteController {
     }
 
     // Check email uniqueness
-    if (tarsUserService.existsByClientIdAndUserEmail(clientId, userEmail)) {
+    if (tarsUserService.existsByClientIdAndUserEmail(clientId, email)) {
       if (logger.isWarnEnabled()) {
         logger.warn(
-            "POST /client/createUser conflict: userEmail='{}' exists for clientId={}",
-            userEmail, clientId);
+            "POST /client/createUser conflict: email='{}' exists for clientId={}",
+            email, clientId);
       }
       return ResponseEntity.status(
         HttpStatus.CONFLICT).body(
@@ -280,7 +280,7 @@ public class RouteController {
           );
     }
 
-    TarsUser created = tarsUserService.createUser(clientId, username, userEmail, role);
+    TarsUser created = tarsUserService.createUser(clientId, username, email, role);
     if (created == null) {
       if (logger.isErrorEnabled()) {
         logger.error(

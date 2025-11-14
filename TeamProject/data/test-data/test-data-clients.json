@@ -1,0 +1,34 @@
+[
+  {
+    "clientId": 1,
+    "name": "WeatherAlertClient",
+    "email": "client1@weatheralertclient.com",
+    "apiKey": "YOUR_WEATHER_API_KEY",
+    "rateLimitPerMinute": 60,
+    "maxConcurrentRequests": 5
+  },
+  {
+    "clientId": 2,
+    "name": "CrimeAlertClient",
+    "email": "client2@crimealertclient.com",
+    "apiKey": "YOUR_CRIME_API_KEY",
+    "rateLimitPerMinute": 60,
+    "maxConcurrentRequests": 5
+  },
+  {
+    "clientId": 3,
+    "name": "NewsAlertClient",
+    "email": "client3@newsalertclient.com",
+    "apiKey": "YOUR_NEWS_API_KEY",
+    "rateLimitPerMinute": 100,
+    "maxConcurrentRequests": 10
+  },
+  {
+    "clientId": 4,
+    "name": "AcmeCorp",
+    "email": "client4@acmecorp.com",
+    "apiKey": "2967889188aab19c0ba91c23786f1fe8",
+    "rateLimitPerMinute": 60,
+    "maxConcurrentRequests": 5
+  }
+]

@@ -156,24 +156,24 @@ public class TarsUserService {
    *
    * @param clientId client association (required)
    * @param username chosen username (required, trimmed, case-insensitive uniqueness)
-   * @param userEmail user's email (required, trimmed, case-insensitive uniqueness)
+   * @param email user's email (required, trimmed, case-insensitive uniqueness)
    * @param role role string (required)
    *
    * @return created user or null if invalid inputs or username already exists
    */
   public synchronized TarsUser createUser(
-      Long clientId, String username, String userEmail, String role) {
-    if (clientId == null || username == null || userEmail == null || role == null) {
+      Long clientId, String username, String email, String role) {
+    if (clientId == null || username == null || email == null || role == null) {
       if (logger.isWarnEnabled()) {
         logger.warn(
-            "createUser rejected: null parameters clientId={} username={} userEmail={} role={}",
-            clientId, username, userEmail, role);
+            "createUser rejected: null parameters clientId={} username={} email={} role={}",
+            clientId, username, email, role);
       }
       return null;
     }
 
     String normalizedUsername = username.trim();
-    String normalizedUserEmail = userEmail.trim();
+    String normalizedUserEmail = email.trim();
     String normalizedRole = role.trim();
 
     if (normalizedUsername.isEmpty()) {
@@ -194,7 +194,7 @@ public class TarsUserService {
 
     if (normalizedRole.isEmpty()) {
       if (logger.isWarnEnabled()) {
-        logger.warn("createUser rejected: blank role clientId={} username='{}' userEmail='{}'",
+        logger.warn("createUser rejected: blank role clientId={} username='{}' email='{}'",
             clientId, normalizedUsername, normalizedUserEmail);
       }
       return null;
@@ -214,7 +214,7 @@ public class TarsUserService {
     persist();
     
     if (logger.isInfoEnabled()) {
-      logger.info("Created TarsUser id={} clientId={} username='{}' userEmail='{}'",
+      logger.info("Created TarsUser id={} clientId={} username='{}' email='{}'",
           newUserId, clientId, normalizedUsername, normalizedUserEmail, normalizedRole);
     }
     return newUser;
@@ -297,14 +297,14 @@ public class TarsUserService {
    * {@code existsByClientIdAndUserEmail} Checks if a tarsUser with email already exist in a client.
    *
    * @param clientId the client identifier
-   * @param userEmail the email to check (case-insensitive)
+   * @param email the email to check (case-insensitive)
    * @return true if tarsUser with email exists for per this client, false otherwise
    */
-  public synchronized boolean existsByClientIdAndUserEmail(Long clientId, String userEmail) {
-    if (clientId == null || userEmail == null) {
+  public synchronized boolean existsByClientIdAndUserEmail(Long clientId, String email) {
+    if (clientId == null || email == null) {
       return false;
     }
-    String normalizedEmailLowerCase = userEmail.trim().toLowerCase(Locale.ROOT);
+    String normalizedEmailLowerCase = email.trim().toLowerCase(Locale.ROOT);
     for (TarsUser existingUser : users) {
       Long existingClientId = existingUser.getClientId();
       String existingEmail = existingUser.getUserEmail();
