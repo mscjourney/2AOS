@@ -1,16 +1,18 @@
 package org.coms4156.tars.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import org.coms4156.tars.model.CrimeModel;
 import org.coms4156.tars.model.CrimeSummary;
+import org.coms4156.tars.model.TravelAdvisory;
+import org.coms4156.tars.model.TravelAdvisoryModel;
 import org.coms4156.tars.model.User;
 import org.coms4156.tars.model.WeatherAlert;
 import org.coms4156.tars.model.WeatherAlertModel;
 import org.coms4156.tars.model.WeatherModel;
 import org.coms4156.tars.model.WeatherRecommendation;
-// import org.coms4156.tars.model.Client; // Not used currently
 import org.coms4156.tars.service.TarsService;
-//import org.coms4156.tars.service.ClientService; // Not used currently
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
 
 /**
  * This class defines an API that accesses endpoints.
@@ -334,4 +337,34 @@ public class RouteController {
       return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
+  /**
+   * Handles GET requests to retrieve a travel advisory for a given country.
+   * Example: GET /country/Algeria
+   */
+  @GetMapping("/country/{country}")
+  public ResponseEntity<?> getCountryAdvisory(@PathVariable String country) {
+    logger.info("GET /country/{} invoked", country);
+
+    try {
+      TravelAdvisoryModel model = new TravelAdvisoryModel();
+      TravelAdvisory advisory = model.getTravelAdvisory(country);
+
+      if (advisory == null) {
+        logger.warn("No advisory found for country={}", country);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND);
+      }
+
+      return ResponseEntity.ok(advisory.toString());
+
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.badRequest().body(e.getMessage());
+
+    } catch (Exception e) {
+      logger.error("Error retrieving advisory for country={}", country, e);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+
 }
