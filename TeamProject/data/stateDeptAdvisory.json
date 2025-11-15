@@ -1,5 +1,10 @@
 [
   {
+    "country": "United States",
+    "level": "",
+    "risk_indicators": []
+  },
+  {
     "country": "Afghanistan",
     "level": "Level 4: Do not travel",
     "risk_indicators": ["Unrest (U)", "Crime (C)", "Health (H)", "Kidnapping or Hostage Taking (K)", "Terrorism (T)", "Wrongful Detention (D)"]
