@@ -2,19 +2,28 @@ package org.coms4156.tars.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.io.File;
 import java.nio.file.Files;
 import java.util.ArrayList;
 
+/**
+ * Model that handles the logic that returns US Department of State
+ * travel advisory information.
+ */
 public class TravelAdvisoryModel {
 
   private JsonNode advisoryArray; // parsed JSON
 
+  /**
+   * Default Constructor.
+   */
   public TravelAdvisoryModel() {
     loadData();
   }
 
+  /**
+   * On init should load the data to be read.
+   */
   private void loadData() {
     try {
       String path = "data/stateDeptAdvisory.json";
@@ -52,6 +61,9 @@ public class TravelAdvisoryModel {
     return null;
   }
 
+  /**
+   * Returns a TravelAdvisory object for a given country.
+   */
   public TravelAdvisory getTravelAdvisory(String country) {
     if (country == null || country.trim().isEmpty()) {
       throw new IllegalArgumentException("Country cannot be empty.");
@@ -72,7 +84,5 @@ public class TravelAdvisoryModel {
 
     return null;
   }
-
-
 
 }

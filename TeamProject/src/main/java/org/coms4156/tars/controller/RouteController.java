@@ -1,5 +1,7 @@
 package org.coms4156.tars.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import org.coms4156.tars.model.CrimeModel;
 import org.coms4156.tars.model.CrimeSummary;
@@ -10,10 +12,7 @@ import org.coms4156.tars.model.WeatherAlert;
 import org.coms4156.tars.model.WeatherAlertModel;
 import org.coms4156.tars.model.WeatherModel;
 import org.coms4156.tars.model.WeatherRecommendation;
-
-// import org.coms4156.tars.model.Client; // Not used currently
 import org.coms4156.tars.service.TarsService;
-//import org.coms4156.tars.service.ClientService; // Not used currently
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -25,9 +24,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.JsonNode;
 
 
 /**
@@ -344,7 +340,6 @@ public class RouteController {
 
   /**
    * Handles GET requests to retrieve a travel advisory for a given country.
-   *
    * Example: GET /country/Algeria
    */
   @GetMapping("/country/{country}")
@@ -357,8 +352,7 @@ public class RouteController {
 
       if (advisory == null) {
         logger.warn("No advisory found for country={}", country);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body("No advisory found for country: " + country);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND);
       }
 
       return ResponseEntity.ok(advisory.toString());
@@ -368,8 +362,7 @@ public class RouteController {
 
     } catch (Exception e) {
       logger.error("Error retrieving advisory for country={}", country, e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-              .body("Internal server error.");
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
