@@ -455,6 +455,25 @@ public class RouteController {
         // Continue without alerts if fetch fails
       }
 
+      // Get travel advisory for the city's country
+      TravelAdvisory travelAdvisory = null;
+      try {
+        TravelAdvisoryModel advisoryModel = new TravelAdvisoryModel();
+        String country = CitySummary.getCountryFromCity(city);
+        if (country != null && !country.trim().isEmpty()) {
+          travelAdvisory = advisoryModel.getTravelAdvisory(country);
+        }
+        // If country lookup failed, try using city name as country name (works for some cases)
+        if (travelAdvisory == null) {
+          travelAdvisory = advisoryModel.getTravelAdvisory(city);
+        }
+      } catch (Exception e) {
+        if (logger.isDebugEnabled()) {
+          logger.debug("Failed to fetch travel advisory for city={}: {}", city, e.getMessage());
+        }
+        // Continue without travel advisory if fetch fails
+      }
+
       // Filter recommended days by date range if provided
       if (start != null || end != null) {
         List<String> filteredDays = new ArrayList<>();
@@ -508,7 +527,7 @@ public class RouteController {
                   .anyMatch(pref -> pref.equalsIgnoreCase(city)))
           .collect(Collectors.toList());
 
-      // Build message including alert information
+      // Build message including alert and travel advisory information
       StringBuilder messageBuilder = new StringBuilder();
       messageBuilder.append(String.format(
           "Summary for %s: Found %d user(s) interested in this city. %s",
@@ -526,10 +545,17 @@ public class RouteController {
         }
       }
 
+      if (travelAdvisory != null) {
+        if (travelAdvisory.getLevel() != null && !travelAdvisory.getLevel().isEmpty()) {
+          messageBuilder.append(String.format(" Travel advisory: %s.", travelAdvisory.getLevel()));
+        }
+      }
+
       CitySummary summary = new CitySummary(
           city,
           weatherRecommendation,
           weatherAlert,
+          travelAdvisory,
           interestedUsers,
           messageBuilder.toString()
       );
