@@ -22,7 +22,7 @@ TARS is a Spring Boot REST API that lets clients:
 - Get weather recommendations (best upcoming days).
 - Get real-time weather alerts for a location or for a user's saved cities.
 - Fetch basic crime summary info for a state/offense.
-- (New) Create client accounts and provision tenant-scoped application users.
+- Create client accounts and provision tenant-scoped application users.
 
 ---
 
@@ -56,7 +56,7 @@ tars.data.path=./data/userPreferences.json
 tars.users.path=./data/users.json
 ```
 
-Test isolation (already present):
+Test isolation:
 ```properties
 # src/test/resources/application.properties
 tars.data.path=target/test-userPreferences.json

@@ -1,8 +1,8 @@
 [
   {
     "clientId": 1,
-    "username": "alice",
-    "email": "alice@gmail.com",
+    "username": "test_alice",
+    "email": "test_alice@gmail.com",
     "role": "admin",
     "userId": 1,
     "active": true,
@@ -11,8 +11,8 @@
   },
   {
     "clientId": 2,
-    "username": "bob",
-    "email": "bob@bobandsons.com",
+    "username": "test_bob",
+    "email": "test_bob@bobandsons.com",
     "role": "user",
     "userId": 2,
     "active": false,
@@ -21,8 +21,8 @@
   },
   {
     "clientId": 3,
-    "username": "charlie",
-    "email": "charlie@yahoo.com",
+    "username": "test_charlie",
+    "email": "test_charlie@yahoo.com",
     "role": "user",
     "userId": 3,
     "active": true,
@@ -31,8 +31,8 @@
   },
   {
     "clientId": 4,
-    "username": "jdoe",
-    "email": "jdoe@employed.com",
+    "username": "test_jdoe",
+    "email": "test_jdoe@employed.com",
     "role": "ADMIN",
     "userId": 4,
     "active": true,

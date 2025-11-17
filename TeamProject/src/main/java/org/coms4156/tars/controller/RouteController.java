@@ -33,10 +33,22 @@ import org.springframework.web.bind.annotation.RestController;
 public class RouteController {
 
   private static final Logger logger = LoggerFactory.getLogger(RouteController.class);
+  private static final String EMAIL_REGEX =
+      "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
 
   private final TarsService tarsService;
   private final ClientService clientService;
   private final TarsUserService tarsUserService;
+
+  /**
+   * {@code isValidEmai} Validates the format of an email address.
+   *
+   * @param email The email address to validate.
+   * @return true if the email format is valid, false otherwise.
+   */
+  private boolean isValidEmail(String email) {
+    return email != null && email.matches(EMAIL_REGEX);
+  }
 
   /**
    * Constructor for {@code RouteController}.
@@ -121,6 +133,12 @@ public class RouteController {
         logger.warn("POST /client/create failed: blank email provided");
       }
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Client email cannot be blank.");
+    }
+    if (!isValidEmail(email)) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("POST /client/create failed: invalid email format '{}'", email);
+      }
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid email format.");
     }
 
     // Check name uniqueness
@@ -224,6 +242,14 @@ public class RouteController {
             username, clientId);
       }
       return ResponseEntity.badRequest().body("Email cannot be blank.");
+    }
+    if (!isValidEmail(email)) {
+      if (logger.isWarnEnabled()) {
+        logger.warn(
+            "POST /client/createUser failed: invalid email format '{}' clientId={}",
+            email, clientId);
+      }
+      return ResponseEntity.badRequest().body("Invalid email format.");
     }
 
     // Validate role

@@ -14,7 +14,9 @@ import org.coms4156.tars.controller.RouteController;
 import org.coms4156.tars.model.User;
 import org.coms4156.tars.model.WeatherAlert;
 import org.coms4156.tars.model.WeatherAlertModel;
+import org.coms4156.tars.service.ClientService;
 import org.coms4156.tars.service.TarsService;
+import org.coms4156.tars.service.TarsUserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -40,6 +42,13 @@ public class AlertTest {
 
   @MockitoBean
   private TarsService tarsService;
+
+  @MockitoBean
+  private ClientService clientService;
+
+  @MockitoBean
+  private TarsUserService tarsUserService;
+
 
   private List<WeatherAlert> mockList;
   private WeatherAlert mockWeatherAlert;
