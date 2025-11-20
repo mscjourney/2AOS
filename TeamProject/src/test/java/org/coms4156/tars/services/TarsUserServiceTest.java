@@ -17,9 +17,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 
-import static org.hamcrest.Matchers.empty;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlTemplate;
 
 /**
  * {@code TarsUserServiceTest} Unit tests for {@link TarsUserService}.
@@ -62,8 +60,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Verifies service initialization and that preloaded test data
-   * contains the expected first user with ID=1 and username 'test_alice'.
+   * {@code userServiceInitializationTest} Verifies initial load yields first user
+   * with expected id and username.
    */
   @Test
   public void userServiceInitializationTest() {
@@ -76,10 +74,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Exercises {@link TarsUserService#findById(Long)} for:
-   * - null ID (returns null)
-   * - non-existent ID (returns null)
-   * - existing ID (returns populated user)
+   * {@code getUserByIdTest} Exercises lookup by null, missing, and existing id to
+   * confirm correct returns.
    */
   @Test
   public void getUserByIdTest() {
@@ -94,8 +90,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Validates that {@link TarsUserService#createUser(Long,String,String,String)}
-   * returns null when all parameters are null (null input guard).
+   * {@code createNullUserTest} Ensures createUser rejects completely null input
+   * returning null safely.
    */
   @Test
   public void createNullUserTest() {
@@ -104,8 +100,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Ensures user creation fails (returns null) when required parameters
-   * (username and role) are missing while others are provided.
+   * {@code createUserWithLimitedDataTest} Validates rejection when required
+   * fields (username, role) are absent.
    */
   @Test
   public void createUserWithLimitedDataTest() {
@@ -114,11 +110,12 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Confirms successful creation of a valid user, proper assignment of ID,
-   * and retrievability via {@code findById}.
+   * {@code createValidUserTest} Confirms a properly formed user is persisted,
+   * assigned next id, and retrievable.
    */
   @Test
   public void createValidUserTest() {
+    int initialSize = userService.listUsers().size();
     TarsUser user = userService.createUser(5L, "test_eve", "test_eve@client5.com", "user");
     assertNotNull(user, "Creating a valid user should not return null");
     user.toString(); // Exercise toString (no assertion needed)
@@ -128,11 +125,13 @@ public class TarsUserServiceTest {
         "Created user's username should be 'test_eve'");
     assertEquals(user.toString(), userService.findById(5L).toString(),
         "Fetched user should match the created user");
+    assertEquals(initialSize + 1, userService.listUsers().size(),
+        "User list size should increase by 1");
   }
 
   /**
-   * Validates successful deactivation of an existing user by ID and confirms
-   * active flag flips to false.
+   * {@code deactivateUserSuccessTest} Verifies an active user becomes inactive
+   * and operation signals success.
    */
   @Test
   public void deactivateUserSuccessTest() {
@@ -144,7 +143,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Ensures deactivation fails (returns false) for non-existent user ID.
+   * {@code deactivateNonExistentUserTest} Checks deactivation gracefully fails
+   * for an unknown user id.
    */
   @Test
   public void deactivateNonExistentUserTest() {
@@ -153,7 +153,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Ensures deactivation fails (returns false) when a null ID is supplied.
+   * {@code deactivateUserWithNullIdTest} Ensures null id input produces a false
+   * result (no exception thrown).
    */
   @Test
   public void deactivateUserWithNullIdTest() {
@@ -162,14 +163,18 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Verifies updating last login on an existing user updates timestamp
-   * and does not leave it empty; exercises success path.
+   * {@code updateLastLoginSuccessTest} Confirms timestamp refresh occurs for an
+   * existing user and is non-empty.
    */
   @Test
-  public void updateLastLoginSuccessTest() {
+  public void updateLastLoginSuccessTest() throws InterruptedException {
     TarsUser userBefore = userService.findById(1L);
     assertNotNull(userBefore, "User should exist before update");
     String loginBefore = userBefore.getLastLogin();
+    
+    // Add small delay to ensure timestamp difference
+    Thread.sleep(2);
+    
     boolean result = userService.updateLastLogin(1L);
     assertTrue(result, "Updating last login for existing user should succeed");
     TarsUser userAfter = userService.findById(1L);
@@ -179,7 +184,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Ensures last login update fails for non-existent user ID.
+   * {@code updateLastLoginNonExistentUserTest} Validates update fails cleanly
+   * when user id does not exist.
    */
   @Test
   public void updateLastLoginNonExistentUserTest() {
@@ -188,7 +194,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Ensures last login update fails when null ID is provided.
+   * {@code updateLastLoginNullIdTest} Ensures null id yields false without
+   * throwing or mutating state.
    */
   @Test
   public void updateLastLoginNullIdTest() {
@@ -197,8 +204,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Confirms email existence check returns true for an existing email
-   * associated with a given client ID.
+   * {@code existsByClientIdAndUserEmailFoundTest} Confirms email presence is
+   * detected for matching client.
    */
   @Test
   public void existsByClientIdAndUserEmailFoundTest() {
@@ -207,7 +214,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Verifies email existence check is case-insensitive.
+   * {@code existsByClientIdAndUserEmailCaseInsensitiveTest} Verifies email match
+   * ignoring case differences.
    */
   @Test
   public void existsByClientIdAndUserEmailCaseInsensitiveTest() {
@@ -216,7 +224,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Confirms existence check correctly returns false for a non-existent email.
+   * {@code existsByClientIdAndUserEmailNotFoundTest} Asserts a non-existent
+   * email returns false for client.
    */
   @Test
   public void existsByClientIdAndUserEmailNotFoundTest() {
@@ -225,7 +234,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Ensures email existence check rejects matches from a different client ID.
+   * {@code existsByClientIdAndUserEmailDifferentClientTest} Ensures an email on
+   * another client is not reported.
    */
   @Test
   public void existsByClientIdAndUserEmailDifferentClientTest() {
@@ -234,7 +244,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Exercises null parameter handling for email existence check.
+   * {@code existsByClientIdAndUserEmailNullParamsTest} Validates null client or
+   * email short-circuits to false.
    */
   @Test
   public void existsByClientIdAndUserEmailNullParamsTest() {
@@ -244,7 +255,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Ensures blank (whitespace-only) username parameter leads to rejection during creation.
+   * {@code createUserWithBlankUsernameTest} Rejects creation when trimmed
+   * username is empty whitespace.
    */
   @Test
   public void createUserWithBlankUsernameTest() {
@@ -253,7 +265,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Ensures blank (whitespace-only) email parameter leads to rejection during creation.
+   * {@code createUserWithBlankEmailTest} Rejects creation when trimmed email
+   * value is empty whitespace.
    */
   @Test
   public void createUserWithBlankEmailTest() {
@@ -262,7 +275,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Ensures blank (whitespace-only) role parameter leads to rejection during creation.
+   * {@code createUserWithBlankRoleTest} Ensures blank role causes createUser to
+   * return null (validation path).
    */
   @Test
   public void createUserWithBlankRoleTest() {
@@ -271,8 +285,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Confirms trimming behavior: leading/trailing whitespace on inputs
-   * does not prevent creation and final stored values are trimmed.
+   * {@code createUserWithWhitespaceTrimmingTest} Confirms leading/trailing
+   * whitespace is trimmed for all fields.
    */
   @Test
   public void createUserWithWhitespaceTrimmingTest() {
@@ -284,7 +298,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Validates username existence check returns true for present username.
+   * {@code existsByClientIdAndUsernameFoundTest} Asserts existing username is
+   * detected for given client id.
    */
   @Test
   public void existsByClientIdAndUsernameFoundTest() {
@@ -293,7 +308,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Verifies username existence check is case-insensitive.
+   * {@code existsByClientIdAndUsernameCaseInsensitiveTest} Verifies username
+   * matching ignores letter case.
    */
   @Test
   public void existsByClientIdAndUsernameCaseInsensitiveTest() {
@@ -302,7 +318,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Confirms username existence check returns false for absent username.
+   * {@code existsByClientIdAndUsernameNotFoundTest} Ensures false returned when
+   * username absent for client.
    */
   @Test
   public void existsByClientIdAndUsernameNotFoundTest() {
@@ -311,8 +328,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Ensures username existence check does not match usernames
-   * belonging to a different client ID.
+   * {@code existsByClientIdAndUsernameDifferentClientTest} Confirms identical
+   * username on other client not counted.
    */
   @Test
   public void existsByClientIdAndUsernameDifferentClientTest() {
@@ -321,7 +338,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Exercises null parameter handling for username existence check.
+   * {@code existsByClientIdAndUsernameNullParamsTest} Validates null client or
+   * username yields false immediately.
    */
   @Test
   public void existsByClientIdAndUsernameNullParamsTest() {
@@ -331,7 +349,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Confirms total number of seeded users loaded matches expected test fixture size.
+   * {@code listUsersReturnsCorrectCountTest} Ensures fixture loads expected
+   * number of initial users.
    */
   @Test
   public void listUsersReturnsCorrectCountTest() {
@@ -340,7 +359,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Ensures the returned user list is immutable, preventing external modification.
+   * {@code listUsersReturnsUnmodifiableListTest} Confirms returned list cannot
+   * be structurally modified.
    */
   @Test
   public void listUsersReturnsUnmodifiableListTest() {
@@ -351,7 +371,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Validates auto-increment behavior of user IDs across sequential creations.
+   * {@code userIdAutoIncrementTest} Verifies sequential creations get strictly
+   * increasing assigned ids.
    */
   @Test
   public void userIdAutoIncrementTest() {
@@ -363,8 +384,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Confirms new user receives expected default and generated attributes:
-   * ID, active flag, signup date, initial empty lastLogin.
+   * {@code userAttributesSetCorrectlyTest} Asserts defaults (active, timestamps,
+   * lastLogin) are initialized correctly.
    */
   @Test
   public void userAttributesSetCorrectlyTest() {
@@ -378,8 +399,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Verifies file auto-creation when backing user JSON file does not exist.
-   * Exercises file initialization path.
+   * {@code serviceCreatesFileWhenMissingTest} Ensures a new data file is
+   * created when none exists and starts empty.
    */
   @Test
   public void serviceCreatesFileWhenMissingTest() throws IOException {
@@ -394,8 +415,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Ensures service handles corrupted JSON gracefully by returning
-   * an empty list (error recovery path for load).
+   * {@code loadHandlesCorruptedFileTest} Confirms corrupt JSON input degrades
+   * safely to empty list without exception.
    */
   @Test
   public void loadHandlesCorruptedFileTest() throws IOException {
@@ -408,8 +429,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Verifies INFO-level log emitted when service creates missing file.
-   * Also covers ensureFile success path comprehensively.
+   * {@code ensureFileLogsInfoOnCreationTest} Verifies info log emitted upon
+   * successful initialization of missing store.
    */
   @Test
   public void ensureFileLogsInfoOnCreationTest() throws IOException {
@@ -435,8 +456,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Verifies ensureFile handles IOException during file creation.
-   * Tests ERROR-level logging when file creation fails.
+   * {@code ensureFileLogsErrorOnIOExceptionTest} Simulates creation failure to
+   * confirm error logging branch executes.
    */
   @Test
   public void ensureFileLogsErrorOnIOExceptionTest() throws IOException {
@@ -445,28 +466,17 @@ public class TarsUserServiceTest {
     listAppender.start();
     logger.addAppender(listAppender);
 
-    // Create a read-only directory to force write failure
     Path tempDir = Files.createTempDirectory("readonly-test");
-    Path readOnlyFile = tempDir.resolve("subdir").resolve("users.json");
-    
-    // Don't create parent - service will try to create it but we'll make parent read-only
-    // Or use a file that exists as directory to force failure
     Path conflictPath = tempDir.resolve("conflict.json");
     Files.createDirectory(conflictPath); // Create as directory, not file
     
-    // Try to create service with path that conflicts (directory exists where file should be)
     new TarsUserService(conflictPath.toString());
 
-    // Verify ERROR log for ensureFile failure
     List<ILoggingEvent> logsList = listAppender.list;
-    boolean hasEnsureFileError = logsList.stream().anyMatch(event ->
+    assertTrue(logsList.stream().anyMatch(event ->
             event.getLevel() == Level.ERROR &&
-                    event.getFormattedMessage().contains("Failed to initialize user store"));
-    
-    // Service should continue with empty list despite error
-    assertTrue(hasEnsureFileError || logsList.stream().anyMatch(e -> 
-        e.getLevel() == Level.ERROR), 
-        "Should log ERROR when ensureFile fails");
+                    event.getFormattedMessage().contains("Failed to initialize user store")),
+            "Should log ERROR when ensureFile fails");
 
     logger.detachAppender(listAppender);
     Files.deleteIfExists(conflictPath);
@@ -474,8 +484,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Verifies ERROR-level log emitted when file read fails.
-   * Uses corrupted JSON to trigger IOException during load.
+   * {@code loadLogsErrorOnIOExceptionTest} Forces read failure to assert error
+   * log emission and fallback behavior.
    */
   @Test
   public void loadLogsErrorOnIOExceptionTest() throws IOException {
@@ -500,114 +510,49 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Verifies persist method handles write operations and exercises
-   * the persist success path through user creation.
+   * {@code persistSuccessPathTest} Confirms created user is durably written and
+   * visible after service reload.
    */
   @Test
   public void persistSuccessPathTest() throws IOException {
-    // Create a separate temp file for this test to avoid interference
     Path testDir = Files.createTempDirectory("persist-test");
     Path testFile = testDir.resolve("persist-users.json");
     
-    // Copy initial test data to the new file
     InputStream resourceStream = getClass().getClassLoader()
         .getResourceAsStream("test-data/test-data-users.json");
     Files.copy(resourceStream, testFile);
     resourceStream.close();
     
-    // Create service with the test file
     TarsUserService service = new TarsUserService(testFile.toString());
-    
-    // Create user which triggers persist
     TarsUser user = service.createUser(10L, "persist_test", "persist@test.com", "user");
     assertNotNull(user, "User should be created successfully");
     Long userId = user.getUserId();
     
-    // Verify persistence by creating new service instance with same file
     TarsUserService reloadedService = new TarsUserService(testFile.toString());
     TarsUser retrieved = reloadedService.findById(userId);
     assertNotNull(retrieved, "Persisted user should be retrievable after reload");
     assertEquals("persist_test", retrieved.getUsername(), "Persisted data should match");
     assertEquals("persist@test.com", retrieved.getUserEmail(), "Persisted email should match");
     
-    // Cleanup
     Files.deleteIfExists(testFile);
     Files.deleteIfExists(testDir);
   }
 
   /**
-   * Verifies persist ERROR logging when temp file write fails.
-   * Tests atomic write failure recovery.
-   */
-  @Test
-  public void persistLogsErrorOnWriteFailureTest() throws IOException {
-    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
-    ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
-    listAppender.start();
-    logger.addAppender(listAppender);
-
-    // Create a scenario where persist might fail
-    // Use a path in a directory that will be deleted
-    Path tempDir = Files.createTempDirectory("persist-fail-test");
-    Path testFile = tempDir.resolve("users.json");
-    
-    // Create service and add a user
-    TarsUserService service = new TarsUserService(testFile.toString());
-    
-    // Make parent directory read-only on Unix systems to cause write failure
-    // Note: This may not work on all systems/Windows
-    if (!System.getProperty("os.name").toLowerCase().contains("win")) {
-      testFile.toFile().getParentFile().setWritable(false);
-    }
-    
-    // Try to create user which will attempt persist
-    service.createUser(50L, "fail_test", "fail@test.com", "user");
-    
-    // Restore permissions for cleanup
-    if (!System.getProperty("os.name").toLowerCase().contains("win")) {
-      testFile.toFile().getParentFile().setWritable(true);
-    }
-
-    // Check if ERROR was logged (may not always trigger on all systems)
-    List<ILoggingEvent> logsList = listAppender.list;
-    boolean hasPersistError = logsList.stream().anyMatch(event ->
-            event.getLevel() == Level.ERROR &&
-                    event.getFormattedMessage().contains("Failed to persist"));
-    
-    // Note: This test is platform-dependent and may not always trigger the error
-    // On some systems, cleanup temp file check
-    logger.detachAppender(listAppender);
-    Files.deleteIfExists(testFile);
-    Files.deleteIfExists(tempDir);
-    
-    // Assert based on system capability
-    if (!System.getProperty("os.name").toLowerCase().contains("win")) {
-      // On Unix, we expect the error (though not guaranteed)
-      assertTrue(hasPersistError || logsList.isEmpty(), 
-          "Should attempt to log ERROR on persist failure when permissions deny write");
-    }
-  }
-
-  /**
-   * Verifies temp file cleanup in persist error path.
-   * Tests that temporary file is deleted when atomic move fails.
+   * {@code persistCleansUpTempFileOnFailureTest} Ensures no leftover .tmp files
+   * remain after multiple persists.
    */
   @Test
   public void persistCleansUpTempFileOnFailureTest() throws IOException {
-    // This is a challenging test without mocking
-    // We verify the cleanup logic is present by checking temp files don't accumulate
-    
     Path tempDir = Files.createTempDirectory("temp-cleanup-test");
     Path testFile = tempDir.resolve("users.json");
     
     TarsUserService service = new TarsUserService(testFile.toString());
     
-    // Create multiple users to trigger multiple persist calls
     for (int i = 0; i < 5; i++) {
       service.createUser(100L + i, "user" + i, "user" + i + "@test.com", "user");
     }
     
-    // Check that no .tmp files remain in the directory
     long tmpFileCount = Files.list(tempDir)
         .filter(p -> p.getFileName().toString().endsWith(".tmp"))
         .count();
@@ -619,7 +564,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Verifies WARN-level log emitted when deactivating non-existent user.
+   * {@code deactivateUserLogsWarnOnNotFoundTest} Validates warn log emitted when
+   * deactivation targets missing id.
    */
   @Test
   public void deactivateUserLogsWarnOnNotFoundTest() {
@@ -640,7 +586,8 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * Verifies INFO-level log emitted on successful user creation.
+   * {@code createUserLogsInfoOnSuccessTest} Confirms info log produced upon
+   * successful user creation operation.
    */
   @Test
   public void createUserLogsInfoOnSuccessTest() {

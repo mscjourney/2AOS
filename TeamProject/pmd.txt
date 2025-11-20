@@ -30,6 +30,11 @@
 ./src/test/java/org/coms4156/tars/services/ClientServiceTest.java:11:	UnnecessaryImport:	Unused import 'org.junit.jupiter.api.BeforeEach'
 ./src/test/java/org/coms4156/tars/services/ClientServiceTest.java:12:	UnnecessaryImport:	Unused import 'org.junit.jupiter.api.Test'
 ./src/test/java/org/coms4156/tars/services/ClientServiceTest.java:13:	UnnecessaryImport:	Unused import 'org.springframework.boot.test.context.SpringBootTest'
-./src/test/java/org/coms4156/tars/services/TarsUserServiceTest.java:4:	UnnecessaryImport:	Unused static import 'org.junit.jupiter.api.Assertions.assertFalse'
-./src/test/java/org/coms4156/tars/services/TarsUserServiceTest.java:6:	UnnecessaryImport:	Unused static import 'org.junit.jupiter.api.Assertions.assertNull'
-./src/test/java/org/coms4156/tars/services/TarsUserServiceTest.java:7:	UnnecessaryImport:	Unused static import 'org.junit.jupiter.api.Assertions.assertTrue'
+./src/test/java/org/coms4156/tars/services/TarsUserServiceTest.java:20:	UnnecessaryImport:	Unused static import 'org.hamcrest.Matchers.empty'
+./src/test/java/org/coms4156/tars/services/TarsUserServiceTest.java:22:	UnnecessaryImport:	Unused static import 'org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlTemplate'
+./src/test/java/org/coms4156/tars/services/TarsUserServiceTest.java:40:	CloseResource:	Ensure that resources like this InputStream object are closed after use
+./src/test/java/org/coms4156/tars/services/TarsUserServiceTest.java:450:	UnusedLocalVariable:	Avoid unused local variables such as 'readOnlyFile'.
+./src/test/java/org/coms4156/tars/services/TarsUserServiceTest.java:513:	CloseResource:	Ensure that resources like this InputStream object are closed after use
+./src/test/java/org/coms4156/tars/services/TarsUserServiceTest.java:559:	UseLocaleWithCaseConversions:	When doing a String.toLowerCase()/toUpperCase() call, use a Locale
+./src/test/java/org/coms4156/tars/services/TarsUserServiceTest.java:567:	UseLocaleWithCaseConversions:	When doing a String.toLowerCase()/toUpperCase() call, use a Locale
+./src/test/java/org/coms4156/tars/services/TarsUserServiceTest.java:584:	UseLocaleWithCaseConversions:	When doing a String.toLowerCase()/toUpperCase() call, use a Locale
