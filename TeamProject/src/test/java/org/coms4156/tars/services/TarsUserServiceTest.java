@@ -46,7 +46,7 @@ public class TarsUserServiceTest {
     Files.copy(resourceStream, tempTestDataFile, StandardCopyOption.REPLACE_EXISTING);
     resourceStream.close();
     
-    userService = new TarsUserService(tempTestDataFile.toString());
+    userService = new TarsUserService(tempTestDataFile.toString(), null);
   }
 
   /**
@@ -406,7 +406,7 @@ public class TarsUserServiceTest {
   public void serviceCreatesFileWhenMissingTest() throws IOException {
     Path tempDir = Files.createTempDirectory("tars-test");
     Path testFile = tempDir.resolve("new-users.json");
-    TarsUserService service = new TarsUserService(testFile.toString());
+    TarsUserService service = new TarsUserService(testFile.toString(), null);
     assertTrue(Files.exists(testFile), "File should be created");
     List<TarsUser> users = service.listUsers();
     assertEquals(0, users.size(), "New file should have empty user list");
@@ -422,7 +422,7 @@ public class TarsUserServiceTest {
   public void loadHandlesCorruptedFileTest() throws IOException {
     Path tempFile = Files.createTempFile("corrupt-users", ".json");
     Files.writeString(tempFile, "{ invalid json [[[");
-    TarsUserService service = new TarsUserService(tempFile.toString());
+    TarsUserService service = new TarsUserService(tempFile.toString(), null);
     List<TarsUser> users = service.listUsers();
     assertEquals(0, users.size(), "Corrupted file should return empty list");
     Files.deleteIfExists(tempFile);
@@ -442,7 +442,7 @@ public class TarsUserServiceTest {
     Path tempDir = Files.createTempDirectory("tars-log-test");
     Path testFile = tempDir.resolve("new-file.json");
 
-    new TarsUserService(testFile.toString());
+    new TarsUserService(testFile.toString(), null);
 
     List<ILoggingEvent> logsList = listAppender.list;
     assertTrue(logsList.stream().anyMatch(event ->
@@ -470,7 +470,7 @@ public class TarsUserServiceTest {
     Path conflictPath = tempDir.resolve("conflict.json");
     Files.createDirectory(conflictPath); // Create as directory, not file
     
-    new TarsUserService(conflictPath.toString());
+    new TarsUserService(conflictPath.toString(), null);
 
     List<ILoggingEvent> logsList = listAppender.list;
     assertTrue(logsList.stream().anyMatch(event ->
@@ -497,7 +497,7 @@ public class TarsUserServiceTest {
     Path tempFile = Files.createTempFile("corrupt-for-log", ".json");
     Files.writeString(tempFile, "{ corrupt json }");
 
-    new TarsUserService(tempFile.toString());
+    new TarsUserService(tempFile.toString(), null);
 
     List<ILoggingEvent> logsList = listAppender.list;
     assertTrue(logsList.stream().anyMatch(event ->
@@ -523,16 +523,31 @@ public class TarsUserServiceTest {
     Files.copy(resourceStream, testFile);
     resourceStream.close();
     
-    TarsUserService service = new TarsUserService(testFile.toString());
+    TarsUserService service = new TarsUserService(testFile.toString(), null);
     TarsUser user = service.createUser(10L, "persist_test", "persist@test.com", "user");
     assertNotNull(user, "User should be created successfully");
     Long userId = user.getUserId();
     
-    TarsUserService reloadedService = new TarsUserService(testFile.toString());
+    TarsUserService reloadedService = new TarsUserService(testFile.toString(), null);
     TarsUser retrieved = reloadedService.findById(userId);
     assertNotNull(retrieved, "Persisted user should be retrievable after reload");
     assertEquals("persist_test", retrieved.getUsername(), "Persisted data should match");
     assertEquals("persist@test.com", retrieved.getUserEmail(), "Persisted email should match");
+    
+    // Diagnostics: verify in-memory presence
+    assertTrue(service.listUsers().stream().anyMatch(u -> userId.equals(u.getUserId())),
+        "In-memory list should contain newly created user id=" + userId);
+
+    // Read + parse raw file text for verification (format independent)
+    String rawJson = Files.readString(testFile);
+    assertTrue(rawJson.contains("\"persist@test.com\""),
+        "File should contain new user's email");
+    com.fasterxml.jackson.databind.ObjectMapper om = new com.fasterxml.jackson.databind.ObjectMapper();
+    java.util.List<org.coms4156.tars.model.TarsUser> parsed =
+        om.readValue(rawJson,
+            new com.fasterxml.jackson.core.type.TypeReference<java.util.List<org.coms4156.tars.model.TarsUser>>() {});
+    assertTrue(parsed.stream().anyMatch(u -> userId.equals(u.getUserId())),
+        "Parsed JSON should contain new user's userId=" + userId);
     
     Files.deleteIfExists(testFile);
     Files.deleteIfExists(testDir);
@@ -547,7 +562,7 @@ public class TarsUserServiceTest {
     Path tempDir = Files.createTempDirectory("temp-cleanup-test");
     Path testFile = tempDir.resolve("users.json");
     
-    TarsUserService service = new TarsUserService(testFile.toString());
+    TarsUserService service = new TarsUserService(testFile.toString(), null);
     
     for (int i = 0; i < 5; i++) {
       service.createUser(100L + i, "user" + i, "user" + i + "@test.com", "user");

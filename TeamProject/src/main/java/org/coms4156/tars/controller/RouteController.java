@@ -89,13 +89,13 @@ public class RouteController {
    * @return A ResponseEntity indicating the result of the operation.
    */
   @PostMapping({"/client/create"})
-  public ResponseEntity<?> createClient(@RequestBody Map<String, String> body) {
+  public ResponseEntity<?> createClient(@RequestBody(required = false) Map<String, String> body) {
     if (logger.isInfoEnabled()) {
       logger.info("POST /client/create invoked");
     }
 
     // Validate request body
-    if (body == null) {
+    if (body == null || body.isEmpty()) {
       if (logger.isWarnEnabled()) {
         logger.warn("POST /client/create failed: request body is null");
       }
@@ -196,9 +196,10 @@ public class RouteController {
    * @return A resource indicating that the user was created.
   */
   @PostMapping({"/client/createUser"})
-  public ResponseEntity<?> createClientUser(@RequestBody TarsUser newUserRequestBody) {
+  public ResponseEntity<?> createClientUser(@RequestBody(required = false) TarsUser newUserRequestBody) {
     if (logger.isInfoEnabled()) {
-      logger.info("POST /client/createUser invoked");
+      logger.info("POST /client/createUser invoked with body keys={}",
+          newUserRequestBody == null ? "null" : newUserRequestBody.getClass().getDeclaredFields());
     }
     if (newUserRequestBody == null) {
       if (logger.isWarnEnabled()) {

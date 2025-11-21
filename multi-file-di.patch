@@ -1,0 +1,109 @@
+diff --git a/TeamProject/src/main/java/org/coms4156/tars/service/ClientService.java b/TeamProject/src/main/java/org/coms4156/tars/service/ClientService.java
+index 0000000..0000000 100644
+--- a/TeamProject/src/main/java/org/coms4156/tars/service/ClientService.java
++++ b/TeamProject/src/main/java/org/coms4156/tars/service/ClientService.java
+@@
+-  @Autowired
+-  public ClientService(
+-      @Value("${tars.client.data.path:./data/clients.json}") String clientFilePath) {
+-    this(clientFilePath, DEFAULT_FILE_MOVER);
+-  }
+-
+-  // Test-only constructor for injecting custom move behavior (not used by Spring DI)
+-  public ClientService(String clientFilePath, FileMover fileMover) {
++  @Autowired
++  public ClientService(
++      @Value("${tars.client.data.path:./data/clients.json}") String clientFilePath,
++      FileMover fileMover) {
+     this.clientFile = new File(clientFilePath);
+     this.fileMover = fileMover == null ? DEFAULT_FILE_MOVER : fileMover;
+     if (!clientFile.exists()) {
+       try {
+         File parent = clientFile.getParentFile();
+diff --git a/TeamProject/src/main/java/org/coms4156/tars/service/TarsUserService.java b/TeamProject/src/main/java/org/coms4156/tars/service/TarsUserService.java
+index 0000000..0000000 100644
+--- a/TeamProject/src/main/java/org/coms4156/tars/service/TarsUserService.java
++++ b/TeamProject/src/main/java/org/coms4156/tars/service/TarsUserService.java
+@@
+-    if (logger.isInfoEnabled()) {
+-      logger.info("Created TarsUser id={} clientId={} username='{}' email='{}'",
+-          newUserId, clientId, normalizedUsername, normalizedUserEmail, normalizedRole);
+-    }
++    if (logger.isInfoEnabled()) {
++      logger.info("Created TarsUser id={} clientId={} username='{}' email='{}' role='{}'",
++          newUserId, clientId, normalizedUsername, normalizedUserEmail, normalizedRole);
++    }
+     return newUser;
+   }
+diff --git a/TeamProject/src/main/java/org/coms4156/tars/config/PersistenceConfig.java b/TeamProject/src/main/java/org/coms4156/tars/config/PersistenceConfig.java
+new file mode 100644
+index 0000000..0000000
+--- /dev/null
++++ b/TeamProject/src/main/java/org/coms4156/tars/config/PersistenceConfig.java
+@@
++package org.coms4156.tars.config;
++
++import java.nio.file.CopyOption;
++import java.nio.file.Files;
++import java.nio.file.Path;
++import org.coms4156.tars.service.TarsUserService;
++import org.coms4156.tars.service.ClientService;
++import org.springframework.context.annotation.Bean;
++import org.springframework.context.annotation.Configuration;
++
++@Configuration
++public class PersistenceConfig {
++
++  @Bean
++  public TarsUserService.FileMover tarsUserFileMover() {
++    return (Path src, Path dest, CopyOption... opts) -> Files.move(src, dest, opts);
++  }
++
++  @Bean
++  public ClientService.FileMover clientFileMover() {
++    return (Path src, Path dest, CopyOption... opts) -> Files.move(src, dest, opts);
++  }
++}
+diff --git a/TeamProject/src/test/java/org/coms4156/tars/services/TarsUserServiceTest.java b/TeamProject/src/test/java/org/coms4156/tars/services/TarsUserServiceTest.java
+index 0000000..0000000 100644
+--- a/TeamProject/src/test/java/org/coms4156/tars/services/TarsUserServiceTest.java
++++ b/TeamProject/src/test/java/org/coms4156/tars/services/TarsUserServiceTest.java
+@@
+   public void persistSuccessPathTest() throws IOException {
+     Path testDir = Files.createTempDirectory("persist-test");
+     Path testFile = testDir.resolve("persist-users.json");
+@@
+-    TarsUserService service = new TarsUserService(testFile.toString(), null);
++    String path = testFile.toAbsolutePath().toString();
++    TarsUserService service = new TarsUserService(path, null);
+     TarsUser user = service.createUser(10L, "persist_test", "persist@test.com", "user");
+     assertNotNull(user, "User should be created successfully");
+     Long userId = user.getUserId();
+-    
+-    TarsUserService reloadedService = new TarsUserService(testFile.toString(), null);
++    // Verify file now contains new user before reload
++    String persistedJson = Files.readString(testFile);
++    assertTrue(persistedJson.contains("\"persist_test\""), "JSON should contain new username");
++    assertTrue(persistedJson.contains("\"persist@test.com\""), "JSON should contain new email");
++    assertTrue(persistedJson.contains("\"userId\": " + userId), "JSON should contain new userId");
++
++    TarsUserService reloadedService = new TarsUserService(path, null);
+     TarsUser retrieved = reloadedService.findById(userId);
+     assertNotNull(retrieved, "Persisted user should be retrievable after reload");
+     assertEquals("persist_test", retrieved.getUsername(), "Persisted data should match");
+     assertEquals("persist@test.com", retrieved.getUserEmail(), "Persisted email should match");
+-    
+-    // Diagnostics: verify in-memory presence
+-    assertTrue(service.listUsers().stream().anyMatch(u -> userId.equals(u.getUserId())),
+-        "In-memory list should contain newly created user id=" + userId);
+-
+-    // Read raw file text for verification
+-    String rawJson = Files.readString(testFile);
+-    assertTrue(rawJson.contains("\"persist@test.com\""),
+-        "File should contain new user's email");
+-    assertTrue(rawJson.contains("\"userId\": " + userId),
+-        "File should contain new user's userId");
++
++    // In-memory presence diagnostic
++    assertTrue(service.listUsers().stream().anyMatch(u -> userId.equals(u.getUserId())),
++        "Original service should still contain created user");

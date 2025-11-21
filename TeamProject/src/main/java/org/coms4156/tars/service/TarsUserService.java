@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.CopyOption;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * {@code TarsUserService} provides services related to TarsUser management.
@@ -28,19 +31,27 @@ public class TarsUserService {
   private final File userFile;
   private final AtomicLong idCounter = new AtomicLong(0);
   private List<TarsUser> users;
+  private final FileMover fileMover;
+
+  public interface FileMover {
+    void move(Path source, Path target, CopyOption... options) throws IOException;
+  }
+
+  private static final FileMover DEFAULT_FILE_MOVER = (src, dest, opts) -> Files.move(src, dest, opts);
 
   /**
    * {@code TarsUserService} constructor.
    * Initializes a new instance of TarsUserService.
    * Loads user data from the JSON user database.
    */
+  @Autowired
   public TarsUserService(
-      @Value("${tars.users.path:./data/users.json}") String userFilePath) {
+      @Value("${tars.users.path:./data/users.json}") String userFilePath,
+      FileMover fileMover) {
     this.userFile = new File(userFilePath);
+    this.fileMover = fileMover == null ? DEFAULT_FILE_MOVER : fileMover;
     ensureFile();
     this.users = load();
-    
-    // Initialize counter to max existing id
     long maxUserId = 0;
     for (TarsUser existingUser : users) {
       Long userId = existingUser.getUserId();
@@ -56,6 +67,13 @@ public class TarsUserService {
    * If it does not exist, creates an empty JSON array file.
    */
   private void ensureFile() {
+    if (userFile.exists() && userFile.isDirectory()) {
+      if (logger.isErrorEnabled()) {
+        logger.error("Failed to initialize user store {} (path is a directory)",
+            userFile.getPath());
+      }
+      return;
+    }
     if (!userFile.exists()) {
       try {
         File parent = userFile.getParentFile();
@@ -100,26 +118,79 @@ public class TarsUserService {
 
   /**
    * {@code persist} Persists the current users list to the JSON user database.
-   * Handles atomic file replacement to avoid data corruption.
+   * Strategy:
+   * 1. Ensure parent directory exists.
+   * 2. Serialize to a temporary sibling file (<name>.tmp).
+   * 3. Attempt atomic move (REPLACE_EXISTING + ATOMIC_MOVE).
+   * 4. If atomic unsupported or fails, fallback to non-atomic move.
+   * 5. On any failure, log and remove temp to avoid orphaned artifacts.
    */
   private synchronized void persist() {
-    File tempFile = new File(userFile.getParent(), userFile.getName() + ".tmp");
+    File parent = userFile.getParentFile();
+    if (parent != null && !parent.exists()) {
+      parent.mkdirs();
+    }
+
+    Path tempPath = userFile.toPath().resolveSibling(userFile.getName() + ".tmp");
+    File tempFile = tempPath.toFile();
+    boolean moved = false;
+
+    if (logger.isDebugEnabled()) {
+      logger.debug("Persisting users: count={} target={}", users.size(), userFile.getPath());
+    }
+
     try {
       mapper.writeValue(tempFile, users);
-      Files.move(
-          tempFile.toPath(),
-          userFile.toPath(),
-          StandardCopyOption.REPLACE_EXISTING,
-          StandardCopyOption.ATOMIC_MOVE);
-    } catch (IOException ioException) {
-      if (logger.isErrorEnabled()) {
-        logger.error(
-            "Failed to persist users to {}",
-            userFile.getPath(),
-            ioException);
+
+      try {
+        fileMover.move(
+            tempPath,
+            userFile.toPath(),
+            StandardCopyOption.REPLACE_EXISTING,
+            StandardCopyOption.ATOMIC_MOVE);
+        moved = true;
+      } catch (java.nio.file.AtomicMoveNotSupportedException atomicEx) {
+        fileMover.move(
+            tempPath,
+            userFile.toPath(),
+            StandardCopyOption.REPLACE_EXISTING);
+        moved = true;
+        if (logger.isWarnEnabled()) {
+          logger.warn("Atomic move not supported for users file; used non-atomic fallback.");
+        }
+      } catch (IOException moveEx) {
+        try {
+          fileMover.move(
+              tempPath,
+              userFile.toPath(),
+              StandardCopyOption.REPLACE_EXISTING);
+          moved = true;
+          if (logger.isWarnEnabled()) {
+            logger.warn("Atomic move failed ({}); non-atomic fallback succeeded.",
+                moveEx.getClass().getSimpleName());
+          }
+        } catch (IOException fallbackEx) {
+          if (logger.isErrorEnabled()) {
+            logger.error("Persist move failed; destination={} atomicCause={} fallbackCause={}",
+                userFile.getPath(),
+                moveEx.getClass().getSimpleName(),
+                fallbackEx.getClass().getSimpleName());
+          }
+        }
       }
+    } catch (IOException writeEx) {
+      if (logger.isErrorEnabled()) {
+        logger.error("Failed to write temp users file for {}", userFile.getPath(), writeEx);
+      }
+    } finally {
       if (tempFile.exists()) {
         tempFile.delete();
+      }
+      if (moved && logger.isDebugEnabled()) {
+        logger.debug("Persist completed: target={} size={}B", userFile.getPath(), userFile.length());
+      } else if (!moved && logger.isWarnEnabled()) {
+        logger.warn("Persist did not move new users file; in-memory state retained. target={}",
+            userFile.getPath());
       }
     }
   }
@@ -214,7 +285,7 @@ public class TarsUserService {
     persist();
     
     if (logger.isInfoEnabled()) {
-      logger.info("Created TarsUser id={} clientId={} username='{}' email='{}'",
+      logger.info("Created TarsUser id={} clientId={} username='{}' email='{}' role='{}'",
           newUserId, clientId, normalizedUsername, normalizedUserEmail, normalizedRole);
     }
     return newUser;

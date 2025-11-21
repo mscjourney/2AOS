@@ -6,11 +6,16 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import org.coms4156.tars.model.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * {@code ClientService} class for managing {@code Client} entities.
@@ -23,6 +28,14 @@ public class ClientService {
   private final File clientFile;
   private final ObjectMapper mapper = new ObjectMapper();
   private List<Client> clients;
+  private final FileMover fileMover;
+
+  // Strategy interface for file moves (test injection)
+  public interface FileMover {
+    void move(Path source, Path target, CopyOption... options) throws IOException;
+  }
+
+  private static final FileMover DEFAULT_FILE_MOVER = (src, dest, opts) -> java.nio.file.Files.move(src, dest, opts);
 
   /**
    * Constructor with path injected from application properties.
@@ -31,9 +44,12 @@ public class ClientService {
    *
    * @param clientFilePath the path to the client data JSON file
    */
+  @Autowired
   public ClientService(
-      @Value("${tars.client.data.path:./data/clients.json}") String clientFilePath) {
+      @Value("${tars.client.data.path:./data/clients.json}") String clientFilePath,
+      FileMover fileMover) {
     this.clientFile = new File(clientFilePath);
+    this.fileMover = fileMover == null ? DEFAULT_FILE_MOVER : fileMover;
     if (!clientFile.exists()) {
       try {
         File parent = clientFile.getParentFile();
@@ -80,13 +96,20 @@ public class ClientService {
    * @return the new API key, or null if client not found
    */
   public synchronized String rotateApiKey(long clientId) {
-    Client c = getClient((int) clientId);
-    if (c == null) {
+    // Operate on internal reference (not the defensive copy)
+    Client target = null;
+    for (Client c : clients) {
+      if (c.getClientId() == clientId) {
+        target = c;
+        break;
+      }
+    }
+    if (target == null) {
       logger.warn("rotateApiKey: client not found id={}", clientId);
       return null;
     }
     String newKey = generateApiKey();
-    c.setApiKey(newKey);
+    target.setApiKey(newKey);
     saveData();
     if (logger.isInfoEnabled()) {
       logger.info("API key rotated for client id={} (key suffix={})",
@@ -115,11 +138,30 @@ public class ClientService {
    * {@code saveData} Writes the current list of clients to the JSON file.
    */
   public synchronized void saveData() {
+    File tempFile = new File(clientFile.getParent(), clientFile.getName() + ".tmp");
     try {
-      mapper.writeValue(this.clientFile, clients);
+      mapper.writeValue(tempFile, clients);
+      try {
+        fileMover.move(
+            tempFile.toPath(),
+            clientFile.toPath(),
+            StandardCopyOption.REPLACE_EXISTING,
+            StandardCopyOption.ATOMIC_MOVE);
+      } catch (java.nio.file.AtomicMoveNotSupportedException atomicEx) {
+        fileMover.move(
+            tempFile.toPath(),
+            clientFile.toPath(),
+            StandardCopyOption.REPLACE_EXISTING);
+        if (logger.isWarnEnabled()) {
+          logger.warn("Atomic move not supported for clients file; used non-atomic fallback.");
+        }
+      }
     } catch (IOException e) {
       if (logger.isErrorEnabled()) {
         logger.error("Failed to write clients to {}", clientFile.getPath(), e);
+      }
+      if (tempFile.exists()) {
+        tempFile.delete();
       }
     }
   }
@@ -133,7 +175,11 @@ public class ClientService {
     if (clients == null) {
       clients = loadData();
     }
-    return new ArrayList<>(clients);  // Return defensive copy
+    List<Client> snapshot = new ArrayList<>();
+    for (Client c : clients) {
+      snapshot.add(copyClient(c));
+    }
+    return snapshot;
   }
 
   /**
@@ -156,10 +202,9 @@ public class ClientService {
 
     for (Client client : clients) {
       if (client.getClientId() == clientId) {
-        return client;
+        return copyClient(client);
       }
     }
-
     return null;
   }
 
@@ -320,26 +365,30 @@ public class ClientService {
       logger.warn("Updated client missing clientId");
       return false;
     }
-    // Validate name if changed
     String newName = updatedClient.getName();
     if (newName == null || newName.isBlank()) {
       logger.warn("Attempted to update client id={} with blank name", updatedId);
       return false;
     }
-    for (int i = 0; i < clients.size(); i++) {
-      Client existing = clients.get(i);
-      Long existingId = existing.getClientId();
-      // uniqueness check if name changed
-      if (!existing.getName().equalsIgnoreCase(newName) && !uniqueNameCheck(newName)) {
+    // Explicit uniqueness scan excluding the target id (handles mutated reference)
+    for (Client other : clients) {
+      if (other.getClientId() != null
+          && !other.getClientId().equals(updatedId)
+          && other.getName() != null
+          && other.getName().equalsIgnoreCase(newName)) {
         logger.warn("Name '{}' already in use. Update aborted.", newName);
         return false;
       }
-      if (existingId != null && existingId.equals(updatedId)) {
-        // Preserve apiKey if omitted
+    }
+    // Locate and update target
+    for (int i = 0; i < clients.size(); i++) {
+      Client existing = clients.get(i);
+      if (existing.getClientId() != null && existing.getClientId().equals(updatedId)) {
         if (updatedClient.getApiKey() == null) {
           updatedClient.setApiKey(existing.getApiKey());
         }
-        clients.set(i, updatedClient);
+        // Store a copy internally to avoid external references lingering
+        clients.set(i, copyClient(updatedClient));
         saveData();
         logger.info("Client updated successfully id={}", updatedId);
         return true;
@@ -363,4 +412,18 @@ public class ClientService {
     }
   }
 
+  // ==================== Internal Helpers ====================
+  private Client copyClient(Client source) {
+    if (source == null) {
+      return null;
+    }
+    Client copy = new Client();
+    copy.setClientId(source.getClientId());
+    copy.setName(source.getName());
+    copy.setEmail(source.getEmail());
+    copy.setApiKey(source.getApiKey());
+    copy.setRateLimitPerMinute(source.getRateLimitPerMinute());
+    copy.setMaxConcurrentRequests(source.getMaxConcurrentRequests());
+    return copy;
+  }
 }

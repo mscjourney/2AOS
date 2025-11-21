@@ -49,7 +49,7 @@ public class ClientServiceTest {
     Files.copy(resourceStream, tempTestDataFile, StandardCopyOption.REPLACE_EXISTING);
     resourceStream.close();
     
-    clientService = new ClientService(tempTestDataFile.toString());
+    clientService = new ClientService(tempTestDataFile.toString(), null);
   }
 
   /**
@@ -719,7 +719,7 @@ public class ClientServiceTest {
     Path tempDir = Files.createTempDirectory("client-test");
     Path testFile = tempDir.resolve("new-clients.json");
     
-    ClientService service = new ClientService(testFile.toString());
+    ClientService service = new ClientService(testFile.toString(), null);
     
     assertTrue(Files.exists(testFile), "File should be created");
     List<Client> clients = service.getClientList();
@@ -747,7 +747,7 @@ public class ClientServiceTest {
     logger.addAppender(listAppender);
 
     // Create service with existing temp file
-    new ClientService(tempTestDataFile.toString());
+    new ClientService(tempTestDataFile.toString(), null);
 
     assertTrue(listAppender.list.stream().anyMatch(event ->
             event.getLevel() == Level.INFO &&
@@ -771,7 +771,7 @@ public class ClientServiceTest {
     Path tempFile = Files.createTempFile("corrupt-clients", ".json");
     Files.writeString(tempFile, "{ invalid json [[[");
     
-    ClientService service = new ClientService(tempFile.toString());
+    ClientService service = new ClientService(tempFile.toString(), null);
     List<Client> clients = service.getClientList();
     
     assertEquals(0, clients.size(), "Corrupted file should return empty list");
@@ -799,7 +799,7 @@ public class ClientServiceTest {
     Path tempDir = Files.createTempDirectory("save-fail-test");
     Path testFile = tempDir.resolve("clients.json");
     
-    ClientService service = new ClientService(testFile.toString());
+    ClientService service = new ClientService(testFile.toString(), null);
     
     // Make directory read-only on Unix to cause write failure
     if (!System.getProperty("os.name").toLowerCase().contains("win")) {
@@ -865,13 +865,13 @@ public class ClientServiceTest {
     Path testFile = testDir.resolve("persist-clients.json");
     
     // First service instance creates client
-    ClientService service1 = new ClientService(testFile.toString());
+    ClientService service1 = new ClientService(testFile.toString(), null);
     Client created = service1.createClient("PersistTest", "persist@test.com");
     assertNotNull(created);
     Long clientId = created.getClientId();
     
     // Second service instance should load persisted data
-    ClientService service2 = new ClientService(testFile.toString());
+    ClientService service2 = new ClientService(testFile.toString(), null);
     Client retrieved = service2.getClient(clientId);
     
     assertNotNull(retrieved, "Persisted client should be retrievable");
