@@ -25,13 +25,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-/**
- * Comprehensive test suite for the /alert/weather endpoint.
- * This test class includes:
- * - Tests for typical valid inputs (city name, lat/lon coordinates)
- * - Tests for atypical valid inputs (edge cases, special characters)
- * - Tests for invalid inputs (missing parameters, invalid coordinates)
- */
+
 @WebMvcTest(RouteController.class)
 public class AlertTest {
 
@@ -50,7 +44,6 @@ public class AlertTest {
 
   @BeforeEach
   void setUp() throws Exception {
-    // Setup mock data for testing
     mockAlerts = new ArrayList<>();
     Map<String, String> alert = new HashMap<>();
     alert.put("severity", "INFO");

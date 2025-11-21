@@ -2,7 +2,13 @@ package org.coms4156.tars.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import org.coms4156.tars.model.CitySummary;
 import org.coms4156.tars.model.CrimeModel;
 import org.coms4156.tars.model.CrimeSummary;
 import org.coms4156.tars.model.TravelAdvisory;
@@ -338,10 +344,7 @@ public class RouteController {
     }
   }
 
-  /**
-   * Handles GET requests to retrieve a travel advisory for a given country.
-   * Example: GET /country/Algeria
-   */
+  
   @GetMapping("/country/{country}")
   public ResponseEntity<?> getCountryAdvisory(@PathVariable String country) {
     logger.info("GET /country/{} invoked", country);
@@ -352,7 +355,7 @@ public class RouteController {
 
       if (advisory == null) {
         logger.warn("No advisory found for country={}", country);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
       }
 
       return ResponseEntity.ok(advisory.toString());
@@ -362,9 +365,214 @@ public class RouteController {
 
     } catch (Exception e) {
       logger.error("Error retrieving advisory for country={}", country, e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
   }
 
+
+  @GetMapping("/summary/{city}")
+  public ResponseEntity<?> getCitySummary(
+      @PathVariable String city,
+      @RequestParam(required = false) String startDate,
+      @RequestParam(required = false) String endDate) {
+
+    if (logger.isInfoEnabled()) {
+      logger.info("GET /summary/{} invoked with startDate={} endDate={}",
+          city, startDate, endDate);
+    }
+
+    try {
+      if (city == null || city.trim().isEmpty()) {
+        if (logger.isWarnEnabled()) {
+          logger.warn("City parameter is empty");
+        }
+        return new ResponseEntity<>("City cannot be empty.", HttpStatus.BAD_REQUEST);
+      }
+
+      // Parse dates if provided
+      LocalDate start = null;
+      LocalDate end = null;
+      DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE;
+
+      if (startDate != null && !startDate.trim().isEmpty()) {
+        try {
+          start = LocalDate.parse(startDate, formatter);
+        } catch (DateTimeParseException e) {
+          if (logger.isWarnEnabled()) {
+            logger.warn("Invalid startDate format: {}", startDate);
+          }
+          return new ResponseEntity<>(
+              "Invalid startDate format. Expected YYYY-MM-DD.", HttpStatus.BAD_REQUEST);
+        }
+      }
+
+      if (endDate != null && !endDate.trim().isEmpty()) {
+        try {
+          end = LocalDate.parse(endDate, formatter);
+        } catch (DateTimeParseException e) {
+          if (logger.isWarnEnabled()) {
+            logger.warn("Invalid endDate format: {}", endDate);
+          }
+          return new ResponseEntity<>(
+              "Invalid endDate format. Expected YYYY-MM-DD.", HttpStatus.BAD_REQUEST);
+        }
+      }
+
+      // Validate date range
+      if (start != null && end != null && start.isAfter(end)) {
+        if (logger.isWarnEnabled()) {
+          logger.warn("startDate {} is after endDate {}", startDate, endDate);
+        }
+        return new ResponseEntity<>(
+            "startDate cannot be after endDate.", HttpStatus.BAD_REQUEST);
+      }
+
+      // Calculate number of days to fetch (default to 14 if no dates provided)
+      int daysToFetch = 14;
+      if (start != null && end != null) {
+        daysToFetch = (int) java.time.temporal.ChronoUnit.DAYS.between(start, end) + 1;
+        if (daysToFetch > 14) {
+          daysToFetch = 14; // API limit
+        }
+        if (daysToFetch <= 0) {
+          return new ResponseEntity<>(
+              "Invalid date range.", HttpStatus.BAD_REQUEST);
+        }
+      }
+
+      // Get weather recommendations
+      WeatherRecommendation weatherRecommendation = 
+          WeatherModel.getRecommendedDays(city, daysToFetch);
+
+      // Get weather alerts for the city
+      WeatherAlert weatherAlert = null;
+      try {
+        weatherAlert = WeatherAlertModel.getWeatherAlerts(city, null, null);
+      } catch (Exception e) {
+        if (logger.isWarnEnabled()) {
+          logger.warn("Failed to fetch weather alerts for city={}: {}", city, e.getMessage());
+        }
+        // Continue without alerts if fetch fails
+      }
+
+      // Get travel advisory for the city's country
+      TravelAdvisory travelAdvisory = null;
+      try {
+        TravelAdvisoryModel advisoryModel = new TravelAdvisoryModel();
+        String country = CitySummary.getCountryFromCity(city);
+        if (country != null && !country.trim().isEmpty()) {
+          travelAdvisory = advisoryModel.getTravelAdvisory(country);
+        }
+        // If country lookup failed, try using city name as country name (works for some cases)
+        if (travelAdvisory == null) {
+          travelAdvisory = advisoryModel.getTravelAdvisory(city);
+        }
+      } catch (Exception e) {
+        if (logger.isDebugEnabled()) {
+          logger.debug("Failed to fetch travel advisory for city={}: {}", city, e.getMessage());
+        }
+        // Continue without travel advisory if fetch fails
+      }
+
+      // Filter recommended days by date range if provided
+      if (start != null || end != null) {
+        List<String> filteredDays = new ArrayList<>();
+        if (weatherRecommendation.getRecommendedDays() != null) {
+          for (String day : weatherRecommendation.getRecommendedDays()) {
+            try {
+              LocalDate dayDate = LocalDate.parse(day, formatter);
+              boolean include = true;
+              if (start != null && dayDate.isBefore(start)) {
+                include = false;
+              }
+              if (end != null && dayDate.isAfter(end)) {
+                include = false;
+              }
+              if (include) {
+                filteredDays.add(day);
+              }
+            } catch (DateTimeParseException e) {
+              // Skip days that don't match the expected format
+              if (logger.isDebugEnabled()) {
+                logger.debug("Skipping day with invalid format: {}", day);
+              }
+            }
+          }
+        }
+        weatherRecommendation.setRecommendedDays(filteredDays);
+        
+        // Update message
+        String filteredMessage;
+        if (filteredDays.isEmpty()) {
+          filteredMessage = String.format(
+              "No clear days found in the date range %s to %s for %s.",
+              startDate != null ? startDate : "start",
+              endDate != null ? endDate : "end",
+              city);
+        } else {
+          filteredMessage = String.format(
+              "These days in the range %s to %s are expected to have clear weather in %s!",
+              startDate != null ? startDate : "start",
+              endDate != null ? endDate : "end",
+              city);
+        }
+        weatherRecommendation.setMessage(filteredMessage);
+      }
+
+      // Get all users and filter those who have this city in their preferences
+      List<User> allUsers = tarsService.getUserList();
+      List<User> interestedUsers = allUsers.stream()
+          .filter(user -> user.getCityPreferences() != null
+              && user.getCityPreferences().stream()
+                  .anyMatch(pref -> pref.equalsIgnoreCase(city)))
+          .collect(Collectors.toList());
+
+      // Build message including alert and travel advisory information
+      StringBuilder messageBuilder = new StringBuilder();
+      messageBuilder.append(String.format(
+          "Summary for %s: Found %d user(s) interested in this city. %s",
+          city, interestedUsers.size(), weatherRecommendation.getMessage()));
+      
+      if (weatherAlert != null && weatherAlert.getAlerts() != null 
+          && !weatherAlert.getAlerts().isEmpty()) {
+        // Check if there are any non-INFO alerts
+        boolean hasActiveAlerts = weatherAlert.getAlerts().stream()
+            .anyMatch(alert -> !"INFO".equals(alert.get("severity")) 
+                && !"CLEAR".equals(alert.get("type")));
+        
+        if (hasActiveAlerts) {
+          messageBuilder.append(" Active weather alerts present.");
+        }
+      }
+
+      if (travelAdvisory != null) {
+        if (travelAdvisory.getLevel() != null && !travelAdvisory.getLevel().isEmpty()) {
+          messageBuilder.append(String.format(" Travel advisory: %s.", travelAdvisory.getLevel()));
+        }
+      }
+
+      CitySummary summary = new CitySummary(
+          city,
+          weatherRecommendation,
+          weatherAlert,
+          travelAdvisory,
+          interestedUsers,
+          messageBuilder.toString()
+      );
+
+      if (logger.isInfoEnabled()) {
+        logger.info("City summary generated for city={} with {} interested users",
+            city, interestedUsers.size());
+      }
+
+      return ResponseEntity.ok(summary);
+
+    } catch (Exception e) {
+      if (logger.isErrorEnabled()) {
+        logger.error("Error generating city summary for city={}", city, e);
+      }
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 
 }
