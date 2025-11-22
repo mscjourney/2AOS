@@ -27,13 +27,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-/**
- * Comprehensive test suite for the /alert/weather endpoint.
- * This test class includes:
- * - Tests for typical valid inputs (city name, lat/lon coordinates)
- * - Tests for atypical valid inputs (edge cases, special characters)
- * - Tests for invalid inputs (missing parameters, invalid coordinates)
- */
+
 @WebMvcTest(RouteController.class)
 public class AlertTest {
 
@@ -59,7 +53,6 @@ public class AlertTest {
 
   @BeforeEach
   void setUp() throws Exception {
-    // Setup mock data for testing
     mockAlerts = new ArrayList<>();
     Map<String, String> alert = new HashMap<>();
     alert.put("severity", "INFO");
@@ -142,6 +135,25 @@ public class AlertTest {
     mockMvc.perform(get("/alert/weather/user/-1"))
         .andExpect(status().isBadRequest())
         .andExpect(content().string(containsString("User Id cannot be less than zero.")));
+  }
+
+  @Test
+  void testGetUserAlertsWithValidIdButEmptyAlerts() throws Exception {
+    Mockito.when(tarsService.getUser(3)).thenReturn(mockUser);
+
+    try (MockedStatic<WeatherAlertModel> mockedModel =
+        Mockito.mockStatic(WeatherAlertModel.class)) {
+      List<WeatherAlert> emptyList = new ArrayList<>();
+      mockedModel.when(() -> WeatherAlertModel.getUserAlerts(mockUser))
+          .thenReturn(emptyList);
+
+      mockMvc.perform(get("/alert/weather/user/3")
+          .contentType(MediaType.APPLICATION_JSON))
+          .andExpect(status().isOk())
+          .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+          .andExpect(jsonPath("$").isArray())
+          .andExpect(jsonPath("$").isEmpty());
+    }
   }
 
   @Test
