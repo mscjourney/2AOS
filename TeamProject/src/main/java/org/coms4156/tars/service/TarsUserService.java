@@ -378,7 +378,7 @@ public class TarsUserService {
     String normalizedEmailLowerCase = email.trim().toLowerCase(Locale.ROOT);
     for (TarsUser existingUser : users) {
       Long existingClientId = existingUser.getClientId();
-      String existingEmail = existingUser.getUserEmail();
+      String existingEmail = existingUser.getEmail();
       
       if (existingClientId != null && existingEmail != null) {
         if (existingClientId.equals(clientId)) {

@@ -39,7 +39,9 @@ public class ClientServiceTest {
   @BeforeEach
   void setUp() throws IOException {
     InputStream resourceStream = getClass().getClassLoader()
-        .getResourceAsStream("test-data/test-data-clients.json");
+        .getResourceAsStream(
+            "test-data/test-data-clients.json"
+        );
     
     if (resourceStream == null) {
       throw new IllegalStateException("Test data file not found in classpath");
@@ -70,7 +72,11 @@ public class ClientServiceTest {
   public void clientServiceInitializationTest() {
     assertNotNull(clientService, "ClientService should be initialized");
     List<Client> clients = clientService.getClientList();
-    assertEquals(4, clients.size(), "Should load 4 test clients");
+    assertEquals(
+        4,
+        clients.size(),
+        "Should load 4 test clients"
+    );
   }
 
   /**
@@ -83,7 +89,10 @@ public class ClientServiceTest {
     List<Client> clients2 = clientService.getClientList();
     assertNotNull(clients1);
     assertNotNull(clients2);
-    assertTrue(clients1 != clients2, "Should return new list instance each time");
+    assertTrue(
+        clients1 != clients2,
+        "Should return new list instance each time"
+    );
   }
 
   /**
@@ -93,10 +102,20 @@ public class ClientServiceTest {
   @Test
   public void getClientByIdSuccessTest() {
     Client client = clientService.getClient(1L);
-    assertNotNull(client, "Client with ID 1 should exist");
-    assertEquals(1L, client.getClientId(), "Client ID should match");
-    assertEquals("test_WeatherAlertClient", client.getName(),
-        "Client name should match");
+    assertNotNull(
+        client,
+        "Client with ID 1 should exist"
+    );
+    assertEquals(
+        1L,
+        client.getClientId(),
+        "Client ID should match"
+    );
+    assertEquals(
+        "test_WeatherAlertClient",
+        client.getName(),
+        "Client name should match"
+    );
   }
 
   /**
@@ -106,7 +125,10 @@ public class ClientServiceTest {
   @Test
   public void getClientByIdNotFoundTest() {
     Client client = clientService.getClient(999L);
-    assertNull(client, "Non-existent client should return null");
+    assertNull(
+        client,
+        "Non-existent client should return null"
+    );
   }
 
   /**
@@ -122,11 +144,17 @@ public class ClientServiceTest {
 
     Client client = clientService.getClient(-1L);
     
-    assertNull(client, "Negative client ID should return null");
-    assertTrue(listAppender.list.stream().anyMatch(event ->
+    assertNull(
+        client,
+        "Negative client ID should return null"
+    );
+    assertTrue(
+        listAppender.list.stream().anyMatch(event ->
             event.getLevel() == Level.WARN &&
-                    event.getFormattedMessage().contains("cannot be negative")),
-            "Should log WARN for negative ID");
+            event.getFormattedMessage().contains("cannot be negative")
+        ),
+        "Should log WARN for negative ID"
+    );
 
     logger.detachAppender(listAppender);
   }
@@ -138,16 +166,44 @@ public class ClientServiceTest {
   @Test
   public void createClientSuccessTest() {
     int initialSize = clientService.getClientList().size();
-    Client client = clientService.createClient("NewClient", "new@example.com");
+    Client client = clientService.createClient(
+        "NewClient",
+        "new@example.com"
+    );
     
-    assertNotNull(client, "Created client should not be null");
-    assertEquals(5L, client.getClientId(), "New client should have ID 5");
-    assertEquals("NewClient", client.getName(), "Name should match");
-    assertEquals("new@example.com", client.getEmail(), "Email should match");
-    assertNotNull(client.getApiKey(), "API key should be generated");
-    assertEquals(32, client.getApiKey().length(), "API key should be 32 chars");
-    assertEquals(initialSize + 1, clientService.getClientList().size(),
-        "Client list should grow by 1");
+    assertNotNull(
+        client,
+        "Created client should not be null"
+    );
+    assertEquals(
+        5L,
+        client.getClientId(),
+        "New client should have ID 5"
+    );
+    assertEquals(
+        "NewClient",
+        client.getName(),
+        "Name should match"
+    );
+    assertEquals(
+        "new@example.com",
+        client.getEmail(),
+        "Email should match"
+    );
+    assertNotNull(
+        client.getApiKey(),
+        "API key should be generated"
+    );
+    assertEquals(
+        32,
+        client.getApiKey().length(),
+        "API key should be 32 chars"
+    );
+    assertEquals(
+        initialSize + 1,
+        clientService.getClientList().size(),
+        "Client list should grow by 1"
+    );
   }
 
   /**
@@ -163,11 +219,17 @@ public class ClientServiceTest {
 
     Client client = clientService.createClient(null, "test@example.com");
     
-    assertNull(client, "Client with null name should not be created");
-    assertTrue(listAppender.list.stream().anyMatch(event ->
+    assertNull(
+        client,
+        "Client with null name should not be created"
+    );
+    assertTrue(
+        listAppender.list.stream().anyMatch(event ->
             event.getLevel() == Level.WARN &&
-                    event.getFormattedMessage().contains("blank name")),
-            "Should log WARN for blank name");
+            event.getFormattedMessage().contains("blank name")
+        ),
+        "Should log WARN for blank name"
+    );
 
     logger.detachAppender(listAppender);
   }
@@ -178,8 +240,14 @@ public class ClientServiceTest {
    */
   @Test
   public void createClientWithBlankNameTest() {
-    Client client = clientService.createClient("   ", "test@example.com");
-    assertNull(client, "Client with blank name should not be created");
+    Client client = clientService.createClient(
+        "   ",
+        "test@example.com"
+    );
+    assertNull(
+        client,
+        "Client with blank name should not be created"
+    );
   }
 
   /**
@@ -195,11 +263,17 @@ public class ClientServiceTest {
 
     Client client = clientService.createClient("TestClient", null);
     
-    assertNull(client, "Client with null email should not be created");
-    assertTrue(listAppender.list.stream().anyMatch(event ->
+    assertNull(
+        client,
+        "Client with null email should not be created"
+    );
+    assertTrue(
+        listAppender.list.stream().anyMatch(event ->
             event.getLevel() == Level.WARN &&
-                    event.getFormattedMessage().contains("blank email")),
-            "Should log WARN for blank email");
+            event.getFormattedMessage().contains("blank email")
+        ),
+        "Should log WARN for blank email"
+    );
 
     logger.detachAppender(listAppender);
   }
@@ -210,8 +284,14 @@ public class ClientServiceTest {
    */
   @Test
   public void createClientWithBlankEmailTest() {
-    Client client = clientService.createClient("TestClient", "   ");
-    assertNull(client, "Client with blank email should not be created");
+    Client client = clientService.createClient(
+        "TestClient",
+        "   "
+    );
+    assertNull(
+        client,
+        "Client with blank email should not be created"
+    );
   }
 
   /**
@@ -220,9 +300,14 @@ public class ClientServiceTest {
    */
   @Test
   public void createClientWithDuplicateNameTest() {
-    Client client = clientService.createClient("test_WeatherAlertClient",
-        "unique@example.com");
-    assertNull(client, "Duplicate name should be rejected");
+    Client client = clientService.createClient(
+        "test_WeatherAlertClient",
+        "unique@example.com"
+    );
+    assertNull(
+        client,
+        "Duplicate name should be rejected"
+    );
   }
 
   /**
@@ -236,14 +321,22 @@ public class ClientServiceTest {
     listAppender.start();
     logger.addAppender(listAppender);
 
-    Client client = clientService.createClient("TEST_WEATHERALERTCLIENT",
-        "unique@example.com");
+    Client client = clientService.createClient(
+        "TEST_WEATHERALERTCLIENT",
+        "unique@example.com"
+    );
     
-    assertNull(client, "Duplicate name (case-insensitive) should be rejected");
-    assertTrue(listAppender.list.stream().anyMatch(event ->
+    assertNull(
+        client,
+        "Duplicate name (case-insensitive) should be rejected"
+    );
+    assertTrue(
+        listAppender.list.stream().anyMatch(event ->
             event.getLevel() == Level.WARN &&
-                    event.getFormattedMessage().contains("already exists")),
-            "Should log WARN for duplicate name");
+            event.getFormattedMessage().contains("already exists")
+        ),
+        "Should log WARN for duplicate name"
+    );
 
     logger.detachAppender(listAppender);
   }
@@ -254,9 +347,14 @@ public class ClientServiceTest {
    */
   @Test
   public void createClientWithDuplicateEmailTest() {
-    Client client = clientService.createClient("UniqueClient",
-        "test_client1@weatheralertclient.com");
-    assertNull(client, "Duplicate email should be rejected");
+    Client client = clientService.createClient(
+        "UniqueClient",
+        "test_client1@weatheralertclient.com"
+    );
+    assertNull(
+        client,
+        "Duplicate email should be rejected"
+    );
   }
 
   /**
@@ -270,14 +368,22 @@ public class ClientServiceTest {
     listAppender.start();
     logger.addAppender(listAppender);
 
-    Client client = clientService.createClient("UniqueClient",
-        "TEST_CLIENT1@WEATHERALERTCLIENT.COM");
+    Client client = clientService.createClient(
+        "UniqueClient",
+        "TEST_CLIENT1@WEATHERALERTCLIENT.COM"
+    );
     
-    assertNull(client, "Duplicate email (case-insensitive) should be rejected");
-    assertTrue(listAppender.list.stream().anyMatch(event ->
+    assertNull(
+        client,
+        "Duplicate email (case-insensitive) should be rejected"
+    );
+    assertTrue(
+        listAppender.list.stream().anyMatch(event ->
             event.getLevel() == Level.WARN &&
-                    event.getFormattedMessage().contains("already exists")),
-            "Should log WARN for duplicate email");
+            event.getFormattedMessage().contains("already exists")
+        ),
+        "Should log WARN for duplicate email"
+    );
 
     logger.detachAppender(listAppender);
   }
@@ -295,10 +401,13 @@ public class ClientServiceTest {
 
     clientService.createClient("LogTestClient", "logtest@example.com");
 
-    assertTrue(listAppender.list.stream().anyMatch(event ->
+    assertTrue(
+        listAppender.list.stream().anyMatch(event ->
             event.getLevel() == Level.INFO &&
-                    event.getFormattedMessage().contains("Client created successfully")),
-            "Should log INFO on successful creation");
+            event.getFormattedMessage().contains("Client created successfully")
+        ),
+        "Should log INFO on successful creation"
+    );
 
     logger.detachAppender(listAppender);
   }
@@ -309,8 +418,10 @@ public class ClientServiceTest {
    */
   @Test
   public void uniqueNameCheckWithNullTest() {
-    assertFalse(clientService.uniqueNameCheck(null),
-        "Null name should not be unique");
+    assertFalse(
+        clientService.uniqueNameCheck(null),
+        "Null name should not be unique"
+    );
   }
 
   /**
@@ -319,8 +430,10 @@ public class ClientServiceTest {
    */
   @Test
   public void uniqueNameCheckWithUniqueNameTest() {
-    assertTrue(clientService.uniqueNameCheck("CompletelyUniqueName"),
-        "Unique name should pass check");
+    assertTrue(
+        clientService.uniqueNameCheck("CompletelyUniqueName"),
+        "Unique name should pass check"
+    );
   }
 
   /**
@@ -329,8 +442,10 @@ public class ClientServiceTest {
    */
   @Test
   public void uniqueNameCheckWithExistingNameTest() {
-    assertFalse(clientService.uniqueNameCheck("test_WeatherAlertClient"),
-        "Existing name should fail check");
+    assertFalse(
+        clientService.uniqueNameCheck("test_WeatherAlertClient"),
+        "Existing name should fail check"
+    );
   }
 
   /**
@@ -339,8 +454,10 @@ public class ClientServiceTest {
    */
   @Test
   public void uniqueEmailCheckWithNullTest() {
-    assertFalse(clientService.uniqueEmailCheck(null),
-        "Null email should not be unique");
+    assertFalse(
+        clientService.uniqueEmailCheck(null),
+        "Null email should not be unique"
+    );
   }
 
   /**
@@ -349,8 +466,10 @@ public class ClientServiceTest {
    */
   @Test
   public void uniqueEmailCheckWithUniqueEmailTest() {
-    assertTrue(clientService.uniqueEmailCheck("unique@newdomain.com"),
-        "Unique email should pass check");
+    assertTrue(
+        clientService.uniqueEmailCheck("unique@newdomain.com"),
+        "Unique email should pass check"
+    );
   }
 
   /**
@@ -359,8 +478,10 @@ public class ClientServiceTest {
    */
   @Test
   public void uniqueEmailCheckWithExistingEmailTest() {
-    assertFalse(clientService.uniqueEmailCheck("test_client1@weatheralertclient.com"),
-        "Existing email should fail check");
+    assertFalse(
+        clientService.uniqueEmailCheck("test_client1@weatheralertclient.com"),
+        "Existing email should fail check"
+    );
   }
 
   /**
@@ -372,11 +493,19 @@ public class ClientServiceTest {
     int initialSize = clientService.getClientList().size();
     boolean removed = clientService.removeClient(1);
     
-    assertTrue(removed, "Should successfully remove existing client");
-    assertEquals(initialSize - 1, clientService.getClientList().size(),
-        "Client list should shrink by 1");
-    assertNull(clientService.getClient(1L),
-        "Removed client should no longer be found");
+    assertTrue(
+        removed,
+        "Should successfully remove existing client"
+    );
+    assertEquals(
+        initialSize - 1,
+        clientService.getClientList().size(),
+        "Client list should shrink by 1"
+    );
+    assertNull(
+        clientService.getClient(1L),
+        "Removed client should no longer be found"
+    );
   }
 
   /**
@@ -392,11 +521,17 @@ public class ClientServiceTest {
 
     boolean removed = clientService.removeClient(999);
     
-    assertFalse(removed, "Should return false for non-existent client");
-    assertTrue(listAppender.list.stream().anyMatch(event ->
+    assertFalse(
+        removed,
+        "Should return false for non-existent client"
+    );
+    assertTrue(
+        listAppender.list.stream().anyMatch(event ->
             event.getLevel() == Level.WARN &&
-                    event.getFormattedMessage().contains("not found for removal")),
-            "Should log WARN when client not found");
+            event.getFormattedMessage().contains("not found for removal")
+        ),
+        "Should log WARN when client not found"
+    );
 
     logger.detachAppender(listAppender);
   }
@@ -414,10 +549,13 @@ public class ClientServiceTest {
 
     clientService.removeClient(1);
 
-    assertTrue(listAppender.list.stream().anyMatch(event ->
+    assertTrue(
+        listAppender.list.stream().anyMatch(event ->
             event.getLevel() == Level.INFO &&
-                    event.getFormattedMessage().contains("Client removed successfully")),
-            "Should log INFO on successful removal");
+            event.getFormattedMessage().contains("Client removed successfully")
+        ),
+        "Should log INFO on successful removal"
+    );
 
     logger.detachAppender(listAppender);
   }
@@ -437,13 +575,26 @@ public class ClientServiceTest {
     
     boolean updated = clientService.updateClient(existing);
     
-    assertTrue(updated, "Should successfully update existing client");
+    assertTrue(
+        updated,
+        "Should successfully update existing client"
+    );
     Client retrieved = clientService.getClient(1L);
-    assertEquals("UpdatedName", retrieved.getName(), "Name should be updated");
-    assertEquals("updated@example.com", retrieved.getEmail(),
-        "Email should be updated");
-    assertEquals(100, retrieved.getRateLimitPerMinute(),
-        "Rate limit should be updated");
+    assertEquals(
+        "UpdatedName",
+        retrieved.getName(),
+        "Name should be updated"
+    );
+    assertEquals(
+        "updated@example.com",
+        retrieved.getEmail(),
+        "Email should be updated"
+    );
+    assertEquals(
+        100,
+        retrieved.getRateLimitPerMinute(),
+        "Rate limit should be updated"
+    );
   }
 
   /**
@@ -459,11 +610,17 @@ public class ClientServiceTest {
 
     boolean updated = clientService.updateClient(null);
     
-    assertFalse(updated, "Updating null client should fail");
-    assertTrue(listAppender.list.stream().anyMatch(event ->
+    assertFalse(
+        updated,
+        "Updating null client should fail"
+    );
+    assertTrue(
+        listAppender.list.stream().anyMatch(event ->
             event.getLevel() == Level.WARN &&
-                    event.getFormattedMessage().contains("null client")),
-            "Should log WARN for null client");
+            event.getFormattedMessage().contains("null client")
+        ),
+        "Should log WARN for null client"
+    );
 
     logger.detachAppender(listAppender);
   }
@@ -486,11 +643,17 @@ public class ClientServiceTest {
     
     boolean updated = clientService.updateClient(client);
     
-    assertFalse(updated, "Client without ID should not be updated");
-    assertTrue(listAppender.list.stream().anyMatch(event ->
+    assertFalse(
+        updated,
+        "Client without ID should not be updated"
+    );
+    assertTrue(
+        listAppender.list.stream().anyMatch(event ->
             event.getLevel() == Level.WARN &&
-                    event.getFormattedMessage().contains("missing clientId")),
-            "Should log WARN for missing client ID");
+            event.getFormattedMessage().contains("missing clientId")
+        ),
+        "Should log WARN for missing client ID"
+    );
 
     logger.detachAppender(listAppender);
   }
@@ -513,11 +676,17 @@ public class ClientServiceTest {
     
     boolean updated = clientService.updateClient(client);
     
-    assertFalse(updated, "Client with blank name should not be updated");
-    assertTrue(listAppender.list.stream().anyMatch(event ->
+    assertFalse(
+        updated,
+        "Client with blank name should not be updated"
+    );
+    assertTrue(
+        listAppender.list.stream().anyMatch(event ->
             event.getLevel() == Level.WARN &&
-                    event.getFormattedMessage().contains("blank name")),
-            "Should log WARN for blank name");
+            event.getFormattedMessage().contains("blank name")
+        ),
+        "Should log WARN for blank name"
+    );
 
     logger.detachAppender(listAppender);
   }
@@ -538,11 +707,17 @@ public class ClientServiceTest {
     
     boolean updated = clientService.updateClient(client);
     
-    assertFalse(updated, "Update with duplicate name should fail");
-    assertTrue(listAppender.list.stream().anyMatch(event ->
+    assertFalse(
+        updated,
+        "Update with duplicate name should fail"
+    );
+    assertTrue(
+        listAppender.list.stream().anyMatch(event ->
             event.getLevel() == Level.WARN &&
-                    event.getFormattedMessage().contains("already in use")),
-            "Should log WARN for duplicate name");
+            event.getFormattedMessage().contains("already in use")
+        ),
+        "Should log WARN for duplicate name"
+    );
 
     logger.detachAppender(listAppender);
   }
@@ -565,8 +740,11 @@ public class ClientServiceTest {
     clientService.updateClient(update);
     
     Client retrieved = clientService.getClient(1L);
-    assertEquals(originalApiKey, retrieved.getApiKey(),
-        "API key should be preserved when null in update");
+    assertEquals(
+        originalApiKey,
+        retrieved.getApiKey(),
+        "API key should be preserved when null in update"
+    );
   }
 
   /**
@@ -587,11 +765,17 @@ public class ClientServiceTest {
     
     boolean updated = clientService.updateClient(client);
     
-    assertFalse(updated, "Updating non-existent client should fail");
-    assertTrue(listAppender.list.stream().anyMatch(event ->
+    assertFalse(
+        updated,
+        "Updating non-existent client should fail"
+    );
+    assertTrue(
+        listAppender.list.stream().anyMatch(event ->
             event.getLevel() == Level.WARN &&
-                    event.getFormattedMessage().contains("not found for update")),
-            "Should log WARN when client not found");
+            event.getFormattedMessage().contains("not found for update")
+        ),
+        "Should log WARN when client not found"
+    );
 
     logger.detachAppender(listAppender);
   }
@@ -611,10 +795,13 @@ public class ClientServiceTest {
     client.setName("NewUpdatedName");
     clientService.updateClient(client);
 
-    assertTrue(listAppender.list.stream().anyMatch(event ->
+    assertTrue(
+        listAppender.list.stream().anyMatch(event ->
             event.getLevel() == Level.INFO &&
-                    event.getFormattedMessage().contains("Client updated successfully")),
-            "Should log INFO on successful update");
+            event.getFormattedMessage().contains("Client updated successfully")
+        ),
+        "Should log INFO on successful update"
+    );
 
     logger.detachAppender(listAppender);
   }
@@ -630,13 +817,26 @@ public class ClientServiceTest {
     
     String newKey = clientService.rotateApiKey(1L);
     
-    assertNotNull(newKey, "New API key should be generated");
-    assertEquals(32, newKey.length(), "New API key should be 32 chars");
-    assertFalse(oldKey.equals(newKey), "New key should differ from old key");
+    assertNotNull(
+        newKey,
+        "New API key should be generated"
+    );
+    assertEquals(
+        32,
+        newKey.length(),
+        "New API key should be 32 chars"
+    );
+    assertFalse(
+        oldKey.equals(newKey),
+        "New key should differ from old key"
+    );
     
     Client retrieved = clientService.getClient(1L);
-    assertEquals(newKey, retrieved.getApiKey(),
-        "Retrieved client should have new API key");
+    assertEquals(
+        newKey,
+        retrieved.getApiKey(),
+        "Retrieved client should have new API key"
+    );
   }
 
   /**
@@ -652,11 +852,17 @@ public class ClientServiceTest {
 
     String newKey = clientService.rotateApiKey(999L);
     
-    assertNull(newKey, "Should return null for non-existent client");
-    assertTrue(listAppender.list.stream().anyMatch(event ->
+    assertNull(
+        newKey,
+        "Should return null for non-existent client"
+    );
+    assertTrue(
+        listAppender.list.stream().anyMatch(event ->
             event.getLevel() == Level.WARN &&
-                    event.getFormattedMessage().contains("client not found")),
-            "Should log WARN when client not found");
+            event.getFormattedMessage().contains("client not found")
+        ),
+        "Should log WARN when client not found"
+    );
 
     logger.detachAppender(listAppender);
   }
@@ -674,10 +880,13 @@ public class ClientServiceTest {
 
     clientService.rotateApiKey(1L);
 
-    assertTrue(listAppender.list.stream().anyMatch(event ->
+    assertTrue(
+        listAppender.list.stream().anyMatch(event ->
             event.getLevel() == Level.INFO &&
-                    event.getFormattedMessage().contains("API key rotated")),
-            "Should log INFO on successful rotation");
+            event.getFormattedMessage().contains("API key rotated")
+        ),
+        "Should log INFO on successful rotation"
+    );
 
     logger.detachAppender(listAppender);
   }
@@ -696,11 +905,17 @@ public class ClientServiceTest {
     clientService.printClients();
 
     long infoCount = listAppender.list.stream()
-        .filter(event -> event.getLevel() == Level.INFO &&
-                event.getFormattedMessage().startsWith("Client:"))
+        .filter(event ->
+            event.getLevel() == Level.INFO &&
+            event.getFormattedMessage().startsWith("Client:")
+        )
         .count();
     
-    assertEquals(4, infoCount, "Should log 4 client entries");
+    assertEquals(
+        4,
+        infoCount,
+        "Should log 4 client entries"
+    );
 
     logger.detachAppender(listAppender);
   }
@@ -721,14 +936,24 @@ public class ClientServiceTest {
     
     ClientService service = new ClientService(testFile.toString(), null);
     
-    assertTrue(Files.exists(testFile), "File should be created");
+    assertTrue(
+        Files.exists(testFile),
+        "File should be created"
+    );
     List<Client> clients = service.getClientList();
-    assertEquals(0, clients.size(), "New file should have empty client list");
+    assertEquals(
+        0,
+        clients.size(),
+        "New file should have empty client list"
+    );
     
-    assertTrue(listAppender.list.stream().anyMatch(event ->
+    assertTrue(
+        listAppender.list.stream().anyMatch(event ->
             event.getLevel() == Level.INFO &&
-                    event.getFormattedMessage().contains("Created new client data file")),
-            "Should log INFO when file created");
+            event.getFormattedMessage().contains("Created new client data file")
+        ),
+        "Should log INFO when file created"
+    );
 
     logger.detachAppender(listAppender);
     Files.deleteIfExists(testFile);
@@ -749,10 +974,13 @@ public class ClientServiceTest {
     // Create service with existing temp file
     new ClientService(tempTestDataFile.toString(), null);
 
-    assertTrue(listAppender.list.stream().anyMatch(event ->
+    assertTrue(
+        listAppender.list.stream().anyMatch(event ->
             event.getLevel() == Level.INFO &&
-                    event.getFormattedMessage().contains("Using existing client data file")),
-            "Should log INFO when using existing file");
+            event.getFormattedMessage().contains("Using existing client data file")
+        ),
+        "Should log INFO when using existing file"
+    );
 
     logger.detachAppender(listAppender);
   }
@@ -774,11 +1002,18 @@ public class ClientServiceTest {
     ClientService service = new ClientService(tempFile.toString(), null);
     List<Client> clients = service.getClientList();
     
-    assertEquals(0, clients.size(), "Corrupted file should return empty list");
-    assertTrue(listAppender.list.stream().anyMatch(event ->
+    assertEquals(
+        0,
+        clients.size(),
+        "Corrupted file should return empty list"
+    );
+    assertTrue(
+        listAppender.list.stream().anyMatch(event ->
             event.getLevel() == Level.ERROR &&
-                    event.getFormattedMessage().contains("Failed to load clients")),
-            "Should log ERROR when load fails");
+            event.getFormattedMessage().contains("Failed to load clients")
+        ),
+        "Should log ERROR when load fails"
+    );
 
     logger.detachAppender(listAppender);
     Files.deleteIfExists(tempFile);
@@ -830,8 +1065,10 @@ public class ClientServiceTest {
     
     assertNotNull(client1);
     assertNotNull(client2);
-    assertFalse(client1.getApiKey().equals(client2.getApiKey()),
-        "Generated API keys should be unique");
+    assertFalse(
+        client1.getApiKey().equals(client2.getApiKey()),
+        "Generated API keys should be unique"
+    );
   }
 
   /**
@@ -848,11 +1085,21 @@ public class ClientServiceTest {
     
     boolean updated = clientService.updateClient(existing);
     
-    assertTrue(updated, "Update with same name should succeed");
+    assertTrue(
+        updated,
+        "Update with same name should succeed"
+    );
     Client retrieved = clientService.getClient(1L);
-    assertEquals(originalName, retrieved.getName(), "Name should remain unchanged");
-    assertEquals("newemail@example.com", retrieved.getEmail(),
-        "Email should be updated");
+    assertEquals(
+        originalName,
+        retrieved.getName(),
+        "Name should remain unchanged"
+    );
+    assertEquals(
+        "newemail@example.com",
+        retrieved.getEmail(),
+        "Email should be updated"
+    );
   }
 
   /**
@@ -874,11 +1121,20 @@ public class ClientServiceTest {
     ClientService service2 = new ClientService(testFile.toString(), null);
     Client retrieved = service2.getClient(clientId);
     
-    assertNotNull(retrieved, "Persisted client should be retrievable");
-    assertEquals("PersistTest", retrieved.getName(),
-        "Persisted data should match");
-    assertEquals("persist@test.com", retrieved.getEmail(),
-        "Persisted email should match");
+    assertNotNull(
+        retrieved,
+        "Persisted client should be retrievable"
+    );
+    assertEquals(
+        "PersistTest",
+        retrieved.getName(),
+        "Persisted data should match"
+    );
+    assertEquals(
+        "persist@test.com",
+        retrieved.getEmail(),
+        "Persisted email should match"
+    );
     
     Files.deleteIfExists(testFile);
     Files.deleteIfExists(testDir);

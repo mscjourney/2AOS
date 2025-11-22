@@ -35,16 +35,13 @@ public class TarsUserServiceTest {
   @BeforeEach
   void setUp() throws IOException {
     // Copy classpath resource to temp file since service expects file path
-    InputStream resourceStream = getClass().getClassLoader()
-        .getResourceAsStream("test-data/test-data-users.json");
-    
-    if (resourceStream == null) {
-      throw new IllegalStateException("Test data file not found in classpath");
+    try (InputStream resourceStream = getClass()
+        .getClassLoader()
+        .getResourceAsStream("test-data/test-data-users.json")) {
+      assertNotNull(resourceStream, "Fixture missing: test-data-users.json");
+      tempTestDataFile = Files.createTempFile("test-users", ".json");
+      Files.copy(resourceStream, tempTestDataFile, StandardCopyOption.REPLACE_EXISTING);
     }
-    
-    tempTestDataFile = Files.createTempFile("test-users", ".json");
-    Files.copy(resourceStream, tempTestDataFile, StandardCopyOption.REPLACE_EXISTING);
-    resourceStream.close();
     
     userService = new TarsUserService(tempTestDataFile.toString(), null);
   }
@@ -68,9 +65,16 @@ public class TarsUserServiceTest {
     assertNotNull(userService, "UserService should be initialized");
     List<TarsUser> tarsUsers = userService.listUsers();
     TarsUser user1 = tarsUsers.get(0);
-    assertEquals(1L, user1.getUserId(), "First user's ID should be 1");
-    assertEquals("test_alice", user1.getUsername(),
-        "First user's username should be 'test_alice'");
+    assertEquals(
+        1L,
+        user1.getUserId(),
+        "First user's ID should be 1"
+    );
+    assertEquals(
+        "test_alice",
+        user1.getUsername(),
+        "First user's username should be 'test_alice'"
+    );
   }
 
   /**
@@ -84,9 +88,15 @@ public class TarsUserServiceTest {
     TarsUser user3 = userService.findById(999L);
     assertNull(user3, "Fetching non-existent user should return null");
     TarsUser user1 = userService.findById(1L);
-    assertNotNull(user1, "Fetching existing user should not return null");
-    assertEquals("test_alice", user1.getUsername(),
-        "Fetched user's username should be 'test_alice'");
+    assertNotNull(
+        user1,
+        "Fetching existing user should not return null"
+    );
+    assertEquals(
+        "test_alice",
+        user1.getUsername(),
+        "Fetched user's username should be 'test_alice'"
+    );
   }
 
   /**
@@ -116,17 +126,38 @@ public class TarsUserServiceTest {
   @Test
   public void createValidUserTest() {
     int initialSize = userService.listUsers().size();
-    TarsUser user = userService.createUser(5L, "test_eve", "test_eve@client5.com", "user");
-    assertNotNull(user, "Creating a valid user should not return null");
+    TarsUser user = userService.createUser(
+        5L,
+        "test_eve",
+        "test_eve@client5.com",
+        "user"
+    );
+    assertNotNull(
+        user,
+        "Creating a valid user should not return null"
+    );
     user.toString(); // Exercise toString (no assertion needed)
     // ID should be max existing ID (4) + 1 = 5
-    assertEquals(5L, user.getUserId(), "Created user's ID should be 5");
-    assertEquals("test_eve", user.getUsername(),
-        "Created user's username should be 'test_eve'");
-    assertEquals(user.toString(), userService.findById(5L).toString(),
-        "Fetched user should match the created user");
-    assertEquals(initialSize + 1, userService.listUsers().size(),
-        "User list size should increase by 1");
+    assertEquals(
+        5L,
+        user.getUserId(),
+        "Created user's ID should be 5"
+    );
+    assertEquals(
+        "test_eve",
+        user.getUsername(),
+        "Created user's username should be 'test_eve'"
+    );
+    assertEquals(
+        user.toString(),
+        userService.findById(5L).toString(),
+        "Fetched user should match the created user"
+    );
+    assertEquals(
+        initialSize + 1,
+        userService.listUsers().size(),
+        "User list size should increase by 1"
+    );
   }
 
   /**
@@ -139,7 +170,10 @@ public class TarsUserServiceTest {
     assertTrue(result, "Deactivating existing user should succeed");
     TarsUser deactivatedUser = userService.findById(1L);
     assertNotNull(deactivatedUser);
-    assertFalse(deactivatedUser.getActive(), "User should be inactive");
+    assertFalse(
+        deactivatedUser.getActive(),
+        "User should be inactive"
+    );
   }
 
   /**
@@ -179,8 +213,15 @@ public class TarsUserServiceTest {
     assertTrue(result, "Updating last login for existing user should succeed");
     TarsUser userAfter = userService.findById(1L);
     String loginAfter = userAfter.getLastLogin();
-    assertNotEquals(loginBefore, loginAfter, "Last login should be updated");
-    assertFalse(loginAfter.isEmpty(), "Last login should not be empty");
+    assertNotEquals(
+        loginBefore,
+        loginAfter,
+        "Last login should be updated"
+    );
+    assertFalse(
+        loginAfter.isEmpty(),
+        "Last login should not be empty"
+    );
   }
 
   /**
@@ -290,11 +331,31 @@ public class TarsUserServiceTest {
    */
   @Test
   public void createUserWithWhitespaceTrimmingTest() {
-    TarsUser user = userService.createUser(5L, "  testuser  ", "  test@test.com  ", "  admin  ");
-    assertNotNull(user, "Creating user with whitespace should succeed");
-    assertEquals("testuser", user.getUsername(), "Username should be trimmed");
-    assertEquals("test@test.com", user.getUserEmail(), "Email should be trimmed");
-    assertEquals("admin", user.getRole(), "Role should be trimmed");
+    TarsUser user = userService.createUser(
+        5L,
+        "  testuser  ",
+        "  test@test.com  ",
+        "  admin  "
+    );
+    assertNotNull(
+        user,
+        "Creating user with whitespace should succeed"
+    );
+    assertEquals(
+        "testuser",
+        user.getUsername(),
+        "Username should be trimmed"
+    );
+    assertEquals(
+        "test@test.com",
+        user.getEmail(),
+        "Email should be trimmed"
+    );
+    assertEquals(
+        "admin",
+        user.getRole(),
+        "Role should be trimmed"
+    );
   }
 
   /**
@@ -365,9 +426,11 @@ public class TarsUserServiceTest {
   @Test
   public void listUsersReturnsUnmodifiableListTest() {
     List<TarsUser> users = userService.listUsers();
-    assertThrows(UnsupportedOperationException.class, () -> {
-      users.add(new TarsUser(99L, "hacker", "hacker@test.com", "admin"));
-    }, "Returned list should be unmodifiable");
+    assertThrows(
+        UnsupportedOperationException.class,
+        () -> users.add(new TarsUser(99L, "hacker", "hacker@test.com", "admin")),
+        "Returned list should be unmodifiable"
+    );
   }
 
   /**
@@ -380,7 +443,10 @@ public class TarsUserServiceTest {
     TarsUser user2 = userService.createUser(5L, "user2", "user2@test.com", "user");
     assertNotNull(user1);
     assertNotNull(user2);
-    assertTrue(user2.getUserId() > user1.getUserId(), "User IDs should auto-increment");
+    assertTrue(
+        user2.getUserId() > user1.getUserId(),
+        "User IDs should auto-increment"
+    );
   }
 
   /**
@@ -389,13 +455,37 @@ public class TarsUserServiceTest {
    */
   @Test
   public void userAttributesSetCorrectlyTest() {
-    TarsUser user = userService.createUser(5L, "newuser", "newuser@test.com", "admin");
-    assertNotNull(user.getUserId(), "User ID should be set");
-    assertTrue(user.getActive(), "New user should be active");
-    assertNotNull(user.getSignUpDate(), "Sign up date should be set");
-    assertFalse(user.getSignUpDate().isEmpty(), "Sign up date should not be empty");
-    assertNotNull(user.getLastLogin(), "Last login should be initialized");
-    assertEquals("", user.getLastLogin(), "Last login should be empty string initially");
+    TarsUser user = userService.createUser(
+        5L,
+        "newuser",
+        "newuser@test.com",
+        "admin"
+    );
+    assertNotNull(
+        user.getUserId(),
+        "User ID should be set"
+    );
+    assertTrue(
+        user.getActive(),
+        "New user should be active"
+    );
+    assertNotNull(
+        user.getSignUpDate(),
+        "Sign up date should be set"
+    );
+    assertFalse(
+        user.getSignUpDate().isEmpty(),
+        "Sign up date should not be empty"
+    );
+    assertNotNull(
+        user.getLastLogin(),
+        "Last login should be initialized"
+    );
+    assertEquals(
+        "",
+        user.getLastLogin(),
+        "Last login should be empty string initially"
+    );
   }
 
   /**
@@ -445,10 +535,12 @@ public class TarsUserServiceTest {
     new TarsUserService(testFile.toString(), null);
 
     List<ILoggingEvent> logsList = listAppender.list;
-    assertTrue(logsList.stream().anyMatch(event ->
+    assertTrue(
+        logsList.stream().anyMatch(event ->
             event.getLevel() == Level.INFO &&
-                    event.getFormattedMessage().contains("Created user store at")),
-            "Should log INFO when file created");
+            event.getFormattedMessage().contains("Created user store at")),
+        "Should log INFO when file created"
+    );
 
     logger.detachAppender(listAppender);
     Files.deleteIfExists(testFile);
@@ -473,10 +565,12 @@ public class TarsUserServiceTest {
     new TarsUserService(conflictPath.toString(), null);
 
     List<ILoggingEvent> logsList = listAppender.list;
-    assertTrue(logsList.stream().anyMatch(event ->
+    assertTrue(
+        logsList.stream().anyMatch(event ->
             event.getLevel() == Level.ERROR &&
-                    event.getFormattedMessage().contains("Failed to initialize user store")),
-            "Should log ERROR when ensureFile fails");
+            event.getFormattedMessage().contains("Failed to initialize user store")),
+        "Should log ERROR when ensureFile fails"
+    );
 
     logger.detachAppender(listAppender);
     Files.deleteIfExists(conflictPath);
@@ -500,10 +594,12 @@ public class TarsUserServiceTest {
     new TarsUserService(tempFile.toString(), null);
 
     List<ILoggingEvent> logsList = listAppender.list;
-    assertTrue(logsList.stream().anyMatch(event ->
+    assertTrue(
+        logsList.stream().anyMatch(event ->
             event.getLevel() == Level.ERROR &&
-                    event.getFormattedMessage().contains("Failed to read users file")),
-            "Should log ERROR when load fails");
+            event.getFormattedMessage().contains("Failed to read users file")),
+        "Should log ERROR when load fails"
+    );
 
     logger.detachAppender(listAppender);
     Files.deleteIfExists(tempFile);
@@ -518,37 +614,50 @@ public class TarsUserServiceTest {
     Path testDir = Files.createTempDirectory("persist-test");
     Path testFile = testDir.resolve("persist-users.json");
     
-    InputStream resourceStream = getClass().getClassLoader()
-        .getResourceAsStream("test-data/test-data-users.json");
-    Files.copy(resourceStream, testFile);
-    resourceStream.close();
-    
+    // Copy classpath resource to temp file since service expects file path
+    try (InputStream resourceStream = getClass()
+        .getClassLoader()
+        .getResourceAsStream("test-data/test-data-users.json")) {
+      assertNotNull(resourceStream, "Fixture missing: test-data-users.json");
+      Files.copy(resourceStream, testFile);
+    }
+     
     TarsUserService service = new TarsUserService(testFile.toString(), null);
     TarsUser user = service.createUser(10L, "persist_test", "persist@test.com", "user");
     assertNotNull(user, "User should be created successfully");
     Long userId = user.getUserId();
-    
+
+    // Verify file contains new email before reload (diagnostic robustness)
+    String immediateJson = Files.readString(testFile);
+    assertTrue(
+        immediateJson.contains("\"persist@test.com\""),
+        "Persisted file should contain new user's email before reload"
+    );
+    assertTrue(
+        immediateJson.contains("\"userId\""),
+        "Persisted JSON should include userId fields"
+    );
+    com.fasterxml.jackson.databind.ObjectMapper om = new com.fasterxml.jackson.databind.ObjectMapper();
+    java.util.List<org.coms4156.tars.model.TarsUser> parsed =
+        om.readValue(immediateJson,
+            new com.fasterxml.jackson.core.type.TypeReference<
+                java.util.List<org.coms4156.tars.model.TarsUser>
+            >() {});
+    assertTrue(
+        parsed.stream().anyMatch(u -> userId.equals(u.getUserId())),
+        "Parsed JSON should contain new user's userId=" + userId
+    );
+ 
     TarsUserService reloadedService = new TarsUserService(testFile.toString(), null);
     TarsUser retrieved = reloadedService.findById(userId);
     assertNotNull(retrieved, "Persisted user should be retrievable after reload");
     assertEquals("persist_test", retrieved.getUsername(), "Persisted data should match");
-    assertEquals("persist@test.com", retrieved.getUserEmail(), "Persisted email should match");
-    
-    // Diagnostics: verify in-memory presence
-    assertTrue(service.listUsers().stream().anyMatch(u -> userId.equals(u.getUserId())),
-        "In-memory list should contain newly created user id=" + userId);
+    assertEquals("persist@test.com", retrieved.getEmail(), "Persisted email should match");
 
-    // Read + parse raw file text for verification (format independent)
-    String rawJson = Files.readString(testFile);
-    assertTrue(rawJson.contains("\"persist@test.com\""),
-        "File should contain new user's email");
-    com.fasterxml.jackson.databind.ObjectMapper om = new com.fasterxml.jackson.databind.ObjectMapper();
-    java.util.List<org.coms4156.tars.model.TarsUser> parsed =
-        om.readValue(rawJson,
-            new com.fasterxml.jackson.core.type.TypeReference<java.util.List<org.coms4156.tars.model.TarsUser>>() {});
-    assertTrue(parsed.stream().anyMatch(u -> userId.equals(u.getUserId())),
-        "Parsed JSON should contain new user's userId=" + userId);
-    
+    assertTrue(
+        service.listUsers().stream().anyMatch(u -> userId.equals(u.getUserId())),
+        "In-memory list should contain newly created user id=" + userId
+    );
     Files.deleteIfExists(testFile);
     Files.deleteIfExists(testDir);
   }
@@ -572,7 +681,11 @@ public class TarsUserServiceTest {
         .filter(p -> p.getFileName().toString().endsWith(".tmp"))
         .count();
     
-    assertEquals(0, tmpFileCount, "No temporary files should remain after successful persists");
+    assertEquals(
+        0,
+        tmpFileCount,
+        "No temporary files should remain after successful persists"
+    );
     
     Files.deleteIfExists(testFile);
     Files.deleteIfExists(tempDir);
@@ -592,10 +705,12 @@ public class TarsUserServiceTest {
     userService.deactivateUser(999L);
 
     List<ILoggingEvent> logsList = listAppender.list;
-    assertTrue(logsList.stream().anyMatch(event ->
+    assertTrue(
+        logsList.stream().anyMatch(event ->
             event.getLevel() == Level.WARN &&
-                    event.getFormattedMessage().contains("deactivateUser: user not found")),
-            "Should log WARN when user not found");
+            event.getFormattedMessage().contains("deactivateUser: user not found")),
+        "Should log WARN when user not found"
+    );
 
     logger.detachAppender(listAppender);
   }
@@ -614,10 +729,12 @@ public class TarsUserServiceTest {
     userService.createUser(99L, "logtest", "log@test.com", "user");
 
     List<ILoggingEvent> logsList = listAppender.list;
-    assertTrue(logsList.stream().anyMatch(event ->
+    assertTrue(
+        logsList.stream().anyMatch(event ->
             event.getLevel() == Level.INFO &&
-                    event.getFormattedMessage().contains("Created TarsUser")),
-            "Should log INFO on user creation");
+            event.getFormattedMessage().contains("Created TarsUser")),
+        "Should log INFO on user creation"
+    );
 
     logger.detachAppender(listAppender);
   }

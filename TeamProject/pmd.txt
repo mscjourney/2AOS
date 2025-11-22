@@ -1,4 +1,6 @@
 ./src/main/java/org/coms4156/tars/TarsApplication.java:10:	UseUtilityClass:	All methods are static. Consider adding a private no-args constructor to prevent instantiation.
+./src/main/java/org/coms4156/tars/config/PersistenceConfig.java:16:	LambdaCanBeMethodReference:	Lambda expression could be written as a method reference: `Files::move`
+./src/main/java/org/coms4156/tars/config/PersistenceConfig.java:21:	LambdaCanBeMethodReference:	Lambda expression could be written as a method reference: `Files::move`
 ./src/main/java/org/coms4156/tars/model/CrimeModel.java:94:	UseLocaleWithCaseConversions:	When doing a String.toLowerCase()/toUpperCase() call, use a Locale
 ./src/main/java/org/coms4156/tars/model/WeatherAlert.java:37:	UncommentedEmptyConstructor:	Document empty constructor
 ./src/main/java/org/coms4156/tars/model/WeatherAlertModel.java:16:	UseUtilityClass:	All methods are static. Consider adding a private no-args constructor to prevent instantiation.
@@ -6,6 +8,10 @@
 ./src/main/java/org/coms4156/tars/model/WeatherAlertModel.java:97:	PreserveStackTrace:	Thrown exception does not preserve the stack trace of exception 'e' on all code paths
 ./src/main/java/org/coms4156/tars/model/WeatherModel.java:14:	UseUtilityClass:	All methods are static. Consider adding a private no-args constructor to prevent instantiation.
 ./src/main/java/org/coms4156/tars/model/WeatherRecommendation.java:28:	UncommentedEmptyConstructor:	Document empty constructor
+./src/main/java/org/coms4156/tars/service/ClientService.java:10:	UnnecessaryImport:	Unused import 'java.nio.file.Files'
+./src/main/java/org/coms4156/tars/service/ClientService.java:38:	LambdaCanBeMethodReference:	Lambda expression could be written as a method reference: `Files::move`
+./src/main/java/org/coms4156/tars/service/ClientService.java:38:	UnnecessaryFullyQualifiedName:	Unnecessary qualifier 'java.nio.file': 'Files' is already in scope because it is imported in this file
+./src/main/java/org/coms4156/tars/service/TarsUserService.java:40:	LambdaCanBeMethodReference:	Lambda expression could be written as a method reference: `Files::move`
 ./src/test/java/org/coms4156/tars/CrimeEndpointTest.java:4:	UnnecessaryImport:	Unused static import 'org.mockito.Mockito.mockConstruction'
 ./src/test/java/org/coms4156/tars/CrimeEndpointTest.java:7:	UnnecessaryImport:	Unused static import 'org.springframework.test.web.servlet.result.MockMvcResultMatchers.content'
 ./src/test/java/org/coms4156/tars/CrimeEndpointTest.java:13:	UnnecessaryImport:	Unused import 'org.coms4156.tars.model.CrimeSummary'
@@ -16,25 +22,15 @@
 ./src/test/java/org/coms4156/tars/UserTest.java:14:	UnnecessaryImport:	Unused import 'java.io.IOException'
 ./src/test/java/org/coms4156/tars/UserTest.java:15:	UnnecessaryImport:	Unused import 'java.nio.file.Files'
 ./src/test/java/org/coms4156/tars/UserTest.java:16:	UnnecessaryImport:	Unused import 'java.nio.file.Path'
+./src/test/java/org/coms4156/tars/controller/ClientEndPointUnitTest.java:3:	UnnecessaryImport:	Unused static import 'org.mockito.ArgumentMatchers.any'
+./src/test/java/org/coms4156/tars/controller/ClientEndPointUnitTest.java:6:	UnnecessaryImport:	Unused static import 'org.mockito.ArgumentMatchers.eq'
 ./src/test/java/org/coms4156/tars/model/CrimeModelTest.java:4:	UnnecessaryImport:	Unused static import 'org.junit.jupiter.api.Assertions.assertThrows'
 ./src/test/java/org/coms4156/tars/model/CrimeModelTest.java:16:	UnusedPrivateField:	Avoid unused private fields such as 'crimeModel'.
 ./src/test/java/org/coms4156/tars/model/CrimeModelTest.java:27:	MethodNamingConventions:	The JUnit 5 test method name 'testGetCrimeSummary_Success' doesn't match '[a-z][a-zA-Z0-9]*'
 ./src/test/java/org/coms4156/tars/model/CrimeModelTest.java:40:	MethodNamingConventions:	The JUnit 5 test method name 'testGetCrimeSummary_Success_2' doesn't match '[a-z][a-zA-Z0-9]*'
-./src/test/java/org/coms4156/tars/services/ClientServiceTest.java:3:	UnnecessaryImport:	Unused static import 'org.junit.jupiter.api.Assertions.assertEquals'
-./src/test/java/org/coms4156/tars/services/ClientServiceTest.java:4:	UnnecessaryImport:	Unused static import 'org.junit.jupiter.api.Assertions.assertFalse'
-./src/test/java/org/coms4156/tars/services/ClientServiceTest.java:5:	UnnecessaryImport:	Unused static import 'org.junit.jupiter.api.Assertions.assertNotNull'
-./src/test/java/org/coms4156/tars/services/ClientServiceTest.java:6:	UnnecessaryImport:	Unused static import 'org.junit.jupiter.api.Assertions.assertNull'
-./src/test/java/org/coms4156/tars/services/ClientServiceTest.java:7:	UnnecessaryImport:	Unused static import 'org.junit.jupiter.api.Assertions.assertTrue'
-./src/test/java/org/coms4156/tars/services/ClientServiceTest.java:9:	UnnecessaryImport:	Unused import 'org.coms4156.tars.model.Client'
-./src/test/java/org/coms4156/tars/services/ClientServiceTest.java:10:	UnnecessaryImport:	Unused import 'org.coms4156.tars.service.ClientService'
-./src/test/java/org/coms4156/tars/services/ClientServiceTest.java:11:	UnnecessaryImport:	Unused import 'org.junit.jupiter.api.BeforeEach'
-./src/test/java/org/coms4156/tars/services/ClientServiceTest.java:12:	UnnecessaryImport:	Unused import 'org.junit.jupiter.api.Test'
-./src/test/java/org/coms4156/tars/services/ClientServiceTest.java:13:	UnnecessaryImport:	Unused import 'org.springframework.boot.test.context.SpringBootTest'
-./src/test/java/org/coms4156/tars/services/TarsUserServiceTest.java:20:	UnnecessaryImport:	Unused static import 'org.hamcrest.Matchers.empty'
-./src/test/java/org/coms4156/tars/services/TarsUserServiceTest.java:22:	UnnecessaryImport:	Unused static import 'org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlTemplate'
-./src/test/java/org/coms4156/tars/services/TarsUserServiceTest.java:40:	CloseResource:	Ensure that resources like this InputStream object are closed after use
-./src/test/java/org/coms4156/tars/services/TarsUserServiceTest.java:450:	UnusedLocalVariable:	Avoid unused local variables such as 'readOnlyFile'.
-./src/test/java/org/coms4156/tars/services/TarsUserServiceTest.java:513:	CloseResource:	Ensure that resources like this InputStream object are closed after use
-./src/test/java/org/coms4156/tars/services/TarsUserServiceTest.java:559:	UseLocaleWithCaseConversions:	When doing a String.toLowerCase()/toUpperCase() call, use a Locale
-./src/test/java/org/coms4156/tars/services/TarsUserServiceTest.java:567:	UseLocaleWithCaseConversions:	When doing a String.toLowerCase()/toUpperCase() call, use a Locale
-./src/test/java/org/coms4156/tars/services/TarsUserServiceTest.java:584:	UseLocaleWithCaseConversions:	When doing a String.toLowerCase()/toUpperCase() call, use a Locale
+./src/test/java/org/coms4156/tars/services/ClientServiceTest.java:41:	CloseResource:	Ensure that resources like this InputStream object are closed after use
+./src/test/java/org/coms4156/tars/services/ClientServiceTest.java:93:	CompareObjectsWithEquals:	Use equals() to compare object references.
+./src/test/java/org/coms4156/tars/services/ClientServiceTest.java:1040:	UseLocaleWithCaseConversions:	When doing a String.toLowerCase()/toUpperCase() call, use a Locale
+./src/test/java/org/coms4156/tars/services/ClientServiceTest.java:1048:	UseLocaleWithCaseConversions:	When doing a String.toLowerCase()/toUpperCase() call, use a Locale
+./src/test/java/org/coms4156/tars/services/TarsUserServiceTest.java:641:	UnnecessaryFullyQualifiedName:	Unnecessary qualifier 'java.util': 'List' is already in scope because it is imported in this file
+./src/test/java/org/coms4156/tars/services/TarsUserServiceTest.java:644:	UnnecessaryFullyQualifiedName:	Unnecessary qualifier 'java.util': 'List' is already in scope because it is imported in this file

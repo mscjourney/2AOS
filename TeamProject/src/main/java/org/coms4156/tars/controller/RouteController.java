@@ -232,10 +232,10 @@ public class RouteController {
       return ResponseEntity.badRequest().body("Username cannot be blank.");
     }
 
-    // validate email
-    String email = newUserRequestBody.getUserEmail() == null
+    // validate user email
+    String email = newUserRequestBody.getEmail() == null
         ? ""
-        : newUserRequestBody.getUserEmail().trim();
+        : newUserRequestBody.getEmail().trim();
     if (email.isEmpty()) {
       if (logger.isWarnEnabled()) {
         logger.warn(

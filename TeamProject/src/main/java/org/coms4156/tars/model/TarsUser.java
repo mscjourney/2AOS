@@ -96,7 +96,7 @@ public class TarsUser {
     this.username = username;
   }
 
-  public String getUserEmail() {
+  public String getEmail() {
     return email;
   }
 
