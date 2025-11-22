@@ -183,15 +183,15 @@ public class CitySummary {
 
   @Override
   public String toString() {
-      return "CitySummary {"
-              + "city='" + city + '\''
-              + ", weatherRecommendation=" + weatherRecommendation
-              + ", weatherAlert=" + weatherAlert
-              + ", travelAdvisory=" + travelAdvisory
-              + ", interestedUsers=" + interestedUsers
-              + ", crime=" + crimeSummary
-              + ", message='" + message + '\''
-              + '}';
-    }
+    return "CitySummary {"
+            + "city='" + city + '\''
+            + ", weatherRecommendation=" + weatherRecommendation
+            + ", weatherAlert=" + weatherAlert
+            + ", travelAdvisory=" + travelAdvisory
+            + ", interestedUsers=" + interestedUsers
+            + ", crime=" + crimeSummary
+            + ", message='" + message + '\''
+            + '}';
+  }
 }
 
