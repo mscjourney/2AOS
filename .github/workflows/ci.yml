@@ -3,7 +3,7 @@
 # Date: 10/26/2025
 
 name: CI Pipeline
-run-name: CI Pipeline
+run-name: CI • ${{ github.ref_name }} • ${{ github.sha }}
 
 on:
   push:
@@ -86,8 +86,7 @@ jobs:
 
       - name: Run Tests + Coverage
         working-directory: ./TeamProject
-        run: |
-          mvn -B -ntp clean verify
+        run: mvn -B -ntp clean verify jacoco:report
       
       - name: Upload Surefire Reports
         uses: actions/upload-artifact@v4
@@ -109,32 +108,28 @@ jobs:
             echo "Jacoco CSV not found!"
             exit 1
           fi
-          # Parse CSV: INSTRUCTION_MISSED, INSTRUCTION_COVERED
-          MISSED=$(awk -F',' 'NR>1 {sum+=$4} END {print sum}' "$CSV")
-          COVERED=$(awk -F',' 'NR>1 {sum+=$5} END {print sum}' "$CSV")
-          TOTAL=$((MISSED + COVERED))
-          if [ "$TOTAL" -eq 0 ]; then
-            PERCENT=0
-          else
-            PERCENT=$(awk "BEGIN {printf \"%.2f\", ($COVERED / $TOTAL) * 100}")
-          fi
-          echo "coverage=$PERCENT" >> $GITHUB_OUTPUT
-          echo "Coverage: $PERCENT%"
+          # Jacoco CSV columns (after header):
+          # 4=INSTRUCTION_MISSED 5=INSTRUCTION_COVERED 6=BRANCH_MISSED 7=BRANCH_COVERED
+          INST_MISSED=$(awk -F',' 'NR>1 {sum+=$4} END {print sum+0}' "$CSV")
+          INST_COVERED=$(awk -F',' 'NR>1 {sum+=$5} END {print sum+0}' "$CSV")
+          BR_MISSED=$(awk -F',' 'NR>1 {sum+=$6} END {print sum+0}' "$CSV")
+          BR_COVERED=$(awk -F',' 'NR>1 {sum+=$7} END {print sum+0}' "$CSV")
+          INST_TOTAL=$((INST_MISSED + INST_COVERED))
+          BR_TOTAL=$((BR_MISSED + BR_COVERED))
+          if [ "$INST_TOTAL" -eq 0 ]; then INST_PCT=0; else INST_PCT=$(awk -v c="$INST_COVERED" -v t="$INST_TOTAL" 'BEGIN{printf "%.2f", (c/t)*100}'); fi
+          if [ "$BR_TOTAL" -eq 0 ]; then BR_PCT=0; else BR_PCT=$(awk -v c="$BR_COVERED" -v t="$BR_TOTAL" 'BEGIN{printf "%.2f", (c/t)*100}'); fi
+          echo "instruction_coverage=$INST_PCT" >> "$GITHUB_OUTPUT"
+          echo "branch_coverage=$BR_PCT" >> "$GITHUB_OUTPUT"
+          echo "Instruction Coverage: $INST_PCT%"
+          echo "Branch Coverage: $BR_PCT%"
 
-      - name: Enforce Minimum Coverage
+      - name: Enforce Minimum Branch Coverage
         run: |
-          MIN=50
-          ACT=${{ steps.coverage.outputs.coverage }}
-          echo "Minimum coverage required: ${MIN}%"
-          echo "Actual coverage: ${ACT}%"
-          # Compare as integers (multiply by 100 to avoid floats)
-          ACT_INT=$(printf "%.0f" "$(echo "$ACT * 100" | awk '{print $1}')")
-          MIN_INT=$((MIN * 100))
-          if [ "$ACT_INT" -lt "$MIN_INT" ]; then
-            echo "❌ Coverage ${ACT}% is below threshold ${MIN}%"
-            exit 1
-          fi
-          echo "✅ Coverage check passed"
+          ACT=${{ steps.coverage.outputs.branch_coverage }}
+          MIN=60
+          awk -v a="$ACT" -v m="$MIN" 'BEGIN{ if (a+0 < m+0) exit 1 }' \
+            || { echo "❌ Branch coverage ${ACT}% < ${MIN}%"; exit 1; }
+          echo "✅ Branch coverage OK (${ACT}% ≥ ${MIN}%)"
 
   checkstyle:
     runs-on: ubuntu-latest
@@ -150,8 +145,7 @@ jobs:
 
       - name: Run Checkstyle
         working-directory: ./TeamProject
-        run: |
-          mvn -B -ntp checkstyle:checkstyle
+        run: mvn -B -ntp checkstyle:check
     
       - name: Check Checkstyle Violations
         run: |
@@ -175,6 +169,12 @@ jobs:
       #   with:
       #     name: checkstyle-cache
       #     path: TeamProject/target/checkstyle-cachefile
+
+  quality-gate:
+    runs-on: ubuntu-latest
+    needs: [test, checkstyle, pmd-analysis]
+    steps:
+      - run: echo "Quality checks completed."
 
   # The build and deploy jobs are currently disabled until deployment details are finalized.
   # build:
