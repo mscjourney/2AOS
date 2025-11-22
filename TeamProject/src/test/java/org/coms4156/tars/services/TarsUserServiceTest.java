@@ -1,23 +1,30 @@
 package org.coms4156.tars.services;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import org.coms4156.tars.model.TarsUser;
-import org.coms4156.tars.service.TarsUserService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.slf4j.LoggerFactory;
-
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.coms4156.tars.model.TarsUser;
+import org.coms4156.tars.service.TarsUserService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 
 /**
  * {@code TarsUserServiceTest} Unit tests for {@link TarsUserService}.
@@ -125,7 +132,7 @@ public class TarsUserServiceTest {
    */
   @Test
   public void createValidUserTest() {
-    int initialSize = userService.listUsers().size();
+    final int initialSize = userService.listUsers().size();
     TarsUser user = userService.createUser(
         5L,
         "test_eve",
@@ -537,8 +544,8 @@ public class TarsUserServiceTest {
     List<ILoggingEvent> logsList = listAppender.list;
     assertTrue(
         logsList.stream().anyMatch(event ->
-            event.getLevel() == Level.INFO &&
-            event.getFormattedMessage().contains("Created user store at")),
+            event.getLevel() == Level.INFO
+                && event.getFormattedMessage().contains("Created user store at")),
         "Should log INFO when file created"
     );
 
@@ -548,11 +555,11 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * {@code ensureFileLogsErrorOnIOExceptionTest} Simulates creation failure to
+   * {@code ensureFileLogsErrorOnIoExceptionTest} Simulates creation failure to
    * confirm error logging branch executes.
    */
   @Test
-  public void ensureFileLogsErrorOnIOExceptionTest() throws IOException {
+  public void ensureFileLogsErrorOnIoExceptionTest() throws IOException {
     Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
     ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
     listAppender.start();
@@ -567,8 +574,8 @@ public class TarsUserServiceTest {
     List<ILoggingEvent> logsList = listAppender.list;
     assertTrue(
         logsList.stream().anyMatch(event ->
-            event.getLevel() == Level.ERROR &&
-            event.getFormattedMessage().contains("Failed to initialize user store")),
+            event.getLevel() == Level.ERROR
+                && event.getFormattedMessage().contains("Failed to initialize user store")),
         "Should log ERROR when ensureFile fails"
     );
 
@@ -578,11 +585,11 @@ public class TarsUserServiceTest {
   }
 
   /**
-   * {@code loadLogsErrorOnIOExceptionTest} Forces read failure to assert error
+   * {@code loadLogsErrorOnIoExceptionTest} Forces read failure to assert error
    * log emission and fallback behavior.
    */
   @Test
-  public void loadLogsErrorOnIOExceptionTest() throws IOException {
+  public void loadLogsErrorOnIoExceptionTest() throws IOException {
     Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
     ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
     listAppender.start();
@@ -596,8 +603,8 @@ public class TarsUserServiceTest {
     List<ILoggingEvent> logsList = listAppender.list;
     assertTrue(
         logsList.stream().anyMatch(event ->
-            event.getLevel() == Level.ERROR &&
-            event.getFormattedMessage().contains("Failed to read users file")),
+            event.getLevel() == Level.ERROR
+                && event.getFormattedMessage().contains("Failed to read users file")),
         "Should log ERROR when load fails"
     );
 
@@ -637,12 +644,11 @@ public class TarsUserServiceTest {
         immediateJson.contains("\"userId\""),
         "Persisted JSON should include userId fields"
     );
-    com.fasterxml.jackson.databind.ObjectMapper om = new com.fasterxml.jackson.databind.ObjectMapper();
-    java.util.List<org.coms4156.tars.model.TarsUser> parsed =
-        om.readValue(immediateJson,
-            new com.fasterxml.jackson.core.type.TypeReference<
-                java.util.List<org.coms4156.tars.model.TarsUser>
-            >() {});
+    ObjectMapper om = new ObjectMapper();
+    List<TarsUser> parsed = om.readValue(
+        immediateJson,
+        new TypeReference<List<TarsUser>>() {}
+    );
     assertTrue(
         parsed.stream().anyMatch(u -> userId.equals(u.getUserId())),
         "Parsed JSON should contain new user's userId=" + userId
@@ -707,8 +713,8 @@ public class TarsUserServiceTest {
     List<ILoggingEvent> logsList = listAppender.list;
     assertTrue(
         logsList.stream().anyMatch(event ->
-            event.getLevel() == Level.WARN &&
-            event.getFormattedMessage().contains("deactivateUser: user not found")),
+            event.getLevel() == Level.WARN
+                && event.getFormattedMessage().contains("deactivateUser: user not found")),
         "Should log WARN when user not found"
     );
 
@@ -731,8 +737,8 @@ public class TarsUserServiceTest {
     List<ILoggingEvent> logsList = listAppender.list;
     assertTrue(
         logsList.stream().anyMatch(event ->
-            event.getLevel() == Level.INFO &&
-            event.getFormattedMessage().contains("Created TarsUser")),
+            event.getLevel() == Level.INFO
+                && event.getFormattedMessage().contains("Created TarsUser")),
         "Should log INFO on user creation"
     );
 

@@ -1,11 +1,11 @@
 package org.coms4156.tars.util;
 
-import java.util.List;
-import java.util.stream.Stream;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import java.util.List;
+import java.util.stream.Stream;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -25,7 +25,7 @@ public final class LoggerTestUtil {
    */
   public static CapturedLogger capture(Class<?> loggerClass, Level level) {
     Logger logger = (Logger) LoggerFactory.getLogger(loggerClass);
-    Level original = logger.getLevel();
+    final Level original = logger.getLevel();
     ListAppender<ILoggingEvent> appender = new ListAppender<>();
     appender.start();
     logger.addAppender(appender);
@@ -41,7 +41,10 @@ public final class LoggerTestUtil {
     private final Level originalLevel;
     private final ListAppender<ILoggingEvent> appender;
 
-    private CapturedLogger(Logger logger, Level originalLevel, ListAppender<ILoggingEvent> appender) {
+    private CapturedLogger(
+        Logger logger,
+        Level originalLevel,
+        ListAppender<ILoggingEvent> appender) {
       this.logger = logger;
       this.originalLevel = originalLevel;
       this.appender = appender;

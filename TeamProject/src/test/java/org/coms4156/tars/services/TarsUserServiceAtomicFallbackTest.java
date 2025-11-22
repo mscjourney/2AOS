@@ -1,24 +1,32 @@
 package org.coms4156.tars.services;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import org.coms4156.tars.service.TarsUserService;
-import org.coms4156.tars.model.TarsUser;
-import org.junit.jupiter.api.Test;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.CopyOption;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.Files;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.coms4156.tars.model.TarsUser;
+import org.coms4156.tars.service.TarsUserService;
+import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 
+/**
+ * {@code TarsUserServiceAtomicFallbackTest} Tests atomic move fallback
+ * behavior when atomic operations are not supported.
+ */
 public class TarsUserServiceAtomicFallbackTest {
 
+  /**
+   * {@code atomicFallbackLogsWarnTest} Verifies that when atomic move
+   * fails, the service falls back to non-atomic move and logs a warning.
+   */
   @Test
   public void atomicFallbackLogsWarnTest() throws IOException {
     Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
@@ -47,9 +55,10 @@ public class TarsUserServiceAtomicFallbackTest {
     TarsUser user = service.createUser(1L, "fallback_user", "fallback@test.com", "user");
     assertTrue(user != null);
 
-    assertTrue(appender.list.stream().anyMatch(ev ->
-            ev.getLevel() == Level.WARN &&
-                ev.getFormattedMessage().contains("Atomic move not supported for users file")),
+    assertTrue(
+        appender.list.stream().anyMatch(ev ->
+            ev.getLevel() == Level.WARN
+                && ev.getFormattedMessage().contains("Atomic move not supported for users file")),
         "Should log WARN for atomic fallback on users file");
 
     logger.detachAppender(appender);

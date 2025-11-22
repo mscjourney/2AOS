@@ -10,18 +10,17 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import org.coms4156.tars.model.Client;
-import org.coms4156.tars.service.ClientService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import org.coms4156.tars.model.Client;
+import org.coms4156.tars.service.ClientService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
 
 /**
  * {@code ClientServiceTest} Unit tests for {@link ClientService}.
@@ -150,8 +149,8 @@ public class ClientServiceTest {
     );
     assertTrue(
         listAppender.list.stream().anyMatch(event ->
-            event.getLevel() == Level.WARN &&
-            event.getFormattedMessage().contains("cannot be negative")
+            event.getLevel() == Level.WARN
+                && event.getFormattedMessage().contains("cannot be negative")
         ),
         "Should log WARN for negative ID"
     );
@@ -165,7 +164,7 @@ public class ClientServiceTest {
    */
   @Test
   public void createClientSuccessTest() {
-    int initialSize = clientService.getClientList().size();
+    final int initialSize = clientService.getClientList().size();
     Client client = clientService.createClient(
         "NewClient",
         "new@example.com"
@@ -225,8 +224,8 @@ public class ClientServiceTest {
     );
     assertTrue(
         listAppender.list.stream().anyMatch(event ->
-            event.getLevel() == Level.WARN &&
-            event.getFormattedMessage().contains("blank name")
+            event.getLevel() == Level.WARN
+                && event.getFormattedMessage().contains("blank name")
         ),
         "Should log WARN for blank name"
     );
@@ -269,8 +268,8 @@ public class ClientServiceTest {
     );
     assertTrue(
         listAppender.list.stream().anyMatch(event ->
-            event.getLevel() == Level.WARN &&
-            event.getFormattedMessage().contains("blank email")
+            event.getLevel() == Level.WARN
+                && event.getFormattedMessage().contains("blank email")
         ),
         "Should log WARN for blank email"
     );
@@ -332,8 +331,8 @@ public class ClientServiceTest {
     );
     assertTrue(
         listAppender.list.stream().anyMatch(event ->
-            event.getLevel() == Level.WARN &&
-            event.getFormattedMessage().contains("already exists")
+            event.getLevel() == Level.WARN
+                && event.getFormattedMessage().contains("already exists")
         ),
         "Should log WARN for duplicate name"
     );
@@ -379,8 +378,8 @@ public class ClientServiceTest {
     );
     assertTrue(
         listAppender.list.stream().anyMatch(event ->
-            event.getLevel() == Level.WARN &&
-            event.getFormattedMessage().contains("already exists")
+            event.getLevel() == Level.WARN
+                && event.getFormattedMessage().contains("already exists")
         ),
         "Should log WARN for duplicate email"
     );
@@ -403,8 +402,8 @@ public class ClientServiceTest {
 
     assertTrue(
         listAppender.list.stream().anyMatch(event ->
-            event.getLevel() == Level.INFO &&
-            event.getFormattedMessage().contains("Client created successfully")
+            event.getLevel() == Level.INFO
+                && event.getFormattedMessage().contains("Client created successfully")
         ),
         "Should log INFO on successful creation"
     );
@@ -527,8 +526,8 @@ public class ClientServiceTest {
     );
     assertTrue(
         listAppender.list.stream().anyMatch(event ->
-            event.getLevel() == Level.WARN &&
-            event.getFormattedMessage().contains("not found for removal")
+            event.getLevel() == Level.WARN
+                && event.getFormattedMessage().contains("not found for removal")
         ),
         "Should log WARN when client not found"
     );
@@ -551,8 +550,8 @@ public class ClientServiceTest {
 
     assertTrue(
         listAppender.list.stream().anyMatch(event ->
-            event.getLevel() == Level.INFO &&
-            event.getFormattedMessage().contains("Client removed successfully")
+            event.getLevel() == Level.INFO
+                && event.getFormattedMessage().contains("Client removed successfully")
         ),
         "Should log INFO on successful removal"
     );
@@ -616,8 +615,8 @@ public class ClientServiceTest {
     );
     assertTrue(
         listAppender.list.stream().anyMatch(event ->
-            event.getLevel() == Level.WARN &&
-            event.getFormattedMessage().contains("null client")
+            event.getLevel() == Level.WARN
+                && event.getFormattedMessage().contains("null client")
         ),
         "Should log WARN for null client"
     );
@@ -649,8 +648,8 @@ public class ClientServiceTest {
     );
     assertTrue(
         listAppender.list.stream().anyMatch(event ->
-            event.getLevel() == Level.WARN &&
-            event.getFormattedMessage().contains("missing clientId")
+            event.getLevel() == Level.WARN
+                && event.getFormattedMessage().contains("missing clientId")
         ),
         "Should log WARN for missing client ID"
     );
@@ -682,8 +681,8 @@ public class ClientServiceTest {
     );
     assertTrue(
         listAppender.list.stream().anyMatch(event ->
-            event.getLevel() == Level.WARN &&
-            event.getFormattedMessage().contains("blank name")
+            event.getLevel() == Level.WARN
+                && event.getFormattedMessage().contains("blank name")
         ),
         "Should log WARN for blank name"
     );
@@ -713,8 +712,8 @@ public class ClientServiceTest {
     );
     assertTrue(
         listAppender.list.stream().anyMatch(event ->
-            event.getLevel() == Level.WARN &&
-            event.getFormattedMessage().contains("already in use")
+            event.getLevel() == Level.WARN
+                && event.getFormattedMessage().contains("already in use")
         ),
         "Should log WARN for duplicate name"
     );
@@ -728,8 +727,7 @@ public class ClientServiceTest {
    */
   @Test
   public void updateClientPreservesApiKeyTest() {
-    Client existing = clientService.getClient(1L);
-    String originalApiKey = existing.getApiKey();
+    final String originalApiKey = clientService.getClient(1L).getApiKey();
     
     Client update = new Client();
     update.setClientId(1L);
@@ -771,8 +769,8 @@ public class ClientServiceTest {
     );
     assertTrue(
         listAppender.list.stream().anyMatch(event ->
-            event.getLevel() == Level.WARN &&
-            event.getFormattedMessage().contains("not found for update")
+            event.getLevel() == Level.WARN
+                && event.getFormattedMessage().contains("not found for update")
         ),
         "Should log WARN when client not found"
     );
@@ -797,8 +795,8 @@ public class ClientServiceTest {
 
     assertTrue(
         listAppender.list.stream().anyMatch(event ->
-            event.getLevel() == Level.INFO &&
-            event.getFormattedMessage().contains("Client updated successfully")
+            event.getLevel() == Level.INFO
+                && event.getFormattedMessage().contains("Client updated successfully")
         ),
         "Should log INFO on successful update"
     );
@@ -858,8 +856,8 @@ public class ClientServiceTest {
     );
     assertTrue(
         listAppender.list.stream().anyMatch(event ->
-            event.getLevel() == Level.WARN &&
-            event.getFormattedMessage().contains("client not found")
+            event.getLevel() == Level.WARN
+                && event.getFormattedMessage().contains("client not found")
         ),
         "Should log WARN when client not found"
     );
@@ -882,8 +880,8 @@ public class ClientServiceTest {
 
     assertTrue(
         listAppender.list.stream().anyMatch(event ->
-            event.getLevel() == Level.INFO &&
-            event.getFormattedMessage().contains("API key rotated")
+            event.getLevel() == Level.INFO
+                && event.getFormattedMessage().contains("API key rotated")
         ),
         "Should log INFO on successful rotation"
     );
@@ -906,8 +904,8 @@ public class ClientServiceTest {
 
     long infoCount = listAppender.list.stream()
         .filter(event ->
-            event.getLevel() == Level.INFO &&
-            event.getFormattedMessage().startsWith("Client:")
+            event.getLevel() == Level.INFO
+                && event.getFormattedMessage().startsWith("Client:")
         )
         .count();
     
@@ -949,8 +947,8 @@ public class ClientServiceTest {
     
     assertTrue(
         listAppender.list.stream().anyMatch(event ->
-            event.getLevel() == Level.INFO &&
-            event.getFormattedMessage().contains("Created new client data file")
+            event.getLevel() == Level.INFO
+                && event.getFormattedMessage().contains("Created new client data file")
         ),
         "Should log INFO when file created"
     );
@@ -976,8 +974,8 @@ public class ClientServiceTest {
 
     assertTrue(
         listAppender.list.stream().anyMatch(event ->
-            event.getLevel() == Level.INFO &&
-            event.getFormattedMessage().contains("Using existing client data file")
+            event.getLevel() == Level.INFO
+                && event.getFormattedMessage().contains("Using existing client data file")
         ),
         "Should log INFO when using existing file"
     );
@@ -1009,8 +1007,8 @@ public class ClientServiceTest {
     );
     assertTrue(
         listAppender.list.stream().anyMatch(event ->
-            event.getLevel() == Level.ERROR &&
-            event.getFormattedMessage().contains("Failed to load clients")
+            event.getLevel() == Level.ERROR
+                && event.getFormattedMessage().contains("Failed to load clients")
         ),
         "Should log ERROR when load fails"
     );
@@ -1020,11 +1018,11 @@ public class ClientServiceTest {
   }
 
   /**
-   * {@code saveDataHandlesIOExceptionTest} Verifies error logging when
+   * {@code saveDataHandlesIoExceptionTest} Verifies error logging when
    * save operation fails.
    */
   @Test
-  public void saveDataHandlesIOExceptionTest() throws IOException {
+  public void saveDataHandlesIoExceptionTest() throws IOException {
     Logger logger = (Logger) LoggerFactory.getLogger(ClientService.class);
     ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
     listAppender.start();

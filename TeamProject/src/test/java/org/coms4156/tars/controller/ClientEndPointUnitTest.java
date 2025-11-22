@@ -1,6 +1,7 @@
 package org.coms4156.tars.controller;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -10,13 +11,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
+import ch.qos.logback.classic.Level;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.Map;
-import ch.qos.logback.classic.Level;
 import org.coms4156.tars.model.Client;
 import org.coms4156.tars.model.TarsUser;
 import org.coms4156.tars.service.ClientService;
@@ -912,109 +911,140 @@ public class ClientEndPointUnitTest {
   // ==================== Logger Level Toggle Tests ====================
 
   /**
-   * {@code createClientDebugLoggingEnabledTest} Exercises debug branch when DEBUG enabled.
+   * {@code createClientDebugLoggingEnabledTest}
+   * Exercises debug branch when DEBUG enabled.
    */
   @Test
   public void createClientDebugLoggingEnabledTest() throws Exception {
     try (LoggerTestUtil.CapturedLogger cap =
              LoggerTestUtil.capture(RouteController.class, Level.DEBUG)) {
-      Map<String,String> body = new HashMap<>();
-      body.put("name","DbgClient");
-      body.put("email","dbg@example.com");
+      Map<String, String> body = new HashMap<>();
+      body.put("name", "DbgClient");
+      body.put("email", "dbg@example.com");
 
       Client mockClient = new Client();
       mockClient.setClientId(55L);
       mockClient.setName("DbgClient");
       mockClient.setEmail("dbg@example.com");
 
-      when(clientService.uniqueNameCheck("DbgClient")).thenReturn(true);
-      when(clientService.uniqueEmailCheck("dbg@example.com")).thenReturn(true);
-      when(clientService.createClient("DbgClient","dbg@example.com")).thenReturn(mockClient);
+      when(clientService.uniqueNameCheck("DbgClient"))
+          .thenReturn(true);
+      when(clientService.uniqueEmailCheck("dbg@example.com"))
+          .thenReturn(true);
+      when(clientService.createClient(
+          "DbgClient",
+          "dbg@example.com"
+      )).thenReturn(mockClient);
 
       mockMvc.perform(post("/client/create")
-          .contentType(MediaType.APPLICATION_JSON)
-          .content(objectMapper.writeValueAsString(body)))
-        .andExpect(status().isCreated());
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(objectMapper.writeValueAsString(body)))
+          .andExpect(status().isCreated());
 
-      assertTrue(cap.contains(Level.DEBUG, "raw body keys"),
-          "Expected debug log for raw body keys.");
+      assertTrue(
+          cap.contains(Level.DEBUG, "raw body keys"),
+          "Expected debug log for raw body keys."
+      );
     }
   }
 
   /**
-   * {@code createClientInfoLoggingDisabledTest} Covers false branch of isInfoEnabled() (INFO off).
+   * {@code createClientInfoLoggingDisabledTest}
+   * Covers false branch of isInfoEnabled() (INFO off).
    */
   @Test
   public void createClientInfoLoggingDisabledTest() throws Exception {
     try (LoggerTestUtil.CapturedLogger cap =
              LoggerTestUtil.capture(RouteController.class, Level.WARN)) {
-      Map<String,String> body = new HashMap<>();
-      body.put("name","NoInfoClient");
-      body.put("email","noinfo@example.com");
+      Map<String, String> body = new HashMap<>();
+      body.put("name", "NoInfoClient");
+      body.put("email", "noinfo@example.com");
 
       Client mockClient = new Client();
       mockClient.setClientId(77L);
       mockClient.setName("NoInfoClient");
       mockClient.setEmail("noinfo@example.com");
 
-      when(clientService.uniqueNameCheck("NoInfoClient")).thenReturn(true);
-      when(clientService.uniqueEmailCheck("noinfo@example.com")).thenReturn(true);
-      when(clientService.createClient("NoInfoClient","noinfo@example.com")).thenReturn(mockClient);
+      when(clientService.uniqueNameCheck("NoInfoClient"))
+          .thenReturn(true);
+      when(clientService.uniqueEmailCheck("noinfo@example.com"))
+          .thenReturn(true);
+      when(clientService.createClient(
+          "NoInfoClient",
+          "noinfo@example.com"
+      )).thenReturn(mockClient);
 
       mockMvc.perform(post("/client/create")
-          .contentType(MediaType.APPLICATION_JSON)
-          .content(objectMapper.writeValueAsString(body)))
-        .andExpect(status().isCreated());
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(objectMapper.writeValueAsString(body)))
+          .andExpect(status().isCreated());
 
-      assertFalse(cap.hasLevel(Level.INFO), "INFO logs should be suppressed at WARN level.");
+      assertFalse(
+          cap.hasLevel(Level.INFO),
+          "INFO suppressed at WARN."
+      );
     }
   }
 
   /**
-   * {@code createClientWarnLoggingDisabledTest} Covers false branch of isWarnEnabled() (WARN off).
+   * {@code createClientWarnLoggingDisabledTest}
+   * Covers false branch of isWarnEnabled() (WARN off).
    */
   @Test
   public void createClientWarnLoggingDisabledTest() throws Exception {
     try (LoggerTestUtil.CapturedLogger cap =
              LoggerTestUtil.capture(RouteController.class, Level.ERROR)) {
-      Map<String,String> body = new HashMap<>();
-      body.put("email","x@example.com"); // missing name triggers warn path
+      Map<String, String> body = new HashMap<>();
+      body.put("email", "x@example.com"); // missing name triggers warn path
 
       mockMvc.perform(post("/client/create")
-          .contentType(MediaType.APPLICATION_JSON)
-          .content(objectMapper.writeValueAsString(body)))
-        .andExpect(status().isBadRequest());
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(objectMapper.writeValueAsString(body)))
+          .andExpect(status().isBadRequest());
 
-      assertFalse(cap.hasLevel(Level.WARN), "WARN logs should be suppressed at ERROR level.");
+      assertFalse(
+          cap.hasLevel(Level.WARN),
+          "WARN suppressed at ERROR."
+      );
     }
   }
 
   /**
-   * {@code createClientErrorLoggingDisabledTest} Covers false branch of isErrorEnabled() (ERROR off).
+   * {@code createClientErrorLoggingDisabledTest}
+   * Covers false branch of isErrorEnabled() (ERROR off).
    */
   @Test
   public void createClientErrorLoggingDisabledTest() throws Exception {
     try (LoggerTestUtil.CapturedLogger cap =
              LoggerTestUtil.capture(RouteController.class, Level.OFF)) {
-      Map<String,String> body = new HashMap<>();
-      body.put("name","ErrClient");
-      body.put("email","err@example.com");
+      Map<String, String> body = new HashMap<>();
+      body.put("name", "ErrClient");
+      body.put("email", "err@example.com");
 
-      when(clientService.uniqueNameCheck("ErrClient")).thenReturn(true);
-      when(clientService.uniqueEmailCheck("err@example.com")).thenReturn(true);
-      when(clientService.createClient("ErrClient","err@example.com")).thenReturn(null); // error path
+      when(clientService.uniqueNameCheck("ErrClient"))
+          .thenReturn(true);
+      when(clientService.uniqueEmailCheck("err@example.com"))
+          .thenReturn(true);
+      when(clientService.createClient(
+          "ErrClient",
+          "err@example.com"
+      )).thenReturn(null); // error path
 
       mockMvc.perform(post("/client/create")
-          .contentType(MediaType.APPLICATION_JSON)
-          .content(objectMapper.writeValueAsString(body)))
-        .andExpect(status().isInternalServerError());
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(objectMapper.writeValueAsString(body)))
+          .andExpect(status().isInternalServerError());
 
-      assertFalse(cap.hasLevel(Level.ERROR), "ERROR logs should be suppressed at OFF level.");
+      assertFalse(
+          cap.hasLevel(Level.ERROR),
+          "ERROR suppressed at OFF."
+      );
     }
   }
 
   /**
-   * {@code createClientUserDebugLoggingEnabledTest} Exercises both debug branches when DEBUG enabled.
+   * {@code createClientUserDebugLoggingEnabledTest}
+   * Exercises both debug branches when DEBUG enabled.
    */
   @Test
   public void createClientUserDebugLoggingEnabledTest() throws Exception {
@@ -1038,24 +1068,37 @@ public class ClientEndPointUnitTest {
       created.setActive(true);
 
       when(clientService.getClient(5)).thenReturn(mockClient);
-      when(tarsUserService.existsByClientIdAndUsername(5L,"dbguser")).thenReturn(false);
-      when(tarsUserService.existsByClientIdAndUserEmail(5L,"dbguser@example.com")).thenReturn(false);
-      when(tarsUserService.createUser(5L,"dbguser","dbguser@example.com","admin")).thenReturn(created);
+      when(tarsUserService.existsByClientIdAndUsername(5L, "dbguser")).thenReturn(false);
+      when(tarsUserService.existsByClientIdAndUserEmail(
+          5L,
+          "dbguser@example.com"
+      )).thenReturn(false);
+      when(tarsUserService.createUser(
+          5L,
+          "dbguser",
+          "dbguser@example.com",
+          "admin"
+      )).thenReturn(created);
 
       mockMvc.perform(post("/client/createUser")
-          .contentType(MediaType.APPLICATION_JSON)
-          .content(objectMapper.writeValueAsString(req)))
-        .andExpect(status().isCreated());
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(objectMapper.writeValueAsString(req)))
+          .andExpect(status().isCreated());
 
-      assertTrue(cap.contains(Level.DEBUG, "validation passed"),
-          "Expected debug validation log.");
-      assertTrue(cap.contains(Level.DEBUG, "created user detail"),
-          "Expected debug created user detail log.");
+      assertTrue(
+          cap.contains(Level.DEBUG, "validation passed"),
+          "Expected debug validation log."
+      );
+      assertTrue(
+          cap.contains(Level.DEBUG, "created user detail"),
+          "Expected debug created user detail log."
+      );
     }
   }
 
   /**
-   * {@code createClientUserInfoLoggingDisabledTest} Covers false branch of isInfoEnabled() (INFO off).
+   * {@code createClientUserInfoLoggingDisabledTest}
+   * Covers false branch of isInfoEnabled() (INFO off).
    */
   @Test
   public void createClientUserInfoLoggingDisabledTest() throws Exception {
@@ -1074,21 +1117,33 @@ public class ClientEndPointUnitTest {
       created.setUserId(600L);
 
       when(clientService.getClient(6)).thenReturn(mockClient);
-      when(tarsUserService.existsByClientIdAndUsername(6L,"noinfouser")).thenReturn(false);
-      when(tarsUserService.existsByClientIdAndUserEmail(6L,"noinfo@example.com")).thenReturn(false);
-      when(tarsUserService.createUser(6L,"noinfouser","noinfo@example.com","admin")).thenReturn(created);
+      when(tarsUserService.existsByClientIdAndUsername(6L, "noinfouser")).thenReturn(false);
+      when(tarsUserService.existsByClientIdAndUserEmail(
+          6L,
+          "noinfo@example.com"
+      )).thenReturn(false);
+      when(tarsUserService.createUser(
+          6L,
+          "noinfouser",
+          "noinfo@example.com",
+          "admin"
+      )).thenReturn(created);
 
       mockMvc.perform(post("/client/createUser")
-          .contentType(MediaType.APPLICATION_JSON)
-          .content(objectMapper.writeValueAsString(req)))
-        .andExpect(status().isCreated());
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(objectMapper.writeValueAsString(req)))
+          .andExpect(status().isCreated());
 
-      assertFalse(cap.hasLevel(Level.INFO), "INFO logs suppressed at WARN level.");
+      assertFalse(
+          cap.hasLevel(Level.INFO),
+          "INFO suppressed at WARN."
+      );
     }
   }
 
   /**
-   * {@code createClientUserWarnLoggingDisabledTest} Covers false branch of isWarnEnabled() (WARN off).
+   * {@code createClientUserWarnLoggingDisabledTest}
+   * Covers false branch of isWarnEnabled() (WARN off).
    */
   @Test
   public void createClientUserWarnLoggingDisabledTest() throws Exception {
@@ -1101,16 +1156,20 @@ public class ClientEndPointUnitTest {
       req.setRole("admin");
 
       mockMvc.perform(post("/client/createUser")
-          .contentType(MediaType.APPLICATION_JSON)
-          .content(objectMapper.writeValueAsString(req)))
-        .andExpect(status().isBadRequest());
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(objectMapper.writeValueAsString(req)))
+          .andExpect(status().isBadRequest());
 
-      assertFalse(cap.hasLevel(Level.WARN), "WARN logs suppressed at ERROR level.");
+      assertFalse(
+          cap.hasLevel(Level.WARN),
+          "WARN suppressed at ERROR."
+      );
     }
   }
 
   /**
-   * {@code createClientUserErrorLoggingDisabledTest} Covers false branch of isErrorEnabled() (ERROR off).
+   * {@code createClientUserErrorLoggingDisabledTest}
+   * Covers false branch of isErrorEnabled() (ERROR off).
    */
   @Test
   public void createClientUserErrorLoggingDisabledTest() throws Exception {
@@ -1126,16 +1185,24 @@ public class ClientEndPointUnitTest {
       mockClient.setClientId(8L);
 
       when(clientService.getClient(8)).thenReturn(mockClient);
-      when(tarsUserService.existsByClientIdAndUsername(8L,"erruser")).thenReturn(false);
-      when(tarsUserService.existsByClientIdAndUserEmail(8L,"err@example.com")).thenReturn(false);
-      when(tarsUserService.createUser(8L,"erruser","err@example.com","admin")).thenReturn(null); // error path
+      when(tarsUserService.existsByClientIdAndUsername(8L, "erruser")).thenReturn(false);
+      when(tarsUserService.existsByClientIdAndUserEmail(8L, "err@example.com")).thenReturn(false);
+      when(tarsUserService.createUser(
+          8L,
+          "erruser",
+          "err@example.com",
+          "admin"
+      )).thenReturn(null); // error path
 
       mockMvc.perform(post("/client/createUser")
-          .contentType(MediaType.APPLICATION_JSON)
-          .content(objectMapper.writeValueAsString(req)))
-        .andExpect(status().isInternalServerError());
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(objectMapper.writeValueAsString(req)))
+          .andExpect(status().isInternalServerError());
 
-      assertFalse(cap.hasLevel(Level.ERROR), "ERROR logs suppressed at OFF level.");
+      assertFalse(
+          cap.hasLevel(Level.ERROR),
+          "ERROR suppressed at OFF."
+      );
     }
   }
 }

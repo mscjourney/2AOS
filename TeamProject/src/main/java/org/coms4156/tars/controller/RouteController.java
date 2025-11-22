@@ -196,10 +196,13 @@ public class RouteController {
    * @return A resource indicating that the user was created.
   */
   @PostMapping({"/client/createUser"})
-  public ResponseEntity<?> createClientUser(@RequestBody(required = false) TarsUser newUserRequestBody) {
+  public ResponseEntity<?> createClientUser(
+      @RequestBody(required = false) TarsUser newUserRequestBody) {
     if (logger.isInfoEnabled()) {
       logger.info("POST /client/createUser invoked with body keys={}",
-          newUserRequestBody == null ? "null" : newUserRequestBody.getClass().getDeclaredFields());
+          newUserRequestBody == null
+              ? "null"
+              : newUserRequestBody.getClass().getDeclaredFields());
     }
     if (newUserRequestBody == null) {
       if (logger.isWarnEnabled()) {

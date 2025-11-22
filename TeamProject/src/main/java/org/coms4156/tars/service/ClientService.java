@@ -4,18 +4,18 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.List;
 import org.coms4156.tars.model.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * {@code ClientService} class for managing {@code Client} entities.
@@ -30,12 +30,15 @@ public class ClientService {
   private List<Client> clients;
   private final FileMover fileMover;
 
-  // Strategy interface for file moves (test injection)
+  /**
+   * {@code FileMover} Strategy interface for file moves (test injection).
+   */
   public interface FileMover {
     void move(Path source, Path target, CopyOption... options) throws IOException;
   }
 
-  private static final FileMover DEFAULT_FILE_MOVER = (src, dest, opts) -> java.nio.file.Files.move(src, dest, opts);
+  private static final FileMover DEFAULT_FILE_MOVER =
+      (src, dest, opts) -> java.nio.file.Files.move(src, dest, opts);
 
   /**
    * Constructor with path injected from application properties.
@@ -43,6 +46,7 @@ public class ClientService {
    * defaults to ./data/ClientData.json (writable location).
    *
    * @param clientFilePath the path to the client data JSON file
+   * @param fileMover the file mover strategy (null uses default)
    */
   @Autowired
   public ClientService(

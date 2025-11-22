@@ -4,10 +4,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.nio.file.CopyOption;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,9 +17,9 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.coms4156.tars.model.TarsUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * {@code TarsUserService} provides services related to TarsUser management.
@@ -33,16 +33,23 @@ public class TarsUserService {
   private List<TarsUser> users;
   private final FileMover fileMover;
 
+  /**
+   * {@code FileMover} Strategy interface for file moves (test injection).
+   */
   public interface FileMover {
     void move(Path source, Path target, CopyOption... options) throws IOException;
   }
 
-  private static final FileMover DEFAULT_FILE_MOVER = (src, dest, opts) -> Files.move(src, dest, opts);
+  private static final FileMover DEFAULT_FILE_MOVER =
+      (src, dest, opts) -> Files.move(src, dest, opts);
 
   /**
    * {@code TarsUserService} constructor.
    * Initializes a new instance of TarsUserService.
    * Loads user data from the JSON user database.
+   *
+   * @param userFilePath the path to the user data JSON file
+   * @param fileMover the file mover strategy (null uses default)
    */
   @Autowired
   public TarsUserService(
@@ -120,7 +127,7 @@ public class TarsUserService {
    * {@code persist} Persists the current users list to the JSON user database.
    * Strategy:
    * 1. Ensure parent directory exists.
-   * 2. Serialize to a temporary sibling file (<name>.tmp).
+   * 2. Serialize to a temporary sibling file (name.tmp).
    * 3. Attempt atomic move (REPLACE_EXISTING + ATOMIC_MOVE).
    * 4. If atomic unsupported or fails, fallback to non-atomic move.
    * 5. On any failure, log and remove temp to avoid orphaned artifacts.
@@ -187,7 +194,8 @@ public class TarsUserService {
         tempFile.delete();
       }
       if (moved && logger.isDebugEnabled()) {
-        logger.debug("Persist completed: target={} size={}B", userFile.getPath(), userFile.length());
+        logger.debug("Persist completed: target={} size={}B",
+            userFile.getPath(), userFile.length());
       } else if (!moved && logger.isWarnEnabled()) {
         logger.warn("Persist did not move new users file; in-memory state retained. target={}",
             userFile.getPath());
@@ -365,7 +373,8 @@ public class TarsUserService {
   }
 
   /**
-   * {@code existsByClientIdAndUserEmail} Checks if a tarsUser with email already exist in a client.
+   * {@code existsByClientIdAndUserEmail} Checks if a tarsUser 
+   * with email already exist in a client.
    *
    * @param clientId the client identifier
    * @param email the email to check (case-insensitive)
