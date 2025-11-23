@@ -1,16 +1,17 @@
 package org.coms4156.tars.controller;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import org.coms4156.tars.model.CitySummary;
+import org.coms4156.tars.model.Client;
 import org.coms4156.tars.model.CrimeModel;
 import org.coms4156.tars.model.CrimeSummary;
+import org.coms4156.tars.model.TarsUser;
 import org.coms4156.tars.model.TravelAdvisory;
 import org.coms4156.tars.model.TravelAdvisoryModel;
 import org.coms4156.tars.model.User;
@@ -18,9 +19,9 @@ import org.coms4156.tars.model.WeatherAlert;
 import org.coms4156.tars.model.WeatherAlertModel;
 import org.coms4156.tars.model.WeatherModel;
 import org.coms4156.tars.model.WeatherRecommendation;
-import org.coms4156.tars.model.Client;
-import org.coms4156.tars.service.TarsService;
 import org.coms4156.tars.service.ClientService;
+import org.coms4156.tars.service.TarsService;
+import org.coms4156.tars.service.TarsUserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -593,6 +594,12 @@ public class RouteController {
   }
 
   
+  /**
+   * Retrieves the travel advisory for a given country.
+   *
+   * @param country the country to retrieve the advisory for
+   * @return the travel advisory or an error response
+   */
   @GetMapping("/country/{country}")
   public ResponseEntity<?> getCountryAdvisory(@PathVariable String country) {
     logger.info("GET /country/{} invoked", country);
@@ -618,11 +625,19 @@ public class RouteController {
   }
 
 
+  /**
+   * Retrieves a city summary for a given city and optional date range.
+   *
+   * @param city the city to summarize
+   * @param startDate the start date (optional)
+   * @param endDate the end date (optional)
+   * @return the city summary or an error response
+   */
   @GetMapping("/summary/{city}")
   public ResponseEntity<?> getCitySummary(
-      @PathVariable String city,
-      @RequestParam(required = false) String startDate,
-      @RequestParam(required = false) String endDate) {
+        @PathVariable String city,
+        @RequestParam(required = false) String startDate,
+        @RequestParam(required = false) String endDate) {
 
     if (logger.isInfoEnabled()) {
       logger.info("GET /summary/{} invoked with startDate={} endDate={}",
