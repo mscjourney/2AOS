@@ -11,7 +11,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.coms4156.tars.controller.RouteController;
 import org.coms4156.tars.model.CrimeModel;
 import org.coms4156.tars.model.CrimeSummary;
+import org.coms4156.tars.service.ClientService;
 import org.coms4156.tars.service.TarsService;
+import org.coms4156.tars.service.TarsUserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
@@ -37,6 +39,12 @@ public class CrimeEndpointTest {
 
   @MockitoBean
   private TarsService tarsService;
+
+  @MockitoBean
+  private ClientService clientService;
+
+  @MockitoBean
+  private TarsUserService tarsUserService;
 
   /**
    * Test a valid GET request for a state crime summary.

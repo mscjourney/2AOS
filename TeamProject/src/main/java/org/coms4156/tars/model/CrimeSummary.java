@@ -33,19 +33,19 @@ public class CrimeSummary {
     this.state = state;
   }
 
-  public String getmonth() {
+  public String getMonth() {
     return month;
   }
 
-  public void setmonth(String month) {
+  public void setMonth(String month) {
     this.month = month;
   }
 
-  public String getyear() {
+  public String getYear() {
     return year;
   }
 
-  public void setyear(String year) {
+  public void setYear(String year) {
     this.year = year;
   }
 
