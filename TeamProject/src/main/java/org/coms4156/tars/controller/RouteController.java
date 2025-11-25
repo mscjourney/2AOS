@@ -3,6 +3,7 @@ package org.coms4156.tars.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
+import java.util.ArrayList;
 import org.coms4156.tars.model.CrimeModel;
 import org.coms4156.tars.model.CrimeSummary;
 import org.coms4156.tars.model.TravelAdvisory;
@@ -126,6 +127,37 @@ public class RouteController {
   }
 
   /**
+   * Handles PUT requests to remove a user.
+   *
+   * @param id the id of the user that we are removing
+   * @return a ResponseEntity containing the message stating whether the user removal was
+   *          successful or not.
+   */
+  @PutMapping({"/user/{id}/remove"})
+  public ResponseEntity<?> removeUser(@PathVariable int id) {
+    if (logger.isInfoEnabled()) {
+      logger.info("PUT /user/{}/remove invoked", id);
+    }
+    if (id < 0) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("PUT /user/{}/remove failed: User cannot have negative ids", id);
+      }
+      return new ResponseEntity<>("User Id cannot be negative.", HttpStatus.BAD_REQUEST);
+    }
+    boolean removed = tarsService.removeUser(id);
+    if (removed) {
+      if (logger.isInfoEnabled()) {
+        logger.info("User removed successfully id={}", id);
+      }
+      return new ResponseEntity<>("User removed successfully.", HttpStatus.OK);
+    }
+    if (logger.isWarnEnabled()) {
+      logger.warn("User remove failed");
+    }
+    return new ResponseEntity<>("User removed failed.", HttpStatus.CONFLICT);
+  }
+
+  /**
    * Handles GET requests to retrieve a user's preferences.
    *
    * @param id the id of the user that we are retrieving
@@ -162,6 +194,22 @@ public class RouteController {
     try {
       List<User> userList = tarsService.getUserList();
       return new ResponseEntity<>(userList, HttpStatus.OK);
+    } catch (Exception e) {
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  @GetMapping("/userList/client/{clientId}")
+  public ResponseEntity<List<User>> getClientUserList(@PathVariable int clientId) {
+    try {
+      List<User> userList = tarsService.getUserList();
+      List<User> clientUserList = new ArrayList<>();
+      for (User user : userList) {
+        if (user.getClientId() == clientId) {
+          clientUserList.add(user);
+        }
+      }
+      return new ResponseEntity<>(clientUserList, HttpStatus.OK);
     } catch (Exception e) {
       return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -352,7 +400,7 @@ public class RouteController {
 
       if (advisory == null) {
         logger.warn("No advisory found for country={}", country);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
       }
 
       return ResponseEntity.ok(advisory.toString());
@@ -362,7 +410,7 @@ public class RouteController {
 
     } catch (Exception e) {
       logger.error("Error retrieving advisory for country={}", country, e);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR);
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
