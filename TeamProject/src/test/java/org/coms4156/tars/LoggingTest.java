@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import ch.qos.logback.classic.Logger;
@@ -90,6 +91,10 @@ public class LoggingTest {
           }
         });
 
+    mockMvc.perform(put("/user/" + uniqueUserId + "/remove"))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("User removed successfully.")));
+
     // Verify logging occurred
     List<ILoggingEvent> logEvents = listAppender.list;
     assertThat("Should have log events", logEvents.size(), greaterThan(0));
@@ -101,6 +106,10 @@ public class LoggingTest {
     boolean foundPutLog = logMessages.stream()
         .anyMatch(msg -> msg.contains("PUT /user/") && msg.contains("/add invoked"));
     assertThat("Should log PUT /user/{}/add invoked", foundPutLog, org.hamcrest.Matchers.is(true));
+
+    boolean foundRemoveLog = logMessages.stream()
+        .anyMatch(msg -> msg.contains("PUT /user/") && msg.contains("/remove invoked"));
+    assertThat("Shold log PUT /user/{}/remove invoked", foundRemoveLog, org.hamcrest.Matchers.is(true));
   }
 
   @Test
