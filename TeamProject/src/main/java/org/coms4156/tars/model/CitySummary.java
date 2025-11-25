@@ -26,7 +26,14 @@ public class CitySummary {
   private String message;
 
   /**
-   *  Constructor for non-United States cities to not include crime data.
+   * {@code CitySummary} Constructs a CitySummary with the specified parameters.
+   *
+   * @param city the city name
+   * @param weatherRecommendation the weather recommendation for the city
+   * @param weatherAlert the weather alert for the city
+   * @param travelAdvisory the travel advisory for the city
+   * @param interestedUsers the list of users interested in the city
+   * @param message the message associated with the city summary
    */
   public CitySummary(String city, WeatherRecommendation weatherRecommendation,
                      WeatherAlert weatherAlert, TravelAdvisory travelAdvisory,

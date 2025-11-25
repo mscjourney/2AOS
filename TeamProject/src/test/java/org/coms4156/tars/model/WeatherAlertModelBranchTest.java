@@ -8,9 +8,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-
+/**
+ * This class contains branch coverage tests for WeatherAlertModel.
+ */
 public class WeatherAlertModelBranchTest {
 
+  /**
+   * {@code testGetWeatherAlertsWithCoordinates} Tests retrieving weather alerts
+   * using coordinates.
+   */
   @Test
   public void testGetWeatherAlertsWithCoordinates() {
     WeatherAlert alert = WeatherAlertModel.getWeatherAlerts(null, 40.7128, -74.0060);
@@ -19,6 +25,10 @@ public class WeatherAlertModelBranchTest {
     assertTrue(alert.getLocation().contains("40.7128"));
   }
 
+  /**
+   * {@code testGetWeatherAlertsWithCity} Tests retrieving weather alerts
+   * using city name.
+   */
   @Test
   public void testGetWeatherAlertsWithCity() {
     WeatherAlert alert = WeatherAlertModel.getWeatherAlerts("New York", null, null);
@@ -26,6 +36,10 @@ public class WeatherAlertModelBranchTest {
     assertEquals("New York", alert.getLocation());
   }
 
+  /**
+   * {@code testGetWeatherAlertsThrowsWhenNoLocation} Tests that an exception
+   * is thrown when no location is provided.
+   */
   @Test
   public void testGetWeatherAlertsThrowsWhenNoLocation() {
     assertThrows(IllegalArgumentException.class, () -> {
@@ -33,6 +47,10 @@ public class WeatherAlertModelBranchTest {
     });
   }
 
+  /**
+   * {@code testGetUserAlertsWithNullUser} Tests that an exception is thrown
+   * when user is null.
+   */
   @Test
   public void testGetUserAlertsWithNullUser() {
     assertThrows(IllegalArgumentException.class, () -> {
@@ -40,6 +58,10 @@ public class WeatherAlertModelBranchTest {
     });
   }
 
+  /**
+   * {@code testGetUserAlertsWithValidUser} Tests retrieving alerts for a valid
+   * user with city preferences.
+   */
   @Test
   public void testGetUserAlertsWithValidUser() {
     User user = new User(1, 1, 
@@ -52,6 +74,10 @@ public class WeatherAlertModelBranchTest {
     assertTrue(alerts.size() >= 0);
   }
 
+  /**
+   * {@code testGetUserAlertsWithEmptyCityPreferences} Tests retrieving alerts
+   * for a user with empty city preferences.
+   */
   @Test
   public void testGetUserAlertsWithEmptyCityPreferences() {
     User user = new User(1, 1, 

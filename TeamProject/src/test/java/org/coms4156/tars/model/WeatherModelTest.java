@@ -8,7 +8,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-
+/**
+ * {@code WeatherModelTest} Unit tests for WeatherModel class.
+ */
 public class WeatherModelTest {
 
   @Test
