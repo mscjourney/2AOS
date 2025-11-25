@@ -62,7 +62,7 @@ public class TarsService {
   /**
    *  Loads the existing user preferences data from USER_FILENAME.
    */
-  private List<User> loadData() {
+  public List<User> loadData() {
     try {
       return mapper.readValue(this.userFile, new TypeReference<List<User>>() {});
     } catch (IOException e) {
@@ -126,6 +126,44 @@ public class TarsService {
     return true;
   }
   
+  /**
+   * Updates the json file by removing the preference data of an existing user.
+   *
+   * @param userId the id of the user whose data we want to remove
+   * @return If the existing user was sucessfully removed from the file, returns true.
+   *         If the userId specified does nto exists or is an invalid userId (< 0), returns false.
+   */
+  public synchronized boolean removeUser(int userId) {
+    if (users == null) {
+      users = loadData();
+    }
+    
+    if (userId < 0) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("Attempted to remove a negative user id");
+      }
+      return false;
+    }
+    User toRemove = null;
+    for (User user : users) {
+      if (user.getId() == userId) {
+        toRemove = user;
+        break;
+      }
+    }
+
+    if (toRemove == null) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("Attempted to remove non-existing user with id {}", userId);
+      }
+      return false;
+    }
+
+    users.remove(toRemove);
+    saveData();
+    return true;
+  }
+
   /**
    * Finds the user from the list based on the user id.
    *
