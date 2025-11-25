@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather Services - TARS</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="/ui" class="nav-brand">TARS</a>
+      <div class="nav-links">
+        <a href="/ui">Dashboard</a>
+        <a href="/ui/client/create">Create Client</a>
+        <a href="/ui/user/create">Create User</a>
+        <a href="/ui/users">View Users</a>
+        <a href="/ui/weather/recommendation">Weather</a>
+        <a href="/ui/city/summary">City Summary</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <div class="container">
+      <h1>Weather Services</h1>
+      
+      <div class="weather-services-grid">
+        <!-- Weather Recommendations Section -->
+        <div class="weather-section">
+          <h2>Weather Recommendations</h2>
+          
+          <form method="post" action="/ui/weather/recommendation" class="form">
+            <div class="form-group">
+              <label for="city">City:</label>
+              <input type="text" id="city" name="city" required class="form-control" placeholder="e.g., New York">
+            </div>
+            
+            <div class="form-group">
+              <label for="days">Number of Days (1-14):</label>
+              <input type="number" id="days" name="days" required min="1" max="14" class="form-control" value="7">
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Get Recommendations</button>
+          </form>
+          
+          <div th:if="${recommendation}" class="result-box">
+            <h3>Weather Recommendation for <span th:text="${recommendation.city}"></span></h3>
+            <p th:text="${recommendation.message}"></p>
+            <div th:if="${recommendation.recommendedDays != null && !recommendation.recommendedDays.isEmpty()}">
+              <h4>Recommended Days:</h4>
+              <ul>
+                <li th:each="day : ${recommendation.recommendedDays}" th:text="${day}"></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Weather Alerts Section -->
+        <div class="weather-section">
+          <h2>Weather Alerts</h2>
+          
+          <form method="post" action="/ui/weather/alerts" class="form">
+            <div class="form-group">
+              <label for="alertCity">City:</label>
+              <input type="text" id="alertCity" name="city" class="form-control" placeholder="e.g., New York">
+            </div>
+            
+            <div class="form-group">
+              <label>Or use coordinates:</label>
+              <div class="form-row">
+                <input type="number" id="lat" name="lat" step="any" class="form-control" placeholder="Latitude">
+                <input type="number" id="lon" name="lon" step="any" class="form-control" placeholder="Longitude">
+              </div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Get Alerts</button>
+          </form>
+          
+          <div th:if="${alert}" class="result-box">
+            <h3>Weather Alert for <span th:text="${alert.location}"></span></h3>
+            <p th:if="${alert.timestamp != null}"><strong>Timestamp:</strong> <span th:text="${alert.timestamp}"></span></p>
+            
+            <div th:if="${alert.alerts != null && !alert.alerts.isEmpty()}" class="alert-details">
+              <h4>Active Alerts:</h4>
+              <div th:each="alertItem : ${alert.alerts}" class="alert-item">
+                <p th:each="entry : ${alertItem}">
+                  <strong th:text="${entry.key}"></strong>: <span th:text="${entry.value}"></span>
+                </p>
+              </div>
+            </div>
+            
+            <div th:if="${alert.recommendations != null && !alert.recommendations.isEmpty()}" class="alert-recommendations">
+              <h4>Recommendations:</h4>
+              <ul>
+                <li th:each="rec : ${alert.recommendations}" th:text="${rec}"></li>
+              </ul>
+            </div>
+            
+            <div th:if="${alert.currentConditions != null && !alert.currentConditions.isEmpty()}" class="alert-conditions">
+              <h4>Current Conditions:</h4>
+              <div class="conditions-grid">
+                <p th:each="entry : ${alert.currentConditions}">
+                  <strong th:text="${entry.key}"></strong>: <span th:text="${entry.value}"></span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
+

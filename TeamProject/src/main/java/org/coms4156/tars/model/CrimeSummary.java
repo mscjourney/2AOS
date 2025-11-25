@@ -11,6 +11,12 @@ public class CrimeSummary {
   private String message;
 
   /**
+   *
+   */
+  public CrimeSummary() {
+  }
+
+  /**
    * Constructs a new CrimeSummary instance with the specified state, month, year, and message.
    *
    * @param state   the U.S. state name or abbreviation (e.g., "North Carolina" or "NC")

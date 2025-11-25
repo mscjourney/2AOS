@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - TARS</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="/ui" class="nav-brand">TARS</a>
+      <div class="nav-links">
+        <a href="/ui">Dashboard</a>
+        <a href="/ui/client/create">Create Client</a>
+        <a href="/ui/user/create">Create User</a>
+        <a href="/ui/users">View Users</a>
+        <a href="/ui/weather/recommendation">Weather</a>
+        <a href="/ui/city/summary">City Summary</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <div th:if="${error}" class="alert alert-error">
+      <strong>Error:</strong> <span th:text="${error}"></span>
+    </div>
+    <div th:if="${success}" class="alert alert-success">
+      <strong>Success!</strong> Operation completed successfully.
+    </div>
+    
+    <div class="container">
+      <h1>Welcome to TARS</h1>
+      <p class="welcome-message" th:text="${welcomeMessage}">Welcome to the TARS Home Page!</p>
+      
+      <div class="dashboard-grid">
+        <div class="card">
+          <h2>Client Management</h2>
+          <p>Create and manage clients</p>
+          <a href="/ui/client/create" class="btn btn-primary">Create Client</a>
+        </div>
+        
+        <div class="card">
+          <h2>User Management</h2>
+          <p>Create users and manage preferences</p>
+          <a href="/ui/user/create" class="btn btn-primary">Create User</a>
+          <a href="/ui/users" class="btn btn-secondary">View Users</a>
+        </div>
+        
+        <div class="card">
+          <h2>Weather Services</h2>
+          <p>Get weather recommendations and alerts</p>
+          <a href="/ui/weather/recommendation" class="btn btn-primary">Weather Services</a>
+          <a href="/ui/weather/user-alerts" class="btn btn-secondary">User Alerts</a>
+        </div>
+        
+        <div class="card">
+          <h2>City Information</h2>
+          <p>Get comprehensive city summaries</p>
+          <a href="/ui/city/summary" class="btn btn-primary">City Summary</a>
+        </div>
+        
+        <div class="card">
+          <h2>Travel Advisory</h2>
+          <p>Check travel advisories for countries</p>
+          <a href="/ui/country/advisory" class="btn btn-primary">Country Advisory</a>
+        </div>
+        
+        <div class="card">
+          <h2>Crime Data</h2>
+          <p>View crime statistics</p>
+          <a href="/ui/crime/summary" class="btn btn-primary">Crime Summary</a>
+        </div>
+      </div>
+      
+      <!-- Alerts Section -->
+      <div th:if="${alerts != null && !alerts.isEmpty()}" class="alerts-section">
+        <h2>Active Weather Alerts (<span th:text="${alertCount}"></span>)</h2>
+        <div class="alerts-list">
+          <div th:each="alert : ${alerts}" class="alert-card">
+            <div class="alert-header">
+              <h3 th:text="${alert.location}">Location</h3>
+              <span th:if="${alert.timestamp != null}" class="alert-timestamp" th:text="${alert.timestamp}"></span>
+            </div>
+            
+            <div th:if="${alert.alerts != null && !alert.alerts.isEmpty()}" class="alert-details">
+              <div th:each="alertItem : ${alert.alerts}" class="alert-item">
+                <p th:each="entry : ${alertItem}">
+                  <strong th:text="${entry.key}"></strong>: <span th:text="${entry.value}"></span>
+                </p>
+              </div>
+            </div>
+            
+            <div th:if="${alert.recommendations != null && !alert.recommendations.isEmpty()}" class="alert-recommendations">
+              <strong>Recommendations:</strong>
+              <ul>
+                <li th:each="rec : ${alert.recommendations}" th:text="${rec}"></li>
+              </ul>
+            </div>
+            
+            <div th:if="${alert.currentConditions != null && !alert.currentConditions.isEmpty()}" class="alert-conditions">
+              <strong>Current Conditions:</strong>
+              <div class="conditions-grid">
+                <p th:each="entry : ${alert.currentConditions}">
+                  <strong th:text="${entry.key}"></strong>: <span th:text="${entry.value}"></span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div th:if="${alerts == null || alerts.isEmpty()}" class="no-alerts">
+        <p>No active weather alerts at this time.</p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>&copy; 2024 TARS - Travel Alert and Recommendation Service</p>
+  </footer>
+</body>
+</html>
+

@@ -377,6 +377,57 @@ public class RouteController {
   }
 
   /**
+   * Handles PUT requests to update an existing user's preferences.
+   *
+   * @param id the id of the user that we are updating
+   * @param user the User object that contains the updated preferences of the user.
+   * @return a ResponseEntity containing the updated User Preferences data in json format if successful,
+   *          or an error message if the user is not found.
+   */
+  @PutMapping({"/user/{id}/update"})
+  public ResponseEntity<?> updateUser(@PathVariable int id, @RequestBody User user) {
+    if (logger.isInfoEnabled()) {
+      logger.info("PUT /user/{}/update invoked", id);
+    }
+    if (user == null) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("PUT /user/{}/update failed: request body is null", id);
+      }
+      return new ResponseEntity<>("User body cannot be null.", HttpStatus.BAD_REQUEST);
+    }
+    
+    // Check if user exists
+    User existingUser = null;
+    for (User u : tarsService.getUserList()) {
+      if (u.getId() == id) {
+        existingUser = u;
+        break;
+      }
+    }
+    
+    if (existingUser == null) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("PUT /user/{}/update failed: user not found", id);
+      }
+      return new ResponseEntity<>("User not found.", HttpStatus.NOT_FOUND);
+    }
+    
+    // Update the user preferences
+    boolean updated = tarsService.addUser(user);
+    if (updated) {
+      if (logger.isInfoEnabled()) {
+        logger.info("User preferences updated successfully id={}", id);
+      }
+      return new ResponseEntity<>(user, HttpStatus.OK);
+    } else {
+      if (logger.isErrorEnabled()) {
+        logger.error("PUT /user/{}/update failed: update returned false", id);
+      }
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /**
    * Handles GET requests to retrieve a user's preferences.
    *
    * @param id the id of the user that we are retrieving
