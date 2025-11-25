@@ -111,7 +111,8 @@ public class LoggingTest {
 
     boolean foundRemoveLog = logMessages.stream()
         .anyMatch(msg -> msg.contains("PUT /user/") && msg.contains("/remove invoked"));
-    assertThat("Shold log PUT /user/{}/remove invoked", foundRemoveLog, org.hamcrest.Matchers.is(true));
+    assertThat("Shold log PUT /user/{}/remove invoked", foundRemoveLog, 
+        org.hamcrest.Matchers.is(true));
   }
 
   @Test

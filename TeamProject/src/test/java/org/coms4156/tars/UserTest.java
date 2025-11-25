@@ -11,13 +11,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.coms4156.tars.model.User;
 import org.coms4156.tars.service.TarsService;
 import org.junit.jupiter.api.BeforeEach;
@@ -92,7 +90,7 @@ public class UserTest {
   public void indexTest() throws Exception {
     this.mockMvc.perform(get("/"))
       .andExpect(status().isOk())
-      .andExpect(content().string(containsString("Welcome to the TARS Home Page!")));
+        .andExpect(content().string(containsString("Welcome to the TARS Home Page!")));
   }
 
   /**
@@ -104,7 +102,7 @@ public class UserTest {
   public void indexTestWithIndexPath() throws Exception {
     this.mockMvc.perform(get("/index"))
       .andExpect(status().isOk())
-      .andExpect(content().string(containsString("Welcome to the TARS Home Page!")));
+        .andExpect(content().string(containsString("Welcome to the TARS Home Page!")));
   }
 
   /**
@@ -133,11 +131,11 @@ public class UserTest {
       .andExpect(jsonPath("$.id", is(2)))
       .andExpect(jsonPath("$.weatherPreferences", contains("rainy")))
       .andExpect(jsonPath("$.temperaturePreferences", contains("60F", "67F")))
-      .andExpect(jsonPath("$.cityPreferences", contains("New York", "Paris")));
+        .andExpect(jsonPath("$.cityPreferences", contains("New York", "Paris")));
 
     this.mockMvc.perform(get("/user/0"))
       .andExpect(status().isNotFound())
-      .andExpect(content().string(containsString("User not found.")));
+        .andExpect(content().string(containsString("User not found.")));
   }
 
   /**
@@ -153,7 +151,7 @@ public class UserTest {
       .andExpect(jsonPath("$.id", is(1)))
       .andExpect(jsonPath("$.clientId", is(1)))
       .andExpect(jsonPath("$.weatherPreferences", contains("sunny")))
-      .andExpect(jsonPath("$.cityPreferences", contains("Boston")));
+        .andExpect(jsonPath("$.cityPreferences", contains("Boston")));
   }
 
   /**
@@ -165,7 +163,7 @@ public class UserTest {
   public void getUserTestWithNonExistentId() throws Exception {
     this.mockMvc.perform(get("/user/9999"))
       .andExpect(status().isNotFound())
-      .andExpect(content().string(containsString("User not found.")));
+        .andExpect(content().string(containsString("User not found.")));
   }
 
   /**
@@ -213,7 +211,7 @@ public class UserTest {
     // Remove the user to not modify the json file.
     this.mockMvc.perform(put("/user/" + uniqueUserId + "/remove"))
       .andExpect(status().isOk())
-      .andExpect(content().string(containsString("User removed successfully.")));
+        .andExpect(content().string(containsString("User removed successfully.")));
   }
 
   @Test // @PutMapping({"/user/{id}/add"}) Test 2
@@ -262,7 +260,7 @@ public class UserTest {
   public void removeNonExistentUser() throws Exception {
     this.mockMvc.perform(put("/user/" + 123510 + "/remove"))
       .andExpect(status().isConflict())
-      .andExpect(content().string(containsString("User removed failed.")));
+        .andExpect(content().string(containsString("User removed failed.")));
   }
 
   @Test // @PutMapping({"/user/{id}/remove"}) Test 3
@@ -281,11 +279,11 @@ public class UserTest {
     
     this.mockMvc.perform(put("/user/" + userId + "/remove"))
       .andExpect(status().isOk())
-      .andExpect(content().string(containsString("User removed successfully.")));
+        .andExpect(content().string(containsString("User removed successfully.")));
 
     this.mockMvc.perform(put("/user/" + userId + "/remove"))
       .andExpect(status().isConflict())
-      .andExpect(content().string(containsString("User removed failed.")));
+        .andExpect(content().string(containsString("User removed failed.")));
   }
 
   /**

@@ -3,8 +3,8 @@ package org.coms4156.tars.controller;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.coms4156.tars.model.CitySummary;
@@ -449,6 +449,14 @@ public class RouteController {
     }
   }
 
+  /**
+   * Handles GET requests to retrieve information about all existing users under a specified client.
+   *
+   * @param clientId the id of the client we want to retrieve user data for.
+   * @return a ResponseEntity containing the User Preferences data in json format for all users
+   *          under a client specified by clientId. Returns an empty json if no users are found.
+   *          Otherwise, return the status code INTERNAL_SERVER_ERROR.
+   */
   @GetMapping("/userList/client/{clientId}")
   public ResponseEntity<List<User>> getClientUserList(@PathVariable int clientId) {
     try {

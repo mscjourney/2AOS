@@ -126,6 +126,13 @@ public class TarsService {
     return true;
   }
   
+  /**
+   * Updates the json file by removing the preference data of an existing user.
+   *
+   * @param userId the id of the user whose data we want to remove
+   * @return If the existing user was sucessfully removed from the file, returns true.
+   *         If the userId specified does nto exists or is an invalid userId (< 0), returns false.
+   */
   public synchronized boolean removeUser(int userId) {
     if (users == null) {
       users = loadData();
