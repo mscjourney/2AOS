@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>View Users - TARS</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="/ui" class="nav-brand">TARS</a>
+      <div class="nav-links">
+        <a href="/ui">Dashboard</a>
+        <a href="/ui/client/create">Create Client</a>
+        <a href="/ui/user/create">Create User</a>
+        <a href="/ui/users">View Users</a>
+        <a href="/ui/weather/recommendation">Weather</a>
+        <a href="/ui/city/summary">City Summary</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <div class="container">
+      <h1>All Users</h1>
+      
+      <div th:if="${success}" class="alert alert-success">
+        <strong>Success!</strong> <span th:text="${success}"></span>
+      </div>
+      <div th:if="${error}" class="alert alert-error">
+        <strong>Error:</strong> <span th:text="${error}"></span>
+      </div>
+      
+      <div th:if="${users != null && !users.isEmpty()}" class="users-list">
+        <div th:each="user : ${users}" class="user-card">
+          <div class="user-header">
+            <h3>User ID: <span th:text="${user.id}"></span></h3>
+            <button type="button" class="btn btn-secondary btn-sm" 
+                th:onclick="'showUpdateForm(' + ${user.id} + ')'">Update</button>
+          </div>
+          <p><strong>Client ID:</strong> <span th:text="${user.clientId}"></span></p>
+          <p th:if="${user.cityPreferences != null && !user.cityPreferences.isEmpty()}">
+            <strong>Cities:</strong> <span th:text="${#strings.listJoin(user.cityPreferences, ', ')}"></span>
+          </p>
+          <p th:if="${user.cityPreferences == null || user.cityPreferences.isEmpty()}">
+            <strong>Cities:</strong> <em>None</em>
+          </p>
+          <p th:if="${user.weatherPreferences != null && !user.weatherPreferences.isEmpty()}">
+            <strong>Weather:</strong> <span th:text="${#strings.listJoin(user.weatherPreferences, ', ')}"></span>
+          </p>
+          <p th:if="${user.weatherPreferences == null || user.weatherPreferences.isEmpty()}">
+            <strong>Weather:</strong> <em>None</em>
+          </p>
+          <p th:if="${user.temperaturePreferences != null && !user.temperaturePreferences.isEmpty()}">
+            <strong>Temperature:</strong> <span th:text="${#strings.listJoin(user.temperaturePreferences, ', ')}"></span>
+          </p>
+          <p th:if="${user.temperaturePreferences == null || user.temperaturePreferences.isEmpty()}">
+            <strong>Temperature:</strong> <em>None</em>
+          </p>
+          
+          <!-- Update Form (hidden by default) -->
+          <div th:id="'update-form-' + ${user.id}" class="update-form" style="display: none;">
+            <form method="post" th:action="@{/ui/user/update}" class="form-inline">
+              <input type="hidden" name="userId" th:value="${user.id}">
+              <input type="hidden" name="clientId" th:value="${user.clientId}">
+              
+              <div class="form-group">
+                <label for="cities">Cities (comma-separated):</label>
+                <input type="text" id="cities" name="cities" class="form-control" 
+                    th:value="${user.cityPreferences != null ? #strings.listJoin(user.cityPreferences, ', ') : ''}"
+                    placeholder="e.g., Boston, New York">
+              </div>
+              
+              <div class="form-group">
+                <label for="weather">Weather (comma-separated):</label>
+                <input type="text" id="weather" name="weather" class="form-control"
+                    th:value="${user.weatherPreferences != null ? #strings.listJoin(user.weatherPreferences, ', ') : ''}"
+                    placeholder="e.g., sunny, clear">
+              </div>
+              
+              <div class="form-group">
+                <label for="temperature">Temperature (comma-separated):</label>
+                <input type="text" id="temperature" name="temperature" class="form-control"
+                    th:value="${user.temperaturePreferences != null ? #strings.listJoin(user.temperaturePreferences, ', ') : ''}"
+                    placeholder="e.g., 70F, 60-80F">
+              </div>
+              
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Save</button>
+                <button type="button" class="btn btn-secondary" 
+                    th:onclick="'hideUpdateForm(' + ${user.id} + ')'">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      
+      <script>
+        function showUpdateForm(userId) {
+          document.getElementById('update-form-' + userId).style.display = 'block';
+        }
+        function hideUpdateForm(userId) {
+          document.getElementById('update-form-' + userId).style.display = 'none';
+        }
+      </script>
+      
+      <div th:if="${users == null || users.isEmpty()}" class="empty-state">
+        <p>No users found.</p>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
+
