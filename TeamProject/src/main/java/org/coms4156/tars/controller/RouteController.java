@@ -1,11 +1,17 @@
 package org.coms4156.tars.controller;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.stream.Collectors;
+import org.coms4156.tars.model.CitySummary;
+import org.coms4156.tars.model.Client;
 import org.coms4156.tars.model.CrimeModel;
 import org.coms4156.tars.model.CrimeSummary;
+import org.coms4156.tars.model.TarsUser;
 import org.coms4156.tars.model.TravelAdvisory;
 import org.coms4156.tars.model.TravelAdvisoryModel;
 import org.coms4156.tars.model.User;
@@ -13,7 +19,9 @@ import org.coms4156.tars.model.WeatherAlert;
 import org.coms4156.tars.model.WeatherAlertModel;
 import org.coms4156.tars.model.WeatherModel;
 import org.coms4156.tars.model.WeatherRecommendation;
+import org.coms4156.tars.service.ClientService;
 import org.coms4156.tars.service.TarsService;
+import org.coms4156.tars.service.TarsUserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -34,11 +42,35 @@ import org.springframework.web.bind.annotation.RestController;
 public class RouteController {
 
   private static final Logger logger = LoggerFactory.getLogger(RouteController.class);
+  private static final String EMAIL_REGEX =
+      "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
 
   private final TarsService tarsService;
+  private final ClientService clientService;
+  private final TarsUserService tarsUserService;
 
-  public RouteController(TarsService tarsService) {
+  /**
+   * {@code isValidEmai} Validates the format of an email address.
+   *
+   * @param email The email address to validate.
+   * @return true if the email format is valid, false otherwise.
+   */
+  private boolean isValidEmail(String email) {
+    return email != null && email.matches(EMAIL_REGEX);
+  }
+
+  /**
+   * Constructor for {@code RouteController}.
+   *
+   * @param tarsService The TarsService instance.
+   * @param clientService The ClientService instance.
+   * @param tarsUserService The TarsUserService instance.
+   */
+  public RouteController(
+      TarsService tarsService, ClientService clientService, TarsUserService tarsUserService) {
     this.tarsService = tarsService;
+    this.clientService = clientService;
+    this.tarsUserService = tarsUserService;
   }
 
   /**
@@ -61,36 +93,254 @@ public class RouteController {
    * Request Method: POST
    * Returns a new client resource.
    *
-   * @param client The client object to be created.
+   * @param body JSON object containing the new client's name and email.
+   *
    * @return A ResponseEntity indicating the result of the operation.
    */
-  @PostMapping({"/clients"})
-  public ResponseEntity<String> createClientRoute(@RequestBody User client) {
+  @PostMapping({"/client/create"})
+  public ResponseEntity<?> createClient(@RequestBody(required = false) Map<String, String> body) {
     if (logger.isInfoEnabled()) {
-      logger.info("POST /clients invoked (not implemented). Incoming body userId={}", 
-          client != null ? client.getId() : "null");
+      logger.info("POST /client/create invoked");
     }
-    return new ResponseEntity<>(
-      "createClientRoute is not yet implemented.",
-      HttpStatus.NOT_IMPLEMENTED
+
+    // Validate request body
+    if (body == null || body.isEmpty()) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("POST /client/create failed: request body is null");
+      }
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Missing 'name' and 'email'.");
+    }
+    if (logger.isDebugEnabled()) {
+      logger.debug("POST /client/create raw body keys={}", body.keySet());
+    }
+
+    // Validate name
+    if (!body.containsKey("name")) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("POST /client/create failed: 'name' field missing");
+      }
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Missing 'name'.");
+    }
+    String name = body.get("name") == null ? "" : body.get("name").trim();
+    if (name.isEmpty()) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("POST /client/create failed: blank name provided");
+      }
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Client name cannot be blank.");
+    }
+
+    // Validate email
+    if (!body.containsKey("email")) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("POST /client/create failed: 'email' field missing");
+      }
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Missing 'email'.");
+    }
+    String email = body.get("email") == null ? "" : body.get("email").trim();
+    if (email.isEmpty()) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("POST /client/create failed: blank email provided");
+      }
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Client email cannot be blank.");
+    }
+    if (!isValidEmail(email)) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("POST /client/create failed: invalid email format '{}'", email);
+      }
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid email format.");
+    }
+
+    // Check name uniqueness
+    if (!clientService.uniqueNameCheck(name)) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("POST /client/create conflict: name '{}' already exists", name);
+      }
+      return ResponseEntity.status(HttpStatus.CONFLICT).body("Client name already exists.");
+    }
+
+    // Check email uniqueness
+    if (!clientService.uniqueEmailCheck(email)) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("POST /client/create conflict: email '{}' already exists", email);
+      }
+      return ResponseEntity.status(HttpStatus.CONFLICT).body("Client email already exists.");
+    }
+    
+    Client created = clientService.createClient(name, email);
+    if (created == null) {
+      if (logger.isErrorEnabled()) {
+        logger.error("POST /client/create internal error: client creation returned null name='{}'",
+            name);
+      }
+      return ResponseEntity.status(
+        HttpStatus.INTERNAL_SERVER_ERROR
+        ).body("Failed to create client.");
+    }
+    
+    if (logger.isInfoEnabled()) {
+      logger.info("POST /client/create success: clientId={} (view key in admin portal)", 
+          created.getClientId());
+    }
+
+    Map<String, Object> response = Map.of(
+        "clientId", created.getClientId(),
+        "name", created.getName(),
+        "message",
+        "Client created successfully. "
+         + "Log in to the admin portal to retrieve your API key.",
+        "portalUrl",
+          "https://admin.tars.example.com/clients/"
+          + created.getClientId()
+          + "/credentials"
     );
+    return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
   /**
    * Handles POST requests to create a user for a specific client.
+   * Pass new user information in the request body as a JSON object.
    *
-   * @param clientId The ID of the client.
-   * @return A ResponseEntity indicating the result of the operation.
+   * @param newUserRequestBody JSON object containing new user information.
+   *
+   * @return A resource indicating that the user was created.
   */
-  @PostMapping({"/clients/{clientId}/newUser"})
-  public ResponseEntity<String> addClientUser(@PathVariable String clientId) {
+  @PostMapping({"/client/createUser"})
+  public ResponseEntity<?> createClientUser(
+      @RequestBody(required = false) TarsUser newUserRequestBody) {
     if (logger.isInfoEnabled()) {
-      logger.info("POST /clients/{}/newUser invoked (not implemented)", clientId);
+      logger.info("POST /client/createUser invoked with body keys={}",
+          newUserRequestBody == null
+              ? "null"
+              : newUserRequestBody.getClass().getDeclaredFields());
     }
-    return new ResponseEntity<>(
-      "addClientUser is not yet implemented.",
-      HttpStatus.NOT_IMPLEMENTED
-    );
+    if (newUserRequestBody == null) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("POST /client/createUser failed: body null");
+      }
+      return ResponseEntity.badRequest().body("Body cannot be null.");
+    }
+
+    // Validate clientId
+    Long clientId = newUserRequestBody.getClientId();
+    if (clientId == null || clientId < 0) {
+      if (logger.isWarnEnabled()) {
+        logger.warn(
+            "POST /client/createUser failed: invalid clientId={}",
+            clientId);
+      }
+      return ResponseEntity.badRequest().body("Invalid clientId.");
+    }
+
+    // Validate username
+    String username = newUserRequestBody.getUsername() == null
+        ? ""
+        : newUserRequestBody.getUsername().trim();
+    if (username.isEmpty()) {
+      if (logger.isWarnEnabled()) {
+        logger.warn(
+            "POST /client/createUser failed: blank username clientId={}",
+            clientId);
+      }
+      return ResponseEntity.badRequest().body("Username cannot be blank.");
+    }
+
+    // validate user email
+    String email = newUserRequestBody.getEmail() == null
+        ? ""
+        : newUserRequestBody.getEmail().trim();
+    if (email.isEmpty()) {
+      if (logger.isWarnEnabled()) {
+        logger.warn(
+            "POST /client/createUser failed: blank email username='{}' clientId={}",
+            username, clientId);
+      }
+      return ResponseEntity.badRequest().body("Email cannot be blank.");
+    }
+    if (!isValidEmail(email)) {
+      if (logger.isWarnEnabled()) {
+        logger.warn(
+            "POST /client/createUser failed: invalid email format '{}' clientId={}",
+            email, clientId);
+      }
+      return ResponseEntity.badRequest().body("Invalid email format.");
+    }
+
+    // Validate role
+    String role = newUserRequestBody.getRole() == null ? "" : newUserRequestBody.getRole().trim();
+    if (role.isEmpty()) {
+      if (logger.isWarnEnabled()) {
+        logger.warn(
+            "POST /client/createUser failed: blank role username='{}' clientId={}",
+            username, clientId);
+      }
+      return ResponseEntity.badRequest().body("Role cannot be blank.");
+    }
+
+    // Log validation success
+    if (logger.isDebugEnabled()) {
+      logger.debug(
+          "POST /client/createUser validation passed clientId={} username='{}' role='{}'",
+          clientId, username, role);
+    }
+    
+    // Check if client exists
+    Client client = clientService.getClient(clientId.intValue());
+    if (client == null) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("POST /client/createUser failed: client not found clientId={}", clientId);
+      }
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Client not found.");
+    }
+
+    // Check username uniqueness
+    if (tarsUserService.existsByClientIdAndUsername(clientId, username)) {
+      if (logger.isWarnEnabled()) {
+        logger.warn(
+            "POST /client/createUser conflict: a user "
+            + "with username='{}' exists for clientId={}",
+            username, clientId);
+      }
+      return ResponseEntity.status(
+        HttpStatus.CONFLICT).body(
+          "Username already exists for this client."
+          );
+    }
+
+    // Check email uniqueness
+    if (tarsUserService.existsByClientIdAndUserEmail(clientId, email)) {
+      if (logger.isWarnEnabled()) {
+        logger.warn(
+            "POST /client/createUser conflict: email='{}' exists for clientId={}",
+            email, clientId);
+      }
+      return ResponseEntity.status(
+        HttpStatus.CONFLICT).body(
+          "A user with the email already exists for this client."
+          );
+    }
+
+    TarsUser created = tarsUserService.createUser(clientId, username, email, role);
+    if (created == null) {
+      if (logger.isErrorEnabled()) {
+        logger.error(
+            "POST /client/createUser internal error after create "
+            + "clientId={} username='{}' usserEmail='{}' role='{}'",
+            clientId, username);
+      }
+      return ResponseEntity.status(
+        HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to create user.");
+    }
+    if (logger.isInfoEnabled()) {
+      logger.info(
+          "POST /client/createUser success: newUserId={} clientId={} username='{}'",
+          created.getUserId(), clientId, username);
+    }
+    if (logger.isDebugEnabled()) {
+      logger.debug(
+          "POST /client/createUser created user detail active={} role='{}'",
+          created.getActive(), created.getRole());
+    }
+    return ResponseEntity.status(HttpStatus.CREATED).body(created);
   }
 
   /**
@@ -276,7 +526,9 @@ public class RouteController {
       WeatherAlert alert = WeatherAlertModel.getWeatherAlerts(city, lat, lon);
 
       if (logger.isInfoEnabled()) {
-        logger.info("Weather alert retrieved for location city={} lat={} lon={}", city, lat, lon);
+        logger.info(
+            "Weather alert retrieved for location city={} lat={} lon={}",
+            city, lat, lon);
       }
       if (logger.isDebugEnabled()) {
         logger.debug("Alert detail: {}", alert);
@@ -291,7 +543,9 @@ public class RouteController {
       return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     } catch (Exception e) {
       if (logger.isErrorEnabled()) {
-        logger.error("Error retrieving weather alerts city={} lat={} lon={}", city, lat, lon, e);
+        logger.error(
+            "Error retrieving weather alerts city={} lat={} lon={}",
+            city, lat, lon, e);
       }
       return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -386,9 +640,12 @@ public class RouteController {
     }
   }
 
+  
   /**
-   * Handles GET requests to retrieve a travel advisory for a given country.
-   * Example: GET /country/Algeria
+   * Retrieves the travel advisory for a given country.
+   *
+   * @param country the country to retrieve the advisory for
+   * @return the travel advisory or an error response
    */
   @GetMapping("/country/{country}")
   public ResponseEntity<?> getCountryAdvisory(@PathVariable String country) {
@@ -400,7 +657,7 @@ public class RouteController {
 
       if (advisory == null) {
         logger.warn("No advisory found for country={}", country);
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
       }
 
       return ResponseEntity.ok(advisory.toString());
@@ -410,9 +667,222 @@ public class RouteController {
 
     } catch (Exception e) {
       logger.error("Error retrieving advisory for country={}", country, e);
-      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
   }
 
+
+  /**
+   * Retrieves a city summary for a given city and optional date range.
+   *
+   * @param city the city to summarize
+   * @param startDate the start date (optional)
+   * @param endDate the end date (optional)
+   * @return the city summary or an error response
+   */
+  @GetMapping("/summary/{city}")
+  public ResponseEntity<?> getCitySummary(
+        @PathVariable String city,
+        @RequestParam(required = false) String startDate,
+        @RequestParam(required = false) String endDate) {
+
+    if (logger.isInfoEnabled()) {
+      logger.info("GET /summary/{} invoked with startDate={} endDate={}",
+          city, startDate, endDate);
+    }
+
+    try {
+      if (city == null || city.trim().isEmpty()) {
+        if (logger.isWarnEnabled()) {
+          logger.warn("City parameter is empty");
+        }
+        return new ResponseEntity<>("City cannot be empty.", HttpStatus.BAD_REQUEST);
+      }
+
+      // Parse dates if provided
+      LocalDate start = null;
+      LocalDate end = null;
+      DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE;
+
+      if (startDate != null && !startDate.trim().isEmpty()) {
+        try {
+          start = LocalDate.parse(startDate, formatter);
+        } catch (DateTimeParseException e) {
+          if (logger.isWarnEnabled()) {
+            logger.warn("Invalid startDate format: {}", startDate);
+          }
+          return new ResponseEntity<>(
+              "Invalid startDate format. Expected YYYY-MM-DD.", HttpStatus.BAD_REQUEST);
+        }
+      }
+
+      if (endDate != null && !endDate.trim().isEmpty()) {
+        try {
+          end = LocalDate.parse(endDate, formatter);
+        } catch (DateTimeParseException e) {
+          if (logger.isWarnEnabled()) {
+            logger.warn("Invalid endDate format: {}", endDate);
+          }
+          return new ResponseEntity<>(
+              "Invalid endDate format. Expected YYYY-MM-DD.", HttpStatus.BAD_REQUEST);
+        }
+      }
+
+      // Validate date range
+      if (start != null && end != null && start.isAfter(end)) {
+        if (logger.isWarnEnabled()) {
+          logger.warn("startDate {} is after endDate {}", startDate, endDate);
+        }
+        return new ResponseEntity<>(
+            "startDate cannot be after endDate.", HttpStatus.BAD_REQUEST);
+      }
+
+      // Calculate number of days to fetch (default to 14 if no dates provided)
+      int daysToFetch = 14;
+      if (start != null && end != null) {
+        daysToFetch = (int) java.time.temporal.ChronoUnit.DAYS.between(start, end) + 1;
+        if (daysToFetch > 14) {
+          daysToFetch = 14; // API limit
+        }
+        if (daysToFetch <= 0) {
+          return new ResponseEntity<>(
+              "Invalid date range.", HttpStatus.BAD_REQUEST);
+        }
+      }
+
+      // Get weather recommendations
+      WeatherRecommendation weatherRecommendation = 
+          WeatherModel.getRecommendedDays(city, daysToFetch);
+
+      // Get weather alerts for the city
+      WeatherAlert weatherAlert = null;
+      try {
+        weatherAlert = WeatherAlertModel.getWeatherAlerts(city, null, null);
+      } catch (Exception e) {
+        if (logger.isWarnEnabled()) {
+          logger.warn("Failed to fetch weather alerts for city={}: {}", city, e.getMessage());
+        }
+        // Continue without alerts if fetch fails
+      }
+
+      // Get travel advisory for the city's country
+      TravelAdvisory travelAdvisory = null;
+      try {
+        TravelAdvisoryModel advisoryModel = new TravelAdvisoryModel();
+        String country = CitySummary.getCountryFromCity(city);
+        if (country != null && !country.trim().isEmpty()) {
+          travelAdvisory = advisoryModel.getTravelAdvisory(country);
+        }
+        // If country lookup failed, try using city name as country name (works for some cases)
+        if (travelAdvisory == null) {
+          travelAdvisory = advisoryModel.getTravelAdvisory(city);
+        }
+      } catch (Exception e) {
+        if (logger.isDebugEnabled()) {
+          logger.debug("Failed to fetch travel advisory for city={}: {}", city, e.getMessage());
+        }
+        // Continue without travel advisory if fetch fails
+      }
+
+      // Filter recommended days by date range if provided
+      if (start != null || end != null) {
+        List<String> filteredDays = new ArrayList<>();
+        if (weatherRecommendation.getRecommendedDays() != null) {
+          for (String day : weatherRecommendation.getRecommendedDays()) {
+            try {
+              LocalDate dayDate = LocalDate.parse(day, formatter);
+              boolean include = true;
+              if (start != null && dayDate.isBefore(start)) {
+                include = false;
+              }
+              if (end != null && dayDate.isAfter(end)) {
+                include = false;
+              }
+              if (include) {
+                filteredDays.add(day);
+              }
+            } catch (DateTimeParseException e) {
+              // Skip days that don't match the expected format
+              if (logger.isDebugEnabled()) {
+                logger.debug("Skipping day with invalid format: {}", day);
+              }
+            }
+          }
+        }
+        weatherRecommendation.setRecommendedDays(filteredDays);
+        
+        // Update message
+        String filteredMessage;
+        if (filteredDays.isEmpty()) {
+          filteredMessage = String.format(
+              "No clear days found in the date range %s to %s for %s.",
+              startDate != null ? startDate : "start",
+              endDate != null ? endDate : "end",
+              city);
+        } else {
+          filteredMessage = String.format(
+              "These days in the range %s to %s are expected to have clear weather in %s!",
+              startDate != null ? startDate : "start",
+              endDate != null ? endDate : "end",
+              city);
+        }
+        weatherRecommendation.setMessage(filteredMessage);
+      }
+
+      // Get all users and filter those who have this city in their preferences
+      List<User> allUsers = tarsService.getUserList();
+      List<User> interestedUsers = allUsers.stream()
+          .filter(user -> user.getCityPreferences() != null
+              && user.getCityPreferences().stream()
+                  .anyMatch(pref -> pref.equalsIgnoreCase(city)))
+          .collect(Collectors.toList());
+
+      // Build message including alert and travel advisory information
+      StringBuilder messageBuilder = new StringBuilder();
+      messageBuilder.append(String.format(
+          "Summary for %s: Found %d user(s) interested in this city. %s",
+          city, interestedUsers.size(), weatherRecommendation.getMessage()));
+      
+      if (weatherAlert != null && weatherAlert.getAlerts() != null 
+          && !weatherAlert.getAlerts().isEmpty()) {
+        // Check if there are any non-INFO alerts
+        boolean hasActiveAlerts = weatherAlert.getAlerts().stream()
+            .anyMatch(alert -> !"INFO".equals(alert.get("severity")) 
+                && !"CLEAR".equals(alert.get("type")));
+        
+        if (hasActiveAlerts) {
+          messageBuilder.append(" Active weather alerts present.");
+        }
+      }
+
+      if (travelAdvisory != null) {
+        if (travelAdvisory.getLevel() != null && !travelAdvisory.getLevel().isEmpty()) {
+          messageBuilder.append(String.format(" Travel advisory: %s.", travelAdvisory.getLevel()));
+        }
+      }
+
+      CitySummary summary = new CitySummary(
+          city,
+          weatherRecommendation,
+          weatherAlert,
+          travelAdvisory,
+          interestedUsers,
+          messageBuilder.toString()
+      );
+
+      if (logger.isInfoEnabled()) {
+        logger.info("City summary generated for city={} with {} interested users",
+            city, interestedUsers.size());
+      }
+
+      return ResponseEntity.ok(summary);
+
+    } catch (Exception e) {
+      if (logger.isErrorEnabled()) {
+        logger.error("Error generating city summary for city={}", city, e);
+      }
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 
 }

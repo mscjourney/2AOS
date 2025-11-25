@@ -43,7 +43,11 @@ public class UserTest {
   @Autowired
   private TarsService tarsService;
 
-
+  /**
+   * {@code seedUsers} Seeds initial test users before each test execution.
+   *
+   * @throws Exception if user seeding fails
+   */
   @BeforeEach
   void seedUsers() throws Exception {
     tarsService.loadData();
@@ -79,6 +83,11 @@ public class UserTest {
         });
   }
 
+  /**
+   * {@code indexTest} Tests the index endpoint returns the welcome message.
+   *
+   * @throws Exception if the request fails
+   */
   @Test
   public void indexTest() throws Exception {
     this.mockMvc.perform(get("/"))
@@ -86,6 +95,11 @@ public class UserTest {
       .andExpect(content().string(containsString("Welcome to the TARS Home Page!")));
   }
 
+  /**
+   * {@code indexTestWithIndexPath} Tests the /index endpoint returns the welcome message.
+   *
+   * @throws Exception if the request fails
+   */
   @Test
   public void indexTestWithIndexPath() throws Exception {
     this.mockMvc.perform(get("/index"))
@@ -93,15 +107,26 @@ public class UserTest {
       .andExpect(content().string(containsString("Welcome to the TARS Home Page!")));
   }
 
+  /**
+   * {@code indexTestResponseContentType} Tests that the index endpoint returns
+   * the correct content type.
+   *
+   * @throws Exception if the request fails
+   */
   @Test
   public void indexTestResponseContentType() throws Exception {
     this.mockMvc.perform(get("/"))
-      .andExpect(status().isOk())
-      .andExpect(content().contentType("text/plain;charset=UTF-8"))
-      .andExpect(content().string(containsString("Welcome to the TARS Home Page!")));
+        .andExpect(status().isOk())
+        .andExpect(content().contentType("text/plain;charset=UTF-8"))
+        .andExpect(content().string(containsString("Welcome to the TARS Home Page!")));
   }
 
-  @Test // @GetMapping({"/user/{id}"}) Test 1
+  /**
+   * {@code getUserTest} Tests retrieving a user by ID and validates user data.
+   *
+   * @throws Exception if the request fails
+   */
+  @Test
   public void getUserTest() throws Exception {
     this.mockMvc.perform(get("/user/2"))
       .andExpect(status().isOk())
@@ -115,7 +140,13 @@ public class UserTest {
       .andExpect(content().string(containsString("User not found.")));
   }
 
-  @Test // @GetMapping({"/user/{id}"}) Test 2
+  /**
+   * {@code getUserTestWithValidId1} Tests retrieving user with ID 1 and
+   * validates their preferences.
+   *
+   * @throws Exception if the request fails
+   */
+  @Test
   public void getUserTestWithValidId1() throws Exception {
     this.mockMvc.perform(get("/user/1"))
       .andExpect(status().isOk())
@@ -125,14 +156,24 @@ public class UserTest {
       .andExpect(jsonPath("$.cityPreferences", contains("Boston")));
   }
 
-  @Test // @GetMapping({"/user/{id}"}) Test 3
+  /**
+   * {@code getUserTestWithNonExistentId} Tests that requesting a non-existent user ID returns 404.
+   *
+   * @throws Exception if the request fails
+   */
+  @Test
   public void getUserTestWithNonExistentId() throws Exception {
     this.mockMvc.perform(get("/user/9999"))
       .andExpect(status().isNotFound())
       .andExpect(content().string(containsString("User not found.")));
   }
 
-  @Test // @PutMapping({"/user/{id}/add"}) Test 1
+  /**
+   * {@code addUserTest} Tests adding a new user and verifies duplicate user rejection.
+   *
+   * @throws Exception if the request fails
+   */
+  @Test
   public void addUserTest() throws Exception {
     List<String> weatherPreferences = new ArrayList<>();
     weatherPreferences.add("snowy");
@@ -195,7 +236,13 @@ public class UserTest {
         .andExpect(content().string(containsString("User Id already exists.")));
   }
 
-  @Test // @PutMapping({"/user/{id}/add"}) Test 3
+  /**
+   * {@code addUserTestWithNullBody} Tests that adding a user with an empty
+   * request body returns 400.
+   *
+   * @throws Exception if the request fails
+   */
+  @Test
   public void addUserTestWithNullBody() throws Exception {
     // Spring rejects empty body with 400 before reaching controller
     this.mockMvc.perform(put("/user/100/add")
@@ -241,6 +288,11 @@ public class UserTest {
       .andExpect(content().string(containsString("User removed failed.")));
   }
 
+  /**
+   * {@code getUserList} Tests retrieving the list of all users.
+   *
+   * @throws Exception if the request fails
+   */
   @Test
   public void getUserList() throws Exception {
     this.mockMvc.perform(get("/userList")).andDo(print())

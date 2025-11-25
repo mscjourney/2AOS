@@ -14,7 +14,9 @@ import org.coms4156.tars.controller.RouteController;
 import org.coms4156.tars.model.User;
 import org.coms4156.tars.model.WeatherAlert;
 import org.coms4156.tars.model.WeatherAlertModel;
+import org.coms4156.tars.service.ClientService;
 import org.coms4156.tars.service.TarsService;
+import org.coms4156.tars.service.TarsUserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -26,11 +28,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 /**
- * Comprehensive test suite for the /alert/weather endpoint.
- * This test class includes:
- * - Tests for typical valid inputs (city name, lat/lon coordinates)
- * - Tests for atypical valid inputs (edge cases, special characters)
- * - Tests for invalid inputs (missing parameters, invalid coordinates)
+ * {@code AlertTest} Unit tests for weather alert endpoints in RouteController.
  */
 @WebMvcTest(RouteController.class)
 public class AlertTest {
@@ -41,6 +39,13 @@ public class AlertTest {
   @MockitoBean
   private TarsService tarsService;
 
+  @MockitoBean
+  private ClientService clientService;
+
+  @MockitoBean
+  private TarsUserService tarsUserService;
+
+
   private List<WeatherAlert> mockList;
   private WeatherAlert mockWeatherAlert;
   private User mockUser;
@@ -50,7 +55,6 @@ public class AlertTest {
 
   @BeforeEach
   void setUp() throws Exception {
-    // Setup mock data for testing
     mockAlerts = new ArrayList<>();
     Map<String, String> alert = new HashMap<>();
     alert.put("severity", "INFO");

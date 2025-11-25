@@ -9,7 +9,9 @@ import java.util.List;
 import org.coms4156.tars.controller.RouteController;
 import org.coms4156.tars.model.WeatherModel;
 import org.coms4156.tars.model.WeatherRecommendation;
+import org.coms4156.tars.service.ClientService;
 import org.coms4156.tars.service.TarsService;
+import org.coms4156.tars.service.TarsUserService;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -19,7 +21,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-
+/**
+ * {@code WeatherRecommendationTest} Unit tests for 
+ * weather recommendation endpoint in RouteController.
+ */
 @WebMvcTest(RouteController.class)
 public class WeatherRecommendationTest {
 
@@ -28,6 +33,13 @@ public class WeatherRecommendationTest {
 
   @MockitoBean
   private TarsService tarsService;
+
+  @MockitoBean
+  private ClientService clientService;
+
+  @MockitoBean
+  private TarsUserService tarsUserService;
+
 
   @Test
   public void testGetWeatherRecommendationWithValidCityAndDays() throws Exception {
