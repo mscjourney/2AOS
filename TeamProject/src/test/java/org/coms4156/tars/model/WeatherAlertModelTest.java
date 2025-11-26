@@ -1,5 +1,7 @@
 package org.coms4156.tars.model;
 
+import java.lang.reflect.Method;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -7,6 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -155,5 +159,324 @@ public class WeatherAlertModelTest {
     WeatherAlert result3 = WeatherAlertModel.getWeatherAlerts(null, 89.9999, 179.9999);
     assertNotNull(result3);
     assertEquals("89.9999, 179.9999", result3.getLocation());
+  }
+
+  @Test
+  void testGenerateEmptyJsonAlert() throws Exception {
+    Class<?> weatherAlertModelClass = Class.forName("org.coms4156.tars.model.WeatherAlertModel");
+    Method generateAlerts = weatherAlertModelClass.getDeclaredMethod("generateAlerts", String.class);
+    generateAlerts.setAccessible(true);
+
+    String EmptyJson = """
+      {
+        "current": {
+        }
+      }
+    """;
+
+    List<Map<String, String>> alerts = (List<Map<String, String>>) generateAlerts.invoke(null, EmptyJson);
+    Map<String, String> tempAlert = alerts.get(0);
+    assertEquals(tempAlert.get("severity"), "INFO");
+    assertEquals(tempAlert.get("type"), "CLEAR");
+    assertEquals(tempAlert.get("message"), "No weather alerts at this time");
+  }
+  
+  @Test
+  void testGenerateNullJsonAlert() throws Exception {
+    Class<?> weatherAlertModelClass = Class.forName("org.coms4156.tars.model.WeatherAlertModel");
+    Method generateAlerts = weatherAlertModelClass.getDeclaredMethod("generateAlerts", String.class);
+    generateAlerts.setAccessible(true);
+
+    List<Map<String, String>> alerts = (List<Map<String, String>>) generateAlerts.invoke(null, "");
+    Map<String, String> tempAlert = alerts.get(0);
+    assertEquals(tempAlert.get("severity"), "ERROR");
+    assertEquals(tempAlert.get("type"), "SYSTEM");
+    assertEquals(tempAlert.get("message"), "Error processing weather data");
+  }
+
+  @Test
+  void testGenerateAlertHighTemperature() throws Exception {
+    Class<?> weatherAlertModelClass = Class.forName("org.coms4156.tars.model.WeatherAlertModel");
+    Method generateAlerts = weatherAlertModelClass.getDeclaredMethod("generateAlerts", String.class);
+    generateAlerts.setAccessible(true);
+    
+    String highTempJson = """
+      {
+        "current": {
+          "temperature_2m": 40
+        }
+      }
+    """;
+    
+    List<Map<String, String>> alerts1 = (List<Map<String, String>>) generateAlerts.invoke(null, highTempJson);
+    
+    assertNotNull(alerts1); // Alerts should never be null
+    Map<String, String> tempAlert1 = alerts1.get(0);
+    assertEquals(tempAlert1.get("severity"), "HIGH");
+    assertEquals(tempAlert1.get("type"), "HEAT");
+    assertEquals(tempAlert1.get("message"), "Extreme heat advisory: Temperature above 35°C");
+
+    String highTempThresholdJson = """
+      {
+        "current": {
+          "temperature_2m": 35
+        }
+      }
+    """;
+    
+    List<Map<String, String>> alerts2 = (List<Map<String, String>>) generateAlerts.invoke(null, highTempThresholdJson);
+    
+    assertNotNull(alerts2); // Alerts should never be null
+    Map<String, String> tempAlert2 = alerts2.get(0);
+    assertEquals(tempAlert2.get("severity"), "INFO");
+    assertEquals(tempAlert2.get("type"), "CLEAR");
+    assertEquals(tempAlert2.get("message"), "No weather alerts at this time");
+  }
+
+  @Test
+  void testGenerateAlertLowTemperature() throws Exception {
+    Class<?> weatherAlertModelClass = Class.forName("org.coms4156.tars.model.WeatherAlertModel");
+    Method generateAlerts = weatherAlertModelClass.getDeclaredMethod("generateAlerts", String.class);
+    generateAlerts.setAccessible(true);
+    
+    String lowTempJson = """
+      {
+        "current": {
+          "temperature_2m": -30
+        }
+      }
+    """;
+    
+    List<Map<String, String>> alerts1 = (List<Map<String, String>>) generateAlerts.invoke(null, lowTempJson);
+    
+    assertNotNull(alerts1); // Alerts should never be null
+    Map<String, String> tempAlert1 = alerts1.get(0);
+    assertEquals(tempAlert1.get("severity"), "MEDIUM");
+    assertEquals(tempAlert1.get("type"), "COLD");
+    assertEquals(tempAlert1.get("message"), "Freezing conditions: Temperature below 0°C");
+
+    String lowTempThresholdJson = """
+      {
+        "current": {
+          "temperature_2m": 0
+        }
+      }
+    """;
+    
+    List<Map<String, String>> alerts2 = (List<Map<String, String>>) generateAlerts.invoke(null, lowTempThresholdJson);
+    
+    assertNotNull(alerts2); // Alerts should never be null
+    Map<String, String> tempAlert2 = alerts2.get(0);
+    assertEquals(tempAlert2.get("severity"), "INFO");
+    assertEquals(tempAlert2.get("type"), "CLEAR");
+    assertEquals(tempAlert2.get("message"), "No weather alerts at this time");
+  }
+
+  @Test
+  void testGenerateAlertHighWind() throws Exception {
+    Class<?> weatherAlertModelClass = Class.forName("org.coms4156.tars.model.WeatherAlertModel");
+    Method generateAlerts = weatherAlertModelClass.getDeclaredMethod("generateAlerts", String.class);
+    generateAlerts.setAccessible(true);
+    
+    String highWindJson = """
+      {
+        "current": {
+          "wind_speed_10m": 60
+        }
+      }
+    """;
+    
+    List<Map<String, String>> alerts1 = (List<Map<String, String>>) generateAlerts.invoke(null, highWindJson);
+    
+    assertNotNull(alerts1); // Alerts should never be null
+    Map<String, String> tempAlert1 = alerts1.get(0);
+    assertEquals(tempAlert1.get("severity"), "HIGH");
+    assertEquals(tempAlert1.get("type"), "WIND");
+    assertEquals(tempAlert1.get("message"), "High wind warning: Wind speeds above 50 km/h");
+
+    String highWindThresholdJson = """
+      {
+        "current": {
+          "wind_speed_10m": 50
+        }
+      }
+    """;
+    
+    List<Map<String, String>> alerts2 = (List<Map<String, String>>) generateAlerts.invoke(null, highWindThresholdJson);
+    
+    assertNotNull(alerts2); // Alerts should never be null
+    Map<String, String> tempAlert2 = alerts2.get(0);
+    assertEquals(tempAlert2.get("severity"), "INFO");
+    assertEquals(tempAlert2.get("type"), "CLEAR");
+    assertEquals(tempAlert2.get("message"), "No weather alerts at this time");
+  }
+
+  @Test
+  void testGenerateAlertPrecipitation() throws Exception {
+    Class<?> weatherAlertModelClass = Class.forName("org.coms4156.tars.model.WeatherAlertModel");
+    Method generateAlerts = weatherAlertModelClass.getDeclaredMethod("generateAlerts", String.class);
+    generateAlerts.setAccessible(true);
+    
+    String highPrecipitationJson = """
+      {
+        "current": {
+          "precipitation": 10
+        }
+      }
+    """;
+    
+    List<Map<String, String>> alerts1 = (List<Map<String, String>>) generateAlerts.invoke(null, highPrecipitationJson);
+    
+    assertNotNull(alerts1); // Alerts should never be null
+    Map<String, String> tempAlert1 = alerts1.get(0);
+    assertEquals(tempAlert1.get("severity"), "MEDIUM");
+    assertEquals(tempAlert1.get("type"), "RAIN");
+    assertEquals(tempAlert1.get("message"), "Heavy precipitation: Rain exceeding 5mm");
+
+    String highPrecipitationThresholdJson = """
+      {
+        "current": {
+           "precipitation": 5
+        }
+      }
+    """;
+    
+    List<Map<String, String>> alerts2 = (List<Map<String, String>>) generateAlerts.invoke(null, highPrecipitationThresholdJson);
+    
+    assertNotNull(alerts2); // Alerts should never be null
+    Map<String, String> tempAlert2 = alerts2.get(0);
+    assertEquals(tempAlert2.get("severity"), "INFO");
+    assertEquals(tempAlert2.get("type"), "CLEAR");
+    assertEquals(tempAlert2.get("message"), "No weather alerts at this time");
+  }
+
+  @Test
+  void testGenerateAlertCombination() throws Exception {
+    Class<?> weatherAlertModelClass = Class.forName("org.coms4156.tars.model.WeatherAlertModel");
+    Method generateAlerts = weatherAlertModelClass.getDeclaredMethod("generateAlerts", String.class);
+    generateAlerts.setAccessible(true);
+    
+    String combinationJson = """
+      {
+        "current": {
+          "temperature_2m": -20,
+          "wind_speed_10m": 30,
+          "precipitation": 10
+        }
+      }
+    """;
+
+    List<Map<String, String>> alerts = (List<Map<String, String>>) generateAlerts.invoke(null, combinationJson);
+    assertNotNull(alerts);
+
+    Map<String, String> alert_temp = alerts.get(0);
+    assertEquals(alert_temp.get("severity"), "MEDIUM");
+    assertEquals(alert_temp.get("type"), "COLD");
+    assertEquals(alert_temp.get("message"), "Freezing conditions: Temperature below 0°C");
+
+    Map<String, String> alert_precipitation = alerts.get(1);
+    assertEquals(alert_precipitation.get("severity"), "MEDIUM");
+    assertEquals(alert_precipitation.get("type"), "RAIN");
+    assertEquals(alert_precipitation.get("message"), "Heavy precipitation: Rain exceeding 5mm");
+  }
+
+  @Test
+  void testGenerateRecommendationsEmptyJson() throws Exception {
+    Class<?> weatherAlertModelClass = Class.forName("org.coms4156.tars.model.WeatherAlertModel");
+    Method generateRecommendations = weatherAlertModelClass.getDeclaredMethod("generateRecommendations", 
+                                                                String.class);
+    generateRecommendations.setAccessible(true);
+
+    String emptyJson = """
+      {
+        "current": {}
+      }
+    """;
+
+    List<String> recommendations = (List<String>) generateRecommendations.invoke(null, emptyJson);
+    assertNotNull(recommendations);
+    assertEquals(0, recommendations.size());
+  }
+
+  @Test
+  void testGenerateRecommendationsNullJson() throws Exception {
+    Class<?> weatherAlertModelClass = Class.forName("org.coms4156.tars.model.WeatherAlertModel");
+    Method generateRecommendations = weatherAlertModelClass.getDeclaredMethod("generateRecommendations", 
+                                                                String.class);
+    generateRecommendations.setAccessible(true);
+
+    List<String> recommendations = (List<String>) generateRecommendations.invoke(null, "");
+    assertNotNull(recommendations);
+    assertEquals(1, recommendations.size());
+    assertTrue(recommendations.contains("Unable to generate recommendations at this time"));
+  }
+  @Test
+  void testGenerateRecommendationsPrecipitation() throws Exception {
+    Class<?> weatherAlertModelClass = Class.forName("org.coms4156.tars.model.WeatherAlertModel");
+    Method generateRecommendations = weatherAlertModelClass.getDeclaredMethod("generateRecommendations", 
+                                                                String.class);
+    generateRecommendations.setAccessible(true);
+
+    String precipitationJson = """
+      {
+        "current": {
+          "precipitation": 10
+        }
+      }
+    """;
+
+    List<String> recommendations = (List<String>) generateRecommendations.invoke(null, precipitationJson);
+    assertNotNull(recommendations);
+    assertEquals(2, recommendations.size());
+    assertTrue(recommendations.contains("Bring an umbrella or raincoat"));
+    assertTrue(recommendations.contains("Plan indoor activities"));
+
+    String precipitationThresholdJson = """
+      {
+        "current": {
+          "precipitation": 2
+        }
+      }
+    """;
+
+    List<String> recommendations2 = (List<String>) generateRecommendations.invoke(null, precipitationThresholdJson);
+
+    assertNotNull(recommendations);
+    assertEquals(0, recommendations2.size());
+  }
+
+  @Test
+  void testGenerateRecommendationsWind() throws Exception {
+    Class<?> weatherAlertModelClass = Class.forName("org.coms4156.tars.model.WeatherAlertModel");
+    Method generateRecommendations = weatherAlertModelClass.getDeclaredMethod("generateRecommendations", 
+                                                                String.class);
+    generateRecommendations.setAccessible(true);
+
+    String windJson = """
+      {
+        "current": {
+          "wind_speed_10m": 50
+        }
+      }
+    """;
+
+    List<String> recommendations = (List<String>) generateRecommendations.invoke(null, windJson);
+
+    assertNotNull(recommendations);
+    assertEquals(1, recommendations.size());
+    assertTrue(recommendations.contains("Secure loose items and avoid exposed areas"));
+
+    String windThresholdJson = """
+      {
+        "current": {
+          "wind_speed_10m": 30
+        }
+      }
+    """;
+
+    List<String> recommendations2 = (List<String>) generateRecommendations.invoke(null, windThresholdJson);
+
+    assertNotNull(recommendations2);
+    assertEquals(0, recommendations2.size());
   }
 }
