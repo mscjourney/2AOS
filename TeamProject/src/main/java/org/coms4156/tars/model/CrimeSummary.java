@@ -11,7 +11,7 @@ public class CrimeSummary {
   private String message;
 
   /**
-   *
+   * Default constructor for CrimeSummary.
    */
   public CrimeSummary() {
   }
