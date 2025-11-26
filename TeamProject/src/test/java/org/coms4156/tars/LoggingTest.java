@@ -202,6 +202,28 @@ public class LoggingTest {
     assertThat("Should log weather alert request", foundAlertLog, org.hamcrest.Matchers.is(true));
   }
 
+  @Test
+  public void testGetCountryAdvisoryLogging() throws Exception {
+    listAppender.list.clear();
+    
+    mockMvc.perform(get("/country/Earth"))
+      .andExpect(status().isNotFound());
+    
+    List<ILoggingEvent> logEvents = listAppender.list;
+    assertThat("Should have log events", logEvents.size(), greaterThan(0));
+
+    List<String> logMessages = logEvents.stream()
+        .map(ILoggingEvent::getFormattedMessage)
+        .collect(Collectors.toList());
+
+    boolean foundInvokeLog = logMessages.stream()
+        .anyMatch(msg -> msg.contains("GET /country/Earth invoked"));
+    assertThat("Should log GET /country/Earth invoked", foundInvokeLog, org.hamcrest.Matchers.is(true));
+
+    boolean foundErrorLog = logMessages.stream()
+        .anyMatch(msg -> msg.contains("No advisory found for country=Earth"));
+    assertThat("Should log no advisory found", foundErrorLog, org.hamcrest.Matchers.is(true));  
+  }
   /*
    * {@code testClientEndpointLogging} Tests logging for: Remove this test.
   @Test
