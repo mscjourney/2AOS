@@ -12,7 +12,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.coms4156.tars.model.TravelAdvisory;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +36,7 @@ public class RouteControllerUnitTest {
 
     mockMvc.perform(get("/country/Canada"))
       .andExpect(status().isOk())
-      .andExpect(content().string(mockCanadaAdvisory.toString()));
+        .andExpect(content().string(mockCanadaAdvisory.toString()));
 
     List<String> mockRisks = new ArrayList<>();
     mockRisks.add("Unrest (U)");
@@ -49,9 +48,9 @@ public class RouteControllerUnitTest {
     
     mockMvc.perform(get("/country/Indonesia"))
       .andExpect(status().isOk())
-      .andExpect(content().string(mockIndonesiaAdvisory.toString()));
+        .andExpect(content().string(mockIndonesiaAdvisory.toString()));
 
     mockMvc.perform(get("/country/Earth"))
-      .andExpect(status().isNotFound());
+        .andExpect(status().isNotFound());
   }
 }

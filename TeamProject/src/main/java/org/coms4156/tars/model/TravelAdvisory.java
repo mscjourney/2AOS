@@ -1,7 +1,6 @@
 package org.coms4156.tars.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.ArrayList;
 import java.util.List;
 

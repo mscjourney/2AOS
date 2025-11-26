@@ -207,7 +207,7 @@ public class LoggingTest {
     listAppender.list.clear();
     
     mockMvc.perform(get("/country/Earth"))
-      .andExpect(status().isNotFound());
+        .andExpect(status().isNotFound());
     
     List<ILoggingEvent> logEvents = listAppender.list;
     assertThat("Should have log events", logEvents.size(), greaterThan(0));
@@ -218,7 +218,7 @@ public class LoggingTest {
 
     boolean foundInvokeLog = logMessages.stream()
         .anyMatch(msg -> msg.contains("GET /country/Earth invoked"));
-    assertThat("Should log GET /country/Earth invoked", foundInvokeLog, org.hamcrest.Matchers.is(true));
+    assertThat("Should log invoke message", foundInvokeLog, org.hamcrest.Matchers.is(true));
 
     boolean foundErrorLog = logMessages.stream()
         .anyMatch(msg -> msg.contains("No advisory found for country=Earth"));
