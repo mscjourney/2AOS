@@ -262,7 +262,8 @@ public class WeatherAlertModelAdditionalTest {
     assertNotNull(alert);
     // Should format to 4 decimal places
     assertTrue(alert.getLocation().contains("40.7128"));
-    assertTrue(alert.getLocation().contains("-74.0060") || alert.getLocation().contains("-74.0059"));
+    assertTrue(alert.getLocation().contains("-74.0060") 
+        || alert.getLocation().contains("-74.0059"));
   }
 }
 

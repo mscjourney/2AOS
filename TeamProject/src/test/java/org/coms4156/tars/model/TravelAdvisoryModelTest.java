@@ -134,8 +134,8 @@ public class TravelAdvisoryModelTest {
     assertNotNull(advisory);
     assertEquals("United States", advisory.getCountry());
     assertNotNull(advisory.getRiskIndicators());
-    assertTrue(advisory.getRiskIndicators().isEmpty() || 
-               advisory.getRiskIndicators().size() >= 0);
+    assertTrue(advisory.getRiskIndicators().isEmpty() 
+        || advisory.getRiskIndicators().size() >= 0);
   }
 
   @Test
