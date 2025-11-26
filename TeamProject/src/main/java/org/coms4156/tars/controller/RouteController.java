@@ -1,6 +1,7 @@
 package org.coms4156.tars.controller;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -377,57 +378,6 @@ public class RouteController {
   }
 
   /**
-   * Handles PUT requests to update an existing user's preferences.
-   *
-   * @param id the id of the user that we are updating
-   * @param user the User object that contains the updated preferences of the user.
-   * @return a ResponseEntity containing the updated User Preferences data in json format if successful,
-   *          or an error message if the user is not found.
-   */
-  @PutMapping({"/user/{id}/update"})
-  public ResponseEntity<?> updateUser(@PathVariable int id, @RequestBody User user) {
-    if (logger.isInfoEnabled()) {
-      logger.info("PUT /user/{}/update invoked", id);
-    }
-    if (user == null) {
-      if (logger.isWarnEnabled()) {
-        logger.warn("PUT /user/{}/update failed: request body is null", id);
-      }
-      return new ResponseEntity<>("User body cannot be null.", HttpStatus.BAD_REQUEST);
-    }
-    
-    // Check if user exists
-    User existingUser = null;
-    for (User u : tarsService.getUserList()) {
-      if (u.getId() == id) {
-        existingUser = u;
-        break;
-      }
-    }
-    
-    if (existingUser == null) {
-      if (logger.isWarnEnabled()) {
-        logger.warn("PUT /user/{}/update failed: user not found", id);
-      }
-      return new ResponseEntity<>("User not found.", HttpStatus.NOT_FOUND);
-    }
-    
-    // Update the user preferences
-    boolean updated = tarsService.addUser(user);
-    if (updated) {
-      if (logger.isInfoEnabled()) {
-        logger.info("User preferences updated successfully id={}", id);
-      }
-      return new ResponseEntity<>(user, HttpStatus.OK);
-    } else {
-      if (logger.isErrorEnabled()) {
-        logger.error("PUT /user/{}/update failed: update returned false", id);
-      }
-      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  /**
    * Handles GET requests to retrieve a user's preferences.
    *
    * @param id the id of the user that we are retrieving
@@ -464,6 +414,30 @@ public class RouteController {
     try {
       List<User> userList = tarsService.getUserList();
       return new ResponseEntity<>(userList, HttpStatus.OK);
+    } catch (Exception e) {
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /**
+   * Handles GET requests to retrieve information about all existing users under a specified client.
+   *
+   * @param clientId the id of the client we want to retrieve user data for.
+   * @return a ResponseEntity containing the User Preferences data in json format for all users
+   *          under a client specified by clientId. Returns an empty json if no users are found.
+   *          Otherwise, return the status code INTERNAL_SERVER_ERROR.
+   */
+  @GetMapping("/userList/client/{clientId}")
+  public ResponseEntity<List<User>> getClientUserList(@PathVariable int clientId) {
+    try {
+      List<User> userList = tarsService.getUserList();
+      List<User> clientUserList = new ArrayList<>();
+      for (User user : userList) {
+        if (user.getClientId() == clientId) {
+          clientUserList.add(user);
+        }
+      }
+      return new ResponseEntity<>(clientUserList, HttpStatus.OK);
     } catch (Exception e) {
       return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -675,7 +649,6 @@ public class RouteController {
     }
   }
 
-
   /**
    * Retrieves a city summary for a given city and optional date range.
    *
@@ -686,9 +659,11 @@ public class RouteController {
    */
   @GetMapping("/summary/{city}")
   public ResponseEntity<?> getCitySummary(
-        @PathVariable String city,
-        @RequestParam(required = false) String startDate,
-        @RequestParam(required = false) String endDate) {
+      @PathVariable String city,
+      @RequestParam(required = false) String state,
+      @RequestParam(required = false) String startDate,
+      @RequestParam(required = false) String endDate) {
+
 
     if (logger.isInfoEnabled()) {
       logger.info("GET /summary/{} invoked with startDate={} endDate={}",
@@ -771,11 +746,15 @@ public class RouteController {
 
       // Get travel advisory for the city's country
       TravelAdvisory travelAdvisory = null;
+      boolean isUnitedStates = false;
       try {
         TravelAdvisoryModel advisoryModel = new TravelAdvisoryModel();
         String country = CitySummary.getCountryFromCity(city);
         if (country != null && !country.trim().isEmpty()) {
           travelAdvisory = advisoryModel.getTravelAdvisory(country);
+        }
+        if (country.equals("United States")) {
+          isUnitedStates = true;
         }
         // If country lookup failed, try using city name as country name (works for some cases)
         if (travelAdvisory == null) {
@@ -865,13 +844,60 @@ public class RouteController {
         }
       }
 
+      // If its a US city we can add crime data
+      CrimeSummary crimeSummary = null;
+      String offense = null;
+      String month = null;
+      String year = null;
+      if (isUnitedStates && state != null) {
+        try {
+          CrimeModel model = new CrimeModel();
+
+          if (state == null) {
+            logger.warn("Could not determine state for US city {}", city);
+          } else {
+
+            LocalDate today = LocalDate.now();
+
+            offense = "V";        // violent crime as default
+            month = String.valueOf(today.getMonthValue());         //current month
+            year = String.valueOf(today.getYear());;        // current year
+
+            String result = model.getCrimeSummary(state, offense, month, year);
+
+            if (logger.isDebugEnabled()) {
+              logger.debug("Crime API result for state={} offense={} month={} year={}: {}",
+                      state, offense, month, year, result);
+            }
+
+            crimeSummary = new CrimeSummary(
+                    state,
+                    month,
+                    year,
+                    "Fetched crime data for offense=" + offense + " : " + result
+            );
+
+            if (logger.isInfoEnabled()) {
+              logger.info("Crime summary created for state={} offense={}", state, offense);
+            }
+          }
+
+        } catch (Exception e) {
+          if (logger.isErrorEnabled()) {
+            logger.error("Error fetching crime summary for state={} offense={} month={} year={}",
+                    state, offense, month, year, e);
+          }
+        }
+      }
+
       CitySummary summary = new CitySummary(
-          city,
-          weatherRecommendation,
-          weatherAlert,
-          travelAdvisory,
-          interestedUsers,
-          messageBuilder.toString()
+              city,
+              weatherRecommendation,
+              weatherAlert,
+              travelAdvisory,
+              interestedUsers,
+              crimeSummary,
+              messageBuilder.toString()
       );
 
       if (logger.isInfoEnabled()) {
