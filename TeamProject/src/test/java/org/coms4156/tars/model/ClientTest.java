@@ -213,7 +213,8 @@ public class ClientTest {
     Client client2 = new Client(2L, "Client 2", "client2@example.com", "key2");
     
     // Different clientIds should produce different hashCodes (usually)
-    assertTrue(client1.hashCode() != client2.hashCode() || client1.getClientId() != client2.getClientId());
+    assertTrue(client1.hashCode() != client2.hashCode() 
+        || client1.getClientId() != client2.getClientId());
   }
 
   @Test
