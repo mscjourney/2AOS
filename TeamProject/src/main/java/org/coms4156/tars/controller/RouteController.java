@@ -622,11 +622,6 @@ public class RouteController {
       CrimeModel model = new CrimeModel();
       String result = model.getCrimeSummary(state, offense, month, year);
 
-      if (logger.isDebugEnabled()) {
-        logger.debug("Raw crime summary API result state={} offense={} month={} year={}: {}", 
-            state, offense, month, year, result);
-      }
-
       CrimeSummary summary = new CrimeSummary(
           state,
           month,
@@ -678,7 +673,6 @@ public class RouteController {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
   }
-
 
   /**
    * Retrieves a city summary for a given city and optional date range.
