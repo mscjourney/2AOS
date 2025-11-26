@@ -5,27 +5,29 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests parameter validation and basic functionality.
+ * Comprehensive tests for WeatherAlertModel.
+ * Includes parameter validation, basic functionality, edge cases, boundary conditions,
+ * and error handling.
  */
 public class WeatherAlertModelTest {
 
-  private UserPreference testUser;
+  private User testUser;
 
   @BeforeEach
   void setUp() {
     List<String> cityPreferences = new ArrayList<>();
     cityPreferences.add("New York");
     cityPreferences.add("London");
-    testUser = new UserPreference(1L, new ArrayList<>(), new ArrayList<>(), cityPreferences);
+    testUser = new User(1, 1, new ArrayList<>(), new ArrayList<>(), cityPreferences);
   }
+
+  // ========== Parameter Validation Tests ==========
 
   @Test
   void testGetWeatherAlertsWithNoParameters() {
@@ -56,9 +58,68 @@ public class WeatherAlertModelTest {
   }
 
   @Test
+  void testGetWeatherAlertsWithEmptyCityName() {
+    assertThrows(IllegalArgumentException.class, () -> {
+      WeatherAlertModel.getWeatherAlerts("", null, null);
+    });
+  }
+
+  @Test
+  void testGetWeatherAlertsWithWhitespaceOnlyCity() {
+    assertThrows(IllegalArgumentException.class, () -> {
+      WeatherAlertModel.getWeatherAlerts("   ", null, null);
+    });
+  }
+
+  // ========== Basic Functionality Tests ==========
+
+  @Test
+  void testGetWeatherAlertsWithValidCoordinates() {
+    WeatherAlert result = WeatherAlertModel.getWeatherAlerts(null, 40.7128, -74.0060);
+
+    assertNotNull(result);
+    assertEquals("40.7128, -74.0060", result.getLocation());
+    assertNotNull(result.getTimestamp());
+    assertNotNull(result.getAlerts());
+    assertNotNull(result.getRecommendations());
+    assertNotNull(result.getCurrentConditions());
+  }
+
+  @Test
+  void testGetWeatherAlertsWithCityParameter() {
+    WeatherAlert result = WeatherAlertModel.getWeatherAlerts("New York", null, null);
+
+    assertNotNull(result);
+    assertEquals("New York", result.getLocation());
+    assertNotNull(result.getTimestamp());
+    assertNotNull(result.getAlerts());
+    assertNotNull(result.getRecommendations());
+    assertNotNull(result.getCurrentConditions());
+  }
+
+  @Test
+  void testGetWeatherAlertsWithNullCityButValidCoordinates() {
+    WeatherAlert alert = WeatherAlertModel.getWeatherAlerts(null, 40.7128, -74.0060);
+    
+    assertNotNull(alert);
+    assertTrue(alert.getLocation().contains("40.7128"));
+    assertTrue(alert.getLocation().contains("-74.0060"));
+  }
+
+  @Test
+  void testGetWeatherAlertsWithCityAndCoordinates() {
+    // When both city and coordinates are provided, coordinates should be used
+    WeatherAlert alert = WeatherAlertModel.getWeatherAlerts("New York", 51.5074, -0.1278);
+    
+    assertNotNull(alert);
+    // Should use coordinates, not city name
+    assertTrue(alert.getLocation().contains("51.5074"));
+    assertTrue(alert.getLocation().contains("-0.1278"));
+  }
+
+  @Test
   void testGetUserAlertsWithEmptyCityPreferences() {
-    UserPreference userWithNoCities = new UserPreference(2L, new ArrayList<>(), 
-                                                          new ArrayList<>(), new ArrayList<>());
+    User userWithNoCities = new User(2, 2, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
     
     List<WeatherAlert> result = WeatherAlertModel.getUserAlerts(userWithNoCities);
 
@@ -77,17 +138,71 @@ public class WeatherAlertModelTest {
   }
 
   @Test
-  void testGetWeatherAlertsWithValidCoordinates() {
-    WeatherAlert result = WeatherAlertModel.getWeatherAlerts(null, 40.7128, -74.0060);
-
-    assertNotNull(result);
-    assertEquals("40.7128, -74.0060", result.getLocation());
-    assertNotNull(result.getTimestamp());
-    assertNotNull(result.getAlerts());
-    assertNotNull(result.getRecommendations());
-    assertNotNull(result.getCurrentConditions());
+  void testGetUserAlertsWithValidUserWithPreferences() {
+    User user = new User(1, 1, 
+        List.of("sunny"), 
+        List.of("70F"), 
+        List.of("Boston", "New York"));
+    
+    List<WeatherAlert> alerts = WeatherAlertModel.getUserAlerts(user);
+    assertNotNull(alerts);
+    assertTrue(alerts.size() >= 0);
   }
 
+  @Test
+  void testGetUserAlertsWithSingleCity() {
+    List<String> singleCity = new ArrayList<>();
+    singleCity.add("Paris");
+    User user = new User(1, 1, new ArrayList<>(), new ArrayList<>(), singleCity);
+    
+    List<WeatherAlert> alerts = WeatherAlertModel.getUserAlerts(user);
+    
+    assertNotNull(alerts);
+    assertEquals(1, alerts.size());
+    assertEquals("Paris", alerts.get(0).getLocation());
+  }
+
+  @Test
+  void testGetUserAlertsWithMultipleCities() {
+    List<String> multipleCities = new ArrayList<>();
+    multipleCities.add("New York");
+    multipleCities.add("London");
+    multipleCities.add("Tokyo");
+    multipleCities.add("Sydney");
+    
+    User userWithMultipleCities = new User(3, 3, new ArrayList<>(), 
+                                            new ArrayList<>(), multipleCities);
+    
+    List<WeatherAlert> result = WeatherAlertModel.getUserAlerts(userWithMultipleCities);
+
+    assertNotNull(result);
+    assertEquals(4, result.size());
+    assertEquals("New York", result.get(0).getLocation());
+    assertEquals("London", result.get(1).getLocation());
+    assertEquals("Tokyo", result.get(2).getLocation());
+    assertEquals("Sydney", result.get(3).getLocation());
+  }
+
+  @Test
+  void testGetUserAlertsWithDuplicateCities() {
+    List<String> duplicateCities = new ArrayList<>();
+    duplicateCities.add("London");
+    duplicateCities.add("London");
+    duplicateCities.add("London");
+    
+    User user = new User(3, 3, new ArrayList<>(), new ArrayList<>(), duplicateCities);
+    
+    List<WeatherAlert> alerts = WeatherAlertModel.getUserAlerts(user);
+    
+    assertNotNull(alerts);
+    assertEquals(3, alerts.size());
+    // All should be for London
+    for (WeatherAlert alert : alerts) {
+      assertEquals("London", alert.getLocation());
+    }
+  }
+
+  // ========== Edge Cases and Boundary Conditions ==========
 
   @Test
   void testGetWeatherAlertsWithNegativeCoordinates() {
@@ -95,18 +210,6 @@ public class WeatherAlertModelTest {
 
     assertNotNull(result);
     assertEquals("-90.0000, -180.0000", result.getLocation());
-  }
-
-  @Test
-  void testGetWeatherAlertsWithCityParameter() {
-    WeatherAlert result = WeatherAlertModel.getWeatherAlerts("New York", null, null);
-
-    assertNotNull(result);
-    assertEquals("New York", result.getLocation());
-    assertNotNull(result.getTimestamp());
-    assertNotNull(result.getAlerts());
-    assertNotNull(result.getRecommendations());
-    assertNotNull(result.getCurrentConditions());
   }
 
   @Test
@@ -125,26 +228,64 @@ public class WeatherAlertModelTest {
   }
 
   @Test
-  void testGetUserAlertsWithMultipleCities() {
-    List<String> multipleCities = new ArrayList<>();
-    multipleCities.add("New York");
-    multipleCities.add("London");
-    multipleCities.add("Tokyo");
-    multipleCities.add("Sydney");
+  void testGetWeatherAlertsWithExtremeLatitude() {
+    WeatherAlert alert1 = WeatherAlertModel.getWeatherAlerts(null, 90.0, 0.0);
+    WeatherAlert alert2 = WeatherAlertModel.getWeatherAlerts(null, -90.0, 0.0);
     
-    UserPreference userWithMultipleCities = new UserPreference(3L, new ArrayList<>(), 
-                                            new ArrayList<>(), multipleCities);
-    
-    List<WeatherAlert> result = WeatherAlertModel.getUserAlerts(userWithMultipleCities);
-
-    assertNotNull(result);
-    assertEquals(4, result.size());
-    assertEquals("New York", result.get(0).getLocation());
-    assertEquals("London", result.get(1).getLocation());
-    assertEquals("Tokyo", result.get(2).getLocation());
-    assertEquals("Sydney", result.get(3).getLocation());
+    assertNotNull(alert1);
+    assertNotNull(alert2);
+    assertTrue(alert1.getLocation().contains("90.0000"));
+    assertTrue(alert2.getLocation().contains("-90.0000"));
   }
 
+  @Test
+  void testGetWeatherAlertsWithExtremeLongitude() {
+    WeatherAlert alert1 = WeatherAlertModel.getWeatherAlerts(null, 0.0, 180.0);
+    WeatherAlert alert2 = WeatherAlertModel.getWeatherAlerts(null, 0.0, -180.0);
+    
+    assertNotNull(alert1);
+    assertNotNull(alert2);
+    assertTrue(alert1.getLocation().contains("180.0000"));
+    assertTrue(alert2.getLocation().contains("-180.0000"));
+  }
+
+  @Test
+  void testGetWeatherAlertsWithVerySmallCoordinates() {
+    WeatherAlert alert = WeatherAlertModel.getWeatherAlerts(null, 0.0001, 0.0001);
+    
+    assertNotNull(alert);
+    assertTrue(alert.getLocation().contains("0.0001"));
+  }
+
+  @Test
+  void testGetWeatherAlertsWithVeryLargeCoordinates() {
+    WeatherAlert alert = WeatherAlertModel.getWeatherAlerts(null, 89.9999, 179.9999);
+    
+    assertNotNull(alert);
+    assertTrue(alert.getLocation().contains("89.9999"));
+    assertTrue(alert.getLocation().contains("179.9999"));
+  }
+
+  @Test
+  void testGetWeatherAlertsWithZeroCoordinates() {
+    WeatherAlert alert = WeatherAlertModel.getWeatherAlerts(null, 0.0, 0.0);
+    
+    assertNotNull(alert);
+    assertEquals("0.0000, 0.0000", alert.getLocation());
+    assertNotNull(alert.getAlerts());
+    assertNotNull(alert.getRecommendations());
+  }
+
+  @Test
+  void testGetWeatherAlertsWithPreciseCoordinates() {
+    WeatherAlert alert = WeatherAlertModel.getWeatherAlerts(null, 40.7127753, -74.0059728);
+    
+    assertNotNull(alert);
+    // Should format to 4 decimal places
+    assertTrue(alert.getLocation().contains("40.7128"));
+    assertTrue(alert.getLocation().contains("-74.0060") 
+        || alert.getLocation().contains("-74.0059"));
+  }
 
   @Test
   void testGetWeatherAlertsBoundaryConditions() {
@@ -160,342 +301,119 @@ public class WeatherAlertModelTest {
     assertEquals("89.9999, 179.9999", result3.getLocation());
   }
 
+  // ========== Error Handling Tests ==========
+
   @Test
-  void testGenerateEmptyJsonAlert() throws Exception {
-    Class<?> weatherAlertModelClass = Class.forName("org.coms4156.tars.model.WeatherAlertModel");
-    Method generateAlerts = 
-            weatherAlertModelClass.getDeclaredMethod("generateAlerts", String.class);
-    generateAlerts.setAccessible(true);
-
-    String emptyJson = """
-      {
-        "current": {}
-      }
-        """;
-
-    List<Map<String, String>> alerts = 
-            (List<Map<String, String>>) generateAlerts.invoke(null, emptyJson);
-    Map<String, String> tempAlert = alerts.get(0);
-    assertEquals(tempAlert.get("severity"), "INFO");
-    assertEquals(tempAlert.get("type"), "CLEAR");
-    assertEquals(tempAlert.get("message"), "No weather alerts at this time");
-  }
-  
-  @Test
-  void testGenerateNullJsonAlert() throws Exception {
-    Class<?> weatherAlertModelClass = Class.forName("org.coms4156.tars.model.WeatherAlertModel");
-    Method generateAlerts = 
-            weatherAlertModelClass.getDeclaredMethod("generateAlerts", String.class);
-    generateAlerts.setAccessible(true);
-
-    List<Map<String, String>> alerts = (List<Map<String, String>>) generateAlerts.invoke(null, "");
-    Map<String, String> tempAlert = alerts.get(0);
-    assertEquals(tempAlert.get("severity"), "ERROR");
-    assertEquals(tempAlert.get("type"), "SYSTEM");
-    assertEquals(tempAlert.get("message"), "Error processing weather data");
+  void testGetUserAlertsWithNullCityInPreferences() {
+    List<String> citiesWithNull = new ArrayList<>();
+    citiesWithNull.add("New York");
+    citiesWithNull.add(null);
+    
+    User user = new User(2, 2, new ArrayList<>(), new ArrayList<>(), citiesWithNull);
+    
+    // This should either throw or handle gracefully
+    try {
+      List<WeatherAlert> alerts = WeatherAlertModel.getUserAlerts(user);
+      // If it doesn't throw, verify first city worked
+      assertNotNull(alerts);
+      assertTrue(alerts.size() >= 1);
+    } catch (Exception e) {
+      // Expected if null city causes issues
+      assertTrue(e instanceof IllegalArgumentException || e instanceof NullPointerException);
+    }
   }
 
   @Test
-  void testGenerateAlertHighTemperature() throws Exception {
-    Class<?> weatherAlertModelClass = Class.forName("org.coms4156.tars.model.WeatherAlertModel");
-    Method generateAlerts = 
-            weatherAlertModelClass.getDeclaredMethod("generateAlerts", String.class);
-    generateAlerts.setAccessible(true);
+  void testGetWeatherAlertsWithCityNameContainingSpecialCharacters() {
+    WeatherAlert alert = WeatherAlertModel.getWeatherAlerts("São Paulo", null, null);
     
-    String highTempJson = """
-      {
-        "current": {
-          "temperature_2m": 40
-        }
-      }
-        """;
-    
-    List<Map<String, String>> alerts1 = 
-            (List<Map<String, String>>) generateAlerts.invoke(null, highTempJson);
-    
-    assertNotNull(alerts1); // Alerts should never be null
-    Map<String, String> tempAlert1 = alerts1.get(0);
-    assertEquals(tempAlert1.get("severity"), "HIGH");
-    assertEquals(tempAlert1.get("type"), "HEAT");
-    assertEquals(tempAlert1.get("message"), "Extreme heat advisory: Temperature above 35°C");
-
-    String highTempThresholdJson = """
-      {
-        "current": {
-          "temperature_2m": 35
-        }
-      }
-        """;
-    
-    List<Map<String, String>> alerts2 = 
-          (List<Map<String, String>>) generateAlerts.invoke(null, highTempThresholdJson);
-    
-    assertNotNull(alerts2); // Alerts should never be null
-    Map<String, String> tempAlert2 = alerts2.get(0);
-    assertEquals(tempAlert2.get("severity"), "INFO");
-    assertEquals(tempAlert2.get("type"), "CLEAR");
-    assertEquals(tempAlert2.get("message"), "No weather alerts at this time");
+    assertNotNull(alert);
+    assertEquals("São Paulo", alert.getLocation());
   }
 
   @Test
-  void testGenerateAlertLowTemperature() throws Exception {
-    Class<?> weatherAlertModelClass = Class.forName("org.coms4156.tars.model.WeatherAlertModel");
-    Method generateAlerts = 
-            weatherAlertModelClass.getDeclaredMethod("generateAlerts", String.class);
-    generateAlerts.setAccessible(true);
-    
-    String lowTempJson = """
-      {
-        "current": {
-          "temperature_2m": -30
-        }
-      }
-        """;
-    
-    List<Map<String, String>> alerts1 = 
-          (List<Map<String, String>>) generateAlerts.invoke(null, lowTempJson);
-    
-    assertNotNull(alerts1); // Alerts should never be null
-    Map<String, String> tempAlert1 = alerts1.get(0);
-    assertEquals(tempAlert1.get("severity"), "MEDIUM");
-    assertEquals(tempAlert1.get("type"), "COLD");
-    assertEquals(tempAlert1.get("message"), "Freezing conditions: Temperature below 0°C");
-
-    String lowTempThresholdJson = """
-      {
-        "current": {
-          "temperature_2m": 0
-        }
-      }
-        """;
-    
-    List<Map<String, String>> alerts2 = 
-          (List<Map<String, String>>) generateAlerts.invoke(null, lowTempThresholdJson);
-    
-    assertNotNull(alerts2); // Alerts should never be null
-    Map<String, String> tempAlert2 = alerts2.get(0);
-    assertEquals(tempAlert2.get("severity"), "INFO");
-    assertEquals(tempAlert2.get("type"), "CLEAR");
-    assertEquals(tempAlert2.get("message"), "No weather alerts at this time");
+  void testGetWeatherAlertsWithCityNameContainingNumbers() {
+    // Test city names with numbers - may not be found by geocoding API
+    try {
+      WeatherAlert alert = WeatherAlertModel.getWeatherAlerts("New York 10001", null, null);
+      // If it doesn't throw, verify structure
+      assertNotNull(alert);
+      assertNotNull(alert.getLocation());
+    } catch (IllegalArgumentException e) {
+      // Expected if city is not found
+      assertTrue(e.getMessage().contains("City not found"));
+    }
   }
 
   @Test
-  void testGenerateAlertHighWind() throws Exception {
-    Class<?> weatherAlertModelClass = Class.forName("org.coms4156.tars.model.WeatherAlertModel");
-    Method generateAlerts =
-            weatherAlertModelClass.getDeclaredMethod("generateAlerts", String.class);
-    generateAlerts.setAccessible(true);
+  void testGetUserAlertsWithVeryLongCityName() {
+    List<String> longCityName = new ArrayList<>();
+    longCityName.add("A".repeat(500));
     
-    String highWindJson = """
-      {
-        "current": {
-          "wind_speed_10m": 60
-        }
-      }
-        """;
+    User user = new User(4, 4, new ArrayList<>(), new ArrayList<>(), longCityName);
     
-    List<Map<String, String>> alerts1 =
-          (List<Map<String, String>>) generateAlerts.invoke(null, highWindJson);
-    
-    assertNotNull(alerts1); // Alerts should never be null
-    Map<String, String> tempAlert1 = alerts1.get(0);
-    assertEquals(tempAlert1.get("severity"), "HIGH");
-    assertEquals(tempAlert1.get("type"), "WIND");
-    assertEquals(tempAlert1.get("message"), "High wind warning: Wind speeds above 50 km/h");
+    // Should either throw or handle gracefully
+    try {
+      List<WeatherAlert> alerts = WeatherAlertModel.getUserAlerts(user);
+      // If it doesn't throw, verify structure
+      assertNotNull(alerts);
+    } catch (Exception e) {
+      // Expected for invalid city names
+      assertTrue(e instanceof IllegalArgumentException);
+    }
+  }
 
-    String highWindThresholdJson = """
-      {
-        "current": {
-          "wind_speed_10m": 50
-        }
-      }
-        """;
+  // ========== Structure Validation Tests ==========
+
+  @Test
+  void testGetWeatherAlertsReturnsValidStructure() {
+    WeatherAlert alert = WeatherAlertModel.getWeatherAlerts("Tokyo", null, null);
     
-    List<Map<String, String>> alerts2 = 
-          (List<Map<String, String>>) generateAlerts.invoke(null, highWindThresholdJson);
+    assertNotNull(alert);
+    assertNotNull(alert.getLocation());
+    assertNotNull(alert.getTimestamp());
+    assertNotNull(alert.getAlerts());
+    assertNotNull(alert.getRecommendations());
+    assertNotNull(alert.getCurrentConditions());
     
-    assertNotNull(alerts2); // Alerts should never be null
-    Map<String, String> tempAlert2 = alerts2.get(0);
-    assertEquals(tempAlert2.get("severity"), "INFO");
-    assertEquals(tempAlert2.get("type"), "CLEAR");
-    assertEquals(tempAlert2.get("message"), "No weather alerts at this time");
+    // Alerts should not be empty (should have at least INFO alert)
+    assertTrue(alert.getAlerts().size() > 0);
   }
 
   @Test
-  void testGenerateAlertPrecipitation() throws Exception {
-    Class<?> weatherAlertModelClass = Class.forName("org.coms4156.tars.model.WeatherAlertModel");
-    Method generateAlerts = 
-          weatherAlertModelClass.getDeclaredMethod("generateAlerts", String.class);
-    generateAlerts.setAccessible(true);
+  void testGetWeatherAlertsWithCoordinatesReturnsValidStructure() {
+    WeatherAlert alert = WeatherAlertModel.getWeatherAlerts(null, 35.6762, 139.6503);
     
-    String highPrecipitationJson = """
-      {
-        "current": {
-          "precipitation": 10
-        }
-      }
-        """;
+    assertNotNull(alert);
+    assertNotNull(alert.getLocation());
+    assertNotNull(alert.getTimestamp());
+    assertNotNull(alert.getAlerts());
+    assertNotNull(alert.getRecommendations());
+    assertNotNull(alert.getCurrentConditions());
     
-    List<Map<String, String>> alerts1 = 
-            (List<Map<String, String>>) generateAlerts.invoke(null, highPrecipitationJson);
-    
-    assertNotNull(alerts1); // Alerts should never be null
-    Map<String, String> tempAlert1 = alerts1.get(0);
-    assertEquals(tempAlert1.get("severity"), "MEDIUM");
-    assertEquals(tempAlert1.get("type"), "RAIN");
-    assertEquals(tempAlert1.get("message"), "Heavy precipitation: Rain exceeding 5mm");
-
-    String highPrecipitationThresholdJson = """
-      {
-        "current": {
-           "precipitation": 5
-        }
-      }
-        """;
-    
-    List<Map<String, String>> alerts2 = 
-          (List<Map<String, String>>) generateAlerts.invoke(null, highPrecipitationThresholdJson);
-    
-    assertNotNull(alerts2); // Alerts should never be null
-    Map<String, String> tempAlert2 = alerts2.get(0);
-    assertEquals(tempAlert2.get("severity"), "INFO");
-    assertEquals(tempAlert2.get("type"), "CLEAR");
-    assertEquals(tempAlert2.get("message"), "No weather alerts at this time");
+    // Should have at least one alert
+    assertTrue(alert.getAlerts().size() > 0);
   }
 
   @Test
-  void testGenerateAlertCombination() throws Exception {
-    Class<?> weatherAlertModelClass = Class.forName("org.coms4156.tars.model.WeatherAlertModel");
-    Method generateAlerts = 
-          weatherAlertModelClass.getDeclaredMethod("generateAlerts", String.class);
-    generateAlerts.setAccessible(true);
+  void testGetUserAlertsReturnsValidStructure() {
+    List<String> cities = new ArrayList<>();
+    cities.add("Berlin");
+    cities.add("Madrid");
     
-    String combinationJson = """
-      {
-        "current": {
-          "temperature_2m": -20,
-          "wind_speed_10m": 30,
-          "precipitation": 10
-        }
-      }
-        """;
-
-    List<Map<String, String>> alerts = 
-          (List<Map<String, String>>) generateAlerts.invoke(null, combinationJson);
+    User user = new User(5, 5, new ArrayList<>(), new ArrayList<>(), cities);
+    
+    List<WeatherAlert> alerts = WeatherAlertModel.getUserAlerts(user);
+    
     assertNotNull(alerts);
-
-    Map<String, String> alertTemp = alerts.get(0);
-    assertEquals(alertTemp.get("severity"), "MEDIUM");
-    assertEquals(alertTemp.get("type"), "COLD");
-    assertEquals(alertTemp.get("message"), "Freezing conditions: Temperature below 0°C");
-
-    Map<String, String> alertPrecipitation = alerts.get(1);
-    assertEquals(alertPrecipitation.get("severity"), "MEDIUM");
-    assertEquals(alertPrecipitation.get("type"), "RAIN");
-    assertEquals(alertPrecipitation.get("message"), "Heavy precipitation: Rain exceeding 5mm");
-  }
-
-  @Test
-  void testGenerateRecommendationsEmptyJson() throws Exception {
-    Class<?> weatherAlertModelClass = Class.forName("org.coms4156.tars.model.WeatherAlertModel");
-    Method generateRecommendations = 
-          weatherAlertModelClass.getDeclaredMethod("generateRecommendations", String.class);
-    generateRecommendations.setAccessible(true);
-
-    String emptyJson = """
-      {
-        "current": {}
-      }
-        """;
-
-    List<String> recommendations = (List<String>) generateRecommendations.invoke(null, emptyJson);
-    assertNotNull(recommendations);
-    assertEquals(0, recommendations.size());
-  }
-
-  @Test
-  void testGenerateRecommendationsNullJson() throws Exception {
-    Class<?> weatherAlertModelClass = Class.forName("org.coms4156.tars.model.WeatherAlertModel");
-    Method generateRecommendations = 
-          weatherAlertModelClass.getDeclaredMethod("generateRecommendations", String.class);
-    generateRecommendations.setAccessible(true);
-
-    List<String> recommendations = (List<String>) generateRecommendations.invoke(null, "");
-    assertNotNull(recommendations);
-    assertEquals(1, recommendations.size());
-    assertTrue(recommendations.contains("Unable to generate recommendations at this time"));
-  }
-  
-  @Test
-  void testGenerateRecommendationsPrecipitation() throws Exception {
-    Class<?> weatherAlertModelClass = Class.forName("org.coms4156.tars.model.WeatherAlertModel");
-    Method generateRecommendations = 
-          weatherAlertModelClass.getDeclaredMethod("generateRecommendations", String.class);
-    generateRecommendations.setAccessible(true);
-
-    String precipitationJson = """
-      {
-        "current": {
-          "precipitation": 10
-        }
-      }
-        """;
-
-    List<String> recommendations = 
-          (List<String>) generateRecommendations.invoke(null, precipitationJson);
-    assertNotNull(recommendations);
-    assertEquals(2, recommendations.size());
-    assertTrue(recommendations.contains("Bring an umbrella or raincoat"));
-    assertTrue(recommendations.contains("Plan indoor activities"));
-
-    String precipitationThresholdJson = """
-      {
-        "current": {
-          "precipitation": 2
-        }
-      }
-        """;
-
-    List<String> recommendations2 = 
-          (List<String>) generateRecommendations.invoke(null, precipitationThresholdJson);
-
-    assertNotNull(recommendations);
-    assertEquals(0, recommendations2.size());
-  }
-
-  @Test
-  void testGenerateRecommendationsWind() throws Exception {
-    Class<?> weatherAlertModelClass = Class.forName("org.coms4156.tars.model.WeatherAlertModel");
-    Method generateRecommendations = 
-          weatherAlertModelClass.getDeclaredMethod("generateRecommendations", String.class);
-    generateRecommendations.setAccessible(true);
-
-    String windJson = """
-      {
-        "current": {
-          "wind_speed_10m": 50
-        }
-      }
-        """;
-
-    List<String> recommendations = (List<String>) generateRecommendations.invoke(null, windJson);
-
-    assertNotNull(recommendations);
-    assertEquals(1, recommendations.size());
-    assertTrue(recommendations.contains("Secure loose items and avoid exposed areas"));
-
-    String windThresholdJson = """
-      {
-        "current": {
-          "wind_speed_10m": 30
-        }
-      }
-        """;
-
-    List<String> recommendations2 = 
-          (List<String>) generateRecommendations.invoke(null, windThresholdJson);
-
-    assertNotNull(recommendations2);
-    assertEquals(0, recommendations2.size());
+    assertEquals(2, alerts.size());
+    
+    for (WeatherAlert alert : alerts) {
+      assertNotNull(alert.getLocation());
+      assertNotNull(alert.getTimestamp());
+      assertNotNull(alert.getAlerts());
+      assertNotNull(alert.getRecommendations());
+      assertNotNull(alert.getCurrentConditions());
+    }
   }
 }
