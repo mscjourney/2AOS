@@ -1,9 +1,11 @@
 package org.coms4156.tars;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.coms4156.tars.controller.RouteController;
+import org.coms4156.tars.model.TravelAdvisoryModel;
 import org.coms4156.tars.model.WeatherModel;
 import org.coms4156.tars.model.WeatherRecommendation;
 import org.coms4156.tars.service.ClientService;
@@ -45,6 +47,15 @@ public class RouteControllerExceptionTest {
         .andExpect(status().isInternalServerError());
   }
 
+
+  @Test
+  public void getClientUserListException() throws Exception {
+    Mockito.when(tarsService.getUserList()).thenThrow(new RuntimeException("Database error"));
+
+    mockMvc.perform(get("/userList/client/123"))
+        .andExpect(status().isInternalServerError());
+  }
+  
   @Test
   public void testGetWeatherRecommendationExceptionHandling() throws Exception {
     try (MockedStatic<WeatherModel> mockedModel = Mockito.mockStatic(WeatherModel.class)) {
@@ -142,6 +153,37 @@ public class RouteControllerExceptionTest {
           .param("month", "10")
           .param("year", "2025")
           .contentType(MediaType.APPLICATION_JSON))
+          .andExpect(status().isInternalServerError());
+    }
+  }
+
+  @Test
+  public void testGetCountryAdvisoryIllegalArgumentException() throws Exception {
+    try (org.mockito.MockedConstruction<org.coms4156.tars.model.TravelAdvisoryModel> mocked = 
+        org.mockito.Mockito.mockConstruction(
+            org.coms4156.tars.model.TravelAdvisoryModel.class,
+            (mock, context) -> {
+              Mockito.when(mock.getTravelAdvisory("Canada"))
+                  .thenThrow(new IllegalArgumentException("Invalid Country Error"));
+            })) {
+
+      mockMvc.perform(get("/country/Canada"))
+        .andExpect(status().isBadRequest())
+          .andExpect(content().string("Invalid Country Error"));
+    }
+  }
+
+  @Test
+  public void testGetCountryAdvisoryGeneralException() throws Exception {
+    try (org.mockito.MockedConstruction<org.coms4156.tars.model.TravelAdvisoryModel> mocked = 
+        org.mockito.Mockito.mockConstruction(
+            org.coms4156.tars.model.TravelAdvisoryModel.class,
+            (mock, context) -> {
+              Mockito.when(mock.getTravelAdvisory("Canada"))
+                  .thenThrow(new RuntimeException("Invalid Country Error"));
+            })) {
+
+      mockMvc.perform(get("/country/Canada"))
           .andExpect(status().isInternalServerError());
     }
   }
