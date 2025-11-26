@@ -55,7 +55,8 @@ public class TarsApiClientWeatherTest extends TarsApiClientTestBase {
    * {@code getWeatherRecommendationWithSpecialCharactersTest} Verifies URL encoding.
    */
   @Test
-  void getWeatherRecommendationWithSpecialCharactersTest() throws IOException, InterruptedException {
+  void getWeatherRecommendationWithSpecialCharactersTest()
+      throws IOException, InterruptedException {
     WeatherRecommendation expected = new WeatherRecommendation();
     expected.setCity("San Francisco");
 
@@ -110,7 +111,8 @@ public class TarsApiClientWeatherTest extends TarsApiClientTestBase {
   }
 
   /**
-   * {@code getWeatherAlertsByCoordinatesSuccessTest} Verifies successful alert retrieval by coordinates.
+   * {@code getWeatherAlertsByCoordinatesSuccessTest} Verifies successful alert retrieval
+   * by coordinates.
    */
   @Test
   void getWeatherAlertsByCoordinatesSuccessTest() throws IOException, InterruptedException {

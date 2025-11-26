@@ -251,9 +251,29 @@ public class WebController {
       redirectAttributes.addFlashAttribute("success", "User preferences updated successfully!");
     } catch (Exception e) {
       logger.error("Error updating user preferences", e);
-      redirectAttributes.addFlashAttribute("error", "Failed to update preferences: " + e.getMessage());
+      redirectAttributes.addFlashAttribute("error", 
+          "Failed to update preferences: " + e.getMessage());
     }
     // Redirect will cause a fresh GET request to /ui/users, which will reload the data
+    return "redirect:/ui/users";
+  }
+
+  /**
+   * Handles user deletion from the view users page.
+   *
+   * @param userId the user ID to delete
+   * @param redirectAttributes attributes to pass through redirect
+   * @return redirect to view users page
+   */
+  @PostMapping("/ui/user/delete")
+  public String deleteUser(@RequestParam int userId, RedirectAttributes redirectAttributes) {
+    try {
+      apiClient.removeUser(userId);
+      redirectAttributes.addFlashAttribute("success", "User deleted successfully!");
+    } catch (Exception e) {
+      logger.error("Error deleting user", e);
+      redirectAttributes.addFlashAttribute("error", "Failed to delete user: " + e.getMessage());
+    }
     return "redirect:/ui/users";
   }
 

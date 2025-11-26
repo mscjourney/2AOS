@@ -378,6 +378,84 @@ public class RouteController {
   }
 
   /**
+   * Handles PUT requests to update an existing user's preferences.
+   *
+   * @param id the id of the user that we are updating
+   * @param user the User object that contains the updated preferences of the user.
+   * @return a ResponseEntity containing the updated User Preferences data in json format
+   *          if successful, or an error message indicating that the user was not found.
+   */
+  @PutMapping({"/user/{id}/update"})
+  public ResponseEntity<?> updateUser(@PathVariable int id, @RequestBody User user) {
+    if (logger.isInfoEnabled()) {
+      logger.info("PUT /user/{}/update invoked", id);
+    }
+    if (user == null) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("PUT /user/{}/update failed: request body is null", id);
+      }
+      return new ResponseEntity<>("User body cannot be null.", HttpStatus.BAD_REQUEST);
+    }
+    
+    // Ensure the user ID in the path matches the user object
+    if (user.getId() != id) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("PUT /user/{}/update failed: user id mismatch. Path id={}, body id={}", 
+            id, id, user.getId());
+      }
+      return new ResponseEntity<>(
+          "User ID in path must match user ID in body.", HttpStatus.BAD_REQUEST);
+    }
+    
+    boolean updated = tarsService.updateUser(user);
+    if (updated) {
+      if (logger.isInfoEnabled()) {
+        logger.info("User updated successfully id={}", id);
+      }
+      return new ResponseEntity<>(user, HttpStatus.OK);
+    } else {
+      if (logger.isWarnEnabled()) {
+        logger.warn("User update failed id={}: user not found", id);
+      }
+      return new ResponseEntity<>("User not found.", HttpStatus.NOT_FOUND);
+    }
+  }
+
+  /**
+   * Handles PUT requests to remove a user's preferences.
+   *
+   * @param id the id of the user that we are removing
+   * @return a ResponseEntity containing a success message if the user was successfully removed,
+   *          or an error message indicating that the user was not found or the id is invalid.
+   */
+  @PutMapping({"/user/{id}/remove"})
+  public ResponseEntity<?> removeUser(@PathVariable int id) {
+    if (logger.isInfoEnabled()) {
+      logger.info("PUT /user/{}/remove invoked", id);
+    }
+    
+    if (id < 0) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("PUT /user/{}/remove failed: negative user id", id);
+      }
+      return new ResponseEntity<>("User Id cannot be negative.", HttpStatus.BAD_REQUEST);
+    }
+    
+    boolean removed = tarsService.removeUser(id);
+    if (removed) {
+      if (logger.isInfoEnabled()) {
+        logger.info("User removed successfully id={}", id);
+      }
+      return new ResponseEntity<>("User removed successfully.", HttpStatus.OK);
+    } else {
+      if (logger.isWarnEnabled()) {
+        logger.warn("User remove failed id={}: user not found", id);
+      }
+      return new ResponseEntity<>("User removed failed.", HttpStatus.CONFLICT);
+    }
+  }
+
+  /**
    * Handles GET requests to retrieve a user's preferences.
    *
    * @param id the id of the user that we are retrieving
@@ -411,10 +489,19 @@ public class RouteController {
    */
   @GetMapping("/userList")
   public ResponseEntity<List<User>> getUserList() {
+    if (logger.isInfoEnabled()) {
+      logger.info("GET /userList invoked");
+    }
     try {
       List<User> userList = tarsService.getUserList();
+      if (logger.isInfoEnabled()) {
+        logger.info("GET /userList success: returned {} users", userList.size());
+      }
       return new ResponseEntity<>(userList, HttpStatus.OK);
     } catch (Exception e) {
+      if (logger.isErrorEnabled()) {
+        logger.error("GET /userList failed", e);
+      }
       return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
@@ -429,6 +516,9 @@ public class RouteController {
    */
   @GetMapping("/userList/client/{clientId}")
   public ResponseEntity<List<User>> getClientUserList(@PathVariable int clientId) {
+    if (logger.isInfoEnabled()) {
+      logger.info("GET /userList/client/{} invoked", clientId);
+    }
     try {
       List<User> userList = tarsService.getUserList();
       List<User> clientUserList = new ArrayList<>();
@@ -437,8 +527,15 @@ public class RouteController {
           clientUserList.add(user);
         }
       }
+      if (logger.isInfoEnabled()) {
+        logger.info("GET /userList/client/{} success: returned {} users", 
+            clientId, clientUserList.size());
+      }
       return new ResponseEntity<>(clientUserList, HttpStatus.OK);
     } catch (Exception e) {
+      if (logger.isErrorEnabled()) {
+        logger.error("GET /userList/client/{} failed", clientId, e);
+      }
       return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }

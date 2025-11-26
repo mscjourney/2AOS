@@ -165,6 +165,30 @@ public class TarsApiClient {
   }
 
   /**
+   * Removes user preferences for an existing user.
+   *
+   * @param userId the user ID
+   * @return a success message string
+   * @throws IOException if an I/O error occurs
+   * @throws InterruptedException if the request is interrupted
+   */
+  public String removeUser(int userId) throws IOException, InterruptedException {
+    HttpRequest request = HttpRequest.newBuilder()
+        .uri(URI.create(baseUrl + "/user/" + userId + "/remove"))
+        .PUT(HttpRequest.BodyPublishers.noBody())
+        .build();
+
+    HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+    
+    // Check if response is successful
+    if (response.statusCode() >= 200 && response.statusCode() < 300) {
+      return response.body();
+    } else {
+      throw new IOException("Failed to remove user: " + response.body());
+    }
+  }
+
+  /**
    * Gets user preferences by user ID.
    *
    * @param userId the user ID
@@ -369,7 +393,8 @@ public class TarsApiClient {
     if (startDate != null || endDate != null) {
       uriBuilder.append("?");
       if (startDate != null) {
-        uriBuilder.append("startDate=").append(URLEncoder.encode(startDate, StandardCharsets.UTF_8));
+        uriBuilder.append("startDate=")
+            .append(URLEncoder.encode(startDate, StandardCharsets.UTF_8));
       }
       if (endDate != null) {
         if (startDate != null) {

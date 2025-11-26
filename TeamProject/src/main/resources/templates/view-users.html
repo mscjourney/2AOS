@@ -36,8 +36,16 @@
         <div th:each="user : ${users}" class="user-card">
           <div class="user-header">
             <h3>User ID: <span th:text="${user.id}"></span></h3>
-            <button type="button" class="btn btn-secondary btn-sm" 
-                th:onclick="'showUpdateForm(' + ${user.id} + ')'">Update</button>
+            <div class="user-actions">
+              <button type="button" class="btn btn-secondary btn-sm" 
+                  th:onclick="'showUpdateForm(' + ${user.id} + ')'">Update</button>
+              <form method="post" th:action="@{/ui/user/delete}" style="display: inline;" 
+                  th:id="'delete-form-' + ${user.id}"
+                  th:onsubmit="'return confirmDelete(' + ${user.id} + ');'">
+                <input type="hidden" name="userId" th:value="${user.id}">
+                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+              </form>
+            </div>
           </div>
           <p><strong>Client ID:</strong> <span th:text="${user.clientId}"></span></p>
           <p th:if="${user.cityPreferences != null && !user.cityPreferences.isEmpty()}">
@@ -102,6 +110,9 @@
         }
         function hideUpdateForm(userId) {
           document.getElementById('update-form-' + userId).style.display = 'none';
+        }
+        function confirmDelete(userId) {
+          return confirm('Are you sure you want to delete user ' + userId + '?');
         }
       </script>
       
