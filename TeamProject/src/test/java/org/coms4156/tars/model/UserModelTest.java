@@ -36,7 +36,9 @@ public class UserModelTest {
     assertEquals(user.getId(), 10);
     assertEquals(user.getClientId(), 15);
 
-    assertThrows(IllegalArgumentException.class, () -> new User(-1, 5));
+    IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, 
+                                                () -> new User(-1, 5));
+    assertEquals("User Id cannot be negative.", ex.getMessage());
   }
 
   @Test

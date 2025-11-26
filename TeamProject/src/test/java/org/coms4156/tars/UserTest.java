@@ -11,9 +11,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import org.coms4156.tars.model.User;
@@ -214,7 +211,7 @@ public class UserTest {
         .andExpect(content().string(containsString("User removed successfully.")));
   }
 
-  @Test // @PutMapping({"/user/{id}/add"}) Test 2
+  @Test
   public void addUserMultipleTimes() throws Exception {
     ObjectMapper mapper = new ObjectMapper();
 
@@ -249,21 +246,21 @@ public class UserTest {
         .andExpect(status().isBadRequest());
   }
 
-  @Test // @PutMapping({"/user/{id}/remove"}) Test 1
+  @Test
   public void removeUserWithNegativeId() throws Exception {
     this.mockMvc.perform(put("/user/-5/remove"))
         .andExpect(status().isBadRequest())
         .andExpect(content().string(containsString("User Id cannot be negative.")));
   }
 
-  @Test // @PutMapping({"/user/{id}/remove"}) Test 2
+  @Test
   public void removeNonExistentUser() throws Exception {
     this.mockMvc.perform(put("/user/" + 123510 + "/remove"))
       .andExpect(status().isConflict())
         .andExpect(content().string(containsString("User removed failed.")));
   }
 
-  @Test // @PutMapping({"/user/{id}/remove"}) Test 3
+  @Test
   public void removeUserMultipleTimes() throws Exception {
     ObjectMapper mapper = new ObjectMapper();
 

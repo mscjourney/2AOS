@@ -19,7 +19,7 @@ public class User {
    * @param id the id of the user
    * @param clientId the id of the client in charge of this user
    */
-  public User(int id, int clientId) {
+  public User(int id, int clientId) throws IllegalArgumentException {
     if (id < 0) {
       throw new IllegalArgumentException("User Id cannot be negative.");
     }
