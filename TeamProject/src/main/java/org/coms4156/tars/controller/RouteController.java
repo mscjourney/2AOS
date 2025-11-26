@@ -497,9 +497,9 @@ public class RouteController {
       if (logger.isInfoEnabled()) {
         logger.info("Weather recommendation generated for city={} days={}", city, days);
       }
-      if (logger.isDebugEnabled()) {
-        logger.debug("Recommendation detail: {}", recommendation);
-      }
+      // if (logger.isDebugEnabled()) {
+      //   logger.debug("Recommendation detail: {}", recommendation);
+      // }
       return ResponseEntity.ok(recommendation);
 
     } catch (Exception e) {
@@ -538,9 +538,9 @@ public class RouteController {
             "Weather alert retrieved for location city={} lat={} lon={}",
             city, lat, lon);
       }
-      if (logger.isDebugEnabled()) {
-        logger.debug("Alert detail: {}", alert);
-      }
+      // if (logger.isDebugEnabled()) {
+      //   logger.debug("Alert detail: {}", alert);
+      // }
       return ResponseEntity.ok(alert);
 
     } catch (IllegalArgumentException e) {
