@@ -22,6 +22,7 @@ public class CitySummary {
   private WeatherAlert weatherAlert;
   private TravelAdvisory travelAdvisory;
   private List<User> interestedUsers;
+  private CrimeSummary crimeSummary;
   private String message;
 
   /**
@@ -42,11 +43,28 @@ public class CitySummary {
     this.weatherAlert = weatherAlert;
     this.travelAdvisory = travelAdvisory;
     this.interestedUsers = interestedUsers;
+    this.crimeSummary = null;
     this.message = message;
   }
 
   /**
-   * Default constructor.
+   *  Constructor for United States cities to not include crime data.
+   */
+  public CitySummary(String city, WeatherRecommendation weatherRecommendation,
+                     WeatherAlert weatherAlert, TravelAdvisory travelAdvisory,
+                     List<User> interestedUsers, CrimeSummary crimeSummary, String message) {
+    this.city = city;
+    this.weatherRecommendation = weatherRecommendation;
+    this.weatherAlert = weatherAlert;
+    this.travelAdvisory = travelAdvisory;
+    this.interestedUsers = interestedUsers;
+    this.crimeSummary = crimeSummary;
+    this.message = message;
+  }
+
+
+  /**
+   *  Default Constructor.
    */
   public CitySummary() {
     this.city = "";
@@ -54,6 +72,7 @@ public class CitySummary {
     this.weatherAlert = null;
     this.travelAdvisory = null;
     this.interestedUsers = null;
+    this.crimeSummary = null;
     this.message = "";
   }
 
@@ -95,6 +114,14 @@ public class CitySummary {
 
   public void setInterestedUsers(List<User> interestedUsers) {
     this.interestedUsers = interestedUsers;
+  }
+
+  public CrimeSummary getCrimeSummary() {
+    return crimeSummary;
+  }
+
+  public void setCrimeSummary(CrimeSummary crimeSummary) {
+    this.crimeSummary = crimeSummary;
   }
 
   public String getMessage() {
@@ -169,6 +196,7 @@ public class CitySummary {
             + ", weatherAlert=" + weatherAlert
             + ", travelAdvisory=" + travelAdvisory
             + ", interestedUsers=" + interestedUsers
+            + ", crime=" + crimeSummary
             + ", message='" + message + '\''
             + '}';
   }
