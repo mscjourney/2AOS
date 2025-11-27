@@ -1,9 +1,17 @@
 package org.coms4156.tars.model;
 
+/**
+ * {@code CountrySummary} Constructs a CountrySummary with the specified parameters.
+ *
+ * @param country the country name
+ * @param capital the the capital of the country
+ * @param travelAdvisory the travel advisory for the city
+ * @param message the message associated with the country summary
+ */
 public class CountrySummary {
   private String country;
   private String capital;
-  private TravelAdvisory travelAdvisory ;
+  private TravelAdvisory travelAdvisory;
   private String message;
 
   CountrySummary(String country, String capital, TravelAdvisory travelAdvisory, String message) {
@@ -54,6 +62,7 @@ public class CountrySummary {
   public String getMessage() {
     return message;
   }
+
 
   @Override
   public String toString() {
