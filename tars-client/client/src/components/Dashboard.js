@@ -15,6 +15,8 @@ function Dashboard() {
   
   // Overview state
   const [welcomeMessage, setWelcomeMessage] = useState('');
+  const [userPreferences, setUserPreferences] = useState(null);
+  const [loggedInUser, setLoggedInUser] = useState(null);
   
   // Crime summary state
   const [crimeState, setCrimeState] = useState('');
@@ -47,9 +49,33 @@ function Dashboard() {
   const initializeClient = async () => {
     try {
       setLoading(true);
-      // Get or create client ID
-      const response = await axios.get(`${API_BASE}/client-id`);
-      setClientId(response.data.clientId);
+      
+      // Check if user is logged in
+      const loggedInUserData = localStorage.getItem('loggedInUser');
+      if (loggedInUserData) {
+        const user = JSON.parse(loggedInUserData);
+        setLoggedInUser(user);
+        setClientId(user.clientId);
+        
+        // Load user preferences
+        try {
+          const prefsResponse = await axios.get(`${API_BASE}/preferences/user/${user.userId}`);
+          console.log('Loaded user preferences:', prefsResponse.data);
+          setUserPreferences(prefsResponse.data);
+        } catch (prefsErr) {
+          console.error('Error loading preferences:', prefsErr);
+          // Set empty preferences if not found
+          setUserPreferences({
+            cityPreferences: [],
+            weatherPreferences: [],
+            temperaturePreferences: []
+          });
+        }
+      } else {
+        // Get or create client ID for non-logged in users
+        const response = await axios.get(`${API_BASE}/client-id`);
+        setClientId(response.data.clientId);
+      }
       
       // Get welcome message
       const welcomeRes = await axios.get(`${API_BASE}/index`);
@@ -268,9 +294,100 @@ function Dashboard() {
               <h2>Client Information</h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <p><strong>Client ID:</strong> <span style={{ color: '#667eea', fontWeight: '600' }}>{clientId}</span></p>
+                {loggedInUser && (
+                  <>
+                    <p><strong>User ID:</strong> <span style={{ color: '#667eea', fontWeight: '600' }}>{loggedInUser.userId}</span></p>
+                    <p><strong>Username:</strong> <span style={{ color: '#667eea', fontWeight: '600' }}>{loggedInUser.username}</span></p>
+                    <p><strong>Email:</strong> <span style={{ color: '#667eea', fontWeight: '600' }}>{loggedInUser.email}</span></p>
+                  </>
+                )}
                 <p><strong>Status:</strong> <span style={{ color: '#38a169', fontWeight: '600' }}>● Connected</span></p>
               </div>
             </div>
+            {loggedInUser && userPreferences && (
+              <div className="card">
+                <h2>Your Preferences</h2>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div>
+                    <p style={{ fontWeight: '600', color: '#2d3748', marginBottom: '0.5rem' }}>City Preferences:</p>
+                    {userPreferences.cityPreferences && userPreferences.cityPreferences.length > 0 ? (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        {userPreferences.cityPreferences.map((city, idx) => (
+                          <span key={idx} style={{
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            color: 'white',
+                            padding: '0.25rem 0.75rem',
+                            borderRadius: '12px',
+                            fontSize: '0.9rem'
+                          }}>
+                            {city}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <p style={{ color: '#718096', fontSize: '0.9rem' }}>No city preferences set</p>
+                    )}
+                  </div>
+                  <div>
+                    <p style={{ fontWeight: '600', color: '#2d3748', marginBottom: '0.5rem' }}>Weather Preferences:</p>
+                    {userPreferences.weatherPreferences && userPreferences.weatherPreferences.length > 0 ? (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        {userPreferences.weatherPreferences.map((weather, idx) => (
+                          <span key={idx} style={{
+                            background: '#38a169',
+                            color: 'white',
+                            padding: '0.25rem 0.75rem',
+                            borderRadius: '12px',
+                            fontSize: '0.9rem'
+                          }}>
+                            {weather}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <p style={{ color: '#718096', fontSize: '0.9rem' }}>No weather preferences set</p>
+                    )}
+                  </div>
+                  <div>
+                    <p style={{ fontWeight: '600', color: '#2d3748', marginBottom: '0.5rem' }}>Temperature Preferences:</p>
+                    {userPreferences.temperaturePreferences && userPreferences.temperaturePreferences.length > 0 ? (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        {userPreferences.temperaturePreferences.map((temp, idx) => (
+                          <span key={idx} style={{
+                            background: '#ed8936',
+                            color: 'white',
+                            padding: '0.25rem 0.75rem',
+                            borderRadius: '12px',
+                            fontSize: '0.9rem'
+                          }}>
+                            {temp}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <p style={{ color: '#718096', fontSize: '0.9rem' }}>No temperature preferences set</p>
+                    )}
+                  </div>
+                  <Link 
+                    to="/profile" 
+                    style={{
+                      display: 'inline-block',
+                      background: '#667eea',
+                      color: 'white',
+                      padding: '0.5rem 1rem',
+                      borderRadius: '6px',
+                      textDecoration: 'none',
+                      textAlign: 'center',
+                      fontSize: '0.9rem',
+                      fontWeight: '500',
+                      marginTop: '0.5rem'
+                    }}
+                  >
+                    Edit Preferences
+                  </Link>
+                </div>
+              </div>
+            )}
             <div className="card">
               <h2>Quick Actions</h2>
               <p style={{ marginBottom: '1rem' }}>Use the tabs above to:</p>

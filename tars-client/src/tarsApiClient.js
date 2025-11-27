@@ -198,6 +198,18 @@ class TarsApiClient {
   }
 
   /**
+   * Delete a TarsUser by userId
+   */
+  async deleteTarsUser(userId) {
+    try {
+      const response = await axios.delete(`${this.baseUrl}/tarsUsers/${userId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to delete TARS user: ${error.response?.data || error.message}`);
+    }
+  }
+
+  /**
    * Get weather recommendation
    */
   async getWeatherRecommendation(city, days) {

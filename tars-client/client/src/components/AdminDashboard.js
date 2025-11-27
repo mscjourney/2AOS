@@ -118,6 +118,26 @@ function AdminDashboard() {
     }));
   };
 
+  const handleDeleteUser = async (userId, username) => {
+    if (!window.confirm(`Are you sure you want to delete user "${username}" (ID: ${userId})?`)) {
+      return;
+    }
+
+    try {
+      setError(null);
+      setSuccess(null);
+      
+      await axios.delete(`${API_BASE}/tarsUsers/${userId}`);
+      
+      // Remove user from state immediately
+      setUsers(prevUsers => prevUsers.filter(u => u.userId !== userId));
+      setSuccess(`User "${username}" deleted successfully!`);
+    } catch (err) {
+      console.error('Error deleting user:', err);
+      setError('Failed to delete user: ' + (err.response?.data?.error || err.message));
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('loggedInUser');
     navigate('/login');
@@ -236,6 +256,13 @@ function AdminDashboard() {
                 <div key={user.userId} className="user-card">
                   <div className="user-header">
                     <h3>User ID: {user.userId}</h3>
+                    <button 
+                      onClick={() => handleDeleteUser(user.userId, user.username || user.email)}
+                      className="btn btn-delete"
+                      title="Delete user"
+                    >
+                      Delete
+                    </button>
                   </div>
                   
                   <div className="user-info">
