@@ -507,6 +507,31 @@ public class RouteController {
   }
 
   /**
+   * Handles GET requests to retrieve all TarsUsers from users.json.
+   *
+   * @return a ResponseEntity containing all TarsUser objects in json format if successful.
+   *          Otherwise, return the status code INTERNAL_SERVER_ERROR.
+   */
+  @GetMapping("/tarsUsers")
+  public ResponseEntity<List<TarsUser>> getTarsUsers() {
+    if (logger.isInfoEnabled()) {
+      logger.info("GET /tarsUsers invoked");
+    }
+    try {
+      List<TarsUser> tarsUsers = tarsUserService.listUsers();
+      if (logger.isInfoEnabled()) {
+        logger.info("GET /tarsUsers success: returned {} users", tarsUsers.size());
+      }
+      return new ResponseEntity<>(tarsUsers, HttpStatus.OK);
+    } catch (Exception e) {
+      if (logger.isErrorEnabled()) {
+        logger.error("GET /tarsUsers failed", e);
+      }
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /**
    * Handles GET requests to retrieve information about all existing users under a specified client.
    *
    * @param clientId the id of the client we want to retrieve user data for.
@@ -711,7 +736,8 @@ public class RouteController {
         logger.error("Error fetching crime summary state={} offense={} month={} year={}", 
             state, offense, month, year, e);
       }
-      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+      String errorMessage = e.getMessage() != null ? e.getMessage() : "Unknown error occurred";
+      return new ResponseEntity<>("Error: " + errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 

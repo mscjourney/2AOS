@@ -1,0 +1,224 @@
+# TARS Node.js Client
+
+A standalone Node.js client application for the TARS API with a React dashboard interface. Each instance of this client maintains its own persistent `clientId` and can connect to the TARS service simultaneously with other instances.
+
+## Features
+
+- **Persistent Client ID**: Each Node.js instance stores its `clientId` locally in `client-config.json`
+- **React Dashboard**: Modern web UI accessible at `http://localhost:3001/dashboard`
+- **Multiple Instance Support**: Each Node.js instance is a separate client that can connect simultaneously
+- **Full API Coverage**: Access to all TARS API endpoints through the dashboard
+- **Admin Dashboard**: User management interface for administrators
+- **Crime Summary**: Access to FBI crime statistics
+- **Weather Services**: Weather recommendations and alerts
+- **City Summaries**: Comprehensive city information
+
+## Architecture
+
+The application consists of three main components:
+
+### 1. Node.js Server (`server.js`)
+- **Purpose**: Express.js server that acts as a middleware/proxy between the React frontend and the Java backend
+- **Port**: Runs on port 3001 by default
+- **Responsibilities**:
+  - Serves the React frontend (static files from `client/build/`)
+  - Provides REST API endpoints (`/api/*`) that proxy requests to the Java backend
+  - Handles CORS for cross-origin requests
+  - Manages file operations (reading/writing JSON files like `users.json`, `clients.json`)
+  - Provides a unified API interface for the frontend
+
+### 2. API Client (`src/tarsApiClient.js`)
+- **Purpose**: Wraps the Java TARS API endpoints and manages client ID persistence
+- **Responsibilities**:
+  - Communicates with the Java backend running on `http://localhost:8080`
+  - Manages persistent client ID storage in `client-config.json`
+  - Provides methods for all TARS API operations (users, weather, crime, etc.)
+  - Handles error responses and converts them to user-friendly messages
+
+### 3. React Frontend (`client/`)
+- **Purpose**: Modern web-based user interface
+- **Components**:
+  - `Dashboard.js`: Main dashboard with tabs for Crime Summary, Weather, and City Summary
+  - `AdminDashboard.js`: Admin-only interface for user management
+  - `Login.js`: User authentication
+  - `UserProfile.js`: User profile and preferences management
+- **Build**: Production build is served as static files by the Express server
+
+## Prerequisites
+
+Before running the Node.js client, ensure you have:
+
+1. **Node.js** (v14 or higher) - [Download Node.js](https://nodejs.org/)
+2. **npm** (comes with Node.js) or **yarn**
+3. **TARS Java Backend** running on `http://localhost:8080`
+   - Navigate to `TeamProject/` directory
+   - Run: `mvn spring-boot:run`
+   - The Java service must be running before starting the Node.js server
+
+## Installation
+
+1. Install server dependencies:
+```bash
+npm install
+```
+
+2. Install client dependencies:
+```bash
+cd client
+npm install
+cd ..
+```
+
+Or install all at once:
+```bash
+npm run install-all
+```
+
+## How to Run the Application
+
+### Step-by-Step Setup
+
+1. **Install Dependencies** (first time only):
+```bash
+# Install server dependencies
+npm install
+
+# Install client dependencies
+cd client
+npm install
+cd ..
+```
+
+Or install everything at once:
+```bash
+npm run install-all
+```
+
+2. **Start the Java Backend** (required):
+   - Open a terminal and navigate to the Java project:
+   ```bash
+   cd ../TeamProject
+   mvn spring-boot:run
+   ```
+   - Wait for the message: "Started TarsApplication" 
+   - The Java backend should be running on `http://localhost:8080`
+   - **Keep this terminal open** - the Java service must stay running
+
+3. **Build the React Frontend** (production mode):
+```bash
+cd client
+npm run build
+cd ..
+```
+   This creates an optimized production build in `client/build/`
+
+4. **Start the Node.js Server**:
+   - In a new terminal, navigate to the `tars-client` directory:
+   ```bash
+   cd tars-client
+   npm start
+   ```
+   - You should see: `TARS Client Server running on http://localhost:3001`
+
+5. **Access the Application**:
+   - Open your browser and go to: `http://localhost:3001`
+   - You'll be redirected to the login page
+   - Use admin credentials to access the admin dashboard
+   - Regular users can access the main dashboard
+
+### Development Mode (with Hot Reload)
+
+For development with automatic code reloading:
+
+1. **Start Java Backend** (same as above):
+```bash
+cd TeamProject
+mvn spring-boot:run
+```
+
+2. **Start React Dev Server** (Terminal 1):
+```bash
+cd client
+npm start
+```
+This starts React on `http://localhost:3000` with hot reload
+
+3. **Start Node.js API Server** (Terminal 2):
+```bash
+npm run dev
+```
+This starts the Express server on `http://localhost:3001` with nodemon (auto-reload)
+
+4. **Access the Application**:
+   - React dev server: `http://localhost:3000`
+   - The React app will proxy API requests to `http://localhost:3001/api`
+
+### Quick Start Commands
+
+```bash
+# Production mode (recommended)
+npm start                    # Start Node.js server (after building React app)
+
+# Development mode
+npm run dev                  # Start Node.js server with auto-reload
+cd client && npm start        # Start React dev server (separate terminal)
+
+# Build React app
+npm run build                # Build React app for production
+```
+
+## How Multiple Instances Work
+
+
+
+### How the Server Works
+
+1. **Client Request**: User interacts with React frontend (e.g., clicks "Get Crime Summary")
+2. **Frontend API Call**: React makes HTTP request to `http://localhost:3001/api/crime/summary`
+3. **Express Route Handler**: `server.js` receives the request at `/api/crime/summary`
+4. **API Client Call**: Server uses `TarsApiClient` to forward request to Java backend
+5. **Java Backend Processing**: Java service processes request, reads/writes data files
+6. **Response Chain**: Response flows back through the chain to the browser
+
+### Key Server Files
+
+- **`server.js`**: Main Express server file
+  - Defines all `/api/*` routes
+  - Handles CORS, JSON parsing, static file serving
+  - Proxies requests to Java backend via `TarsApiClient`
+  
+- **`src/tarsApiClient.js`**: API client wrapper
+  - Encapsulates all Java backend API calls
+  - Manages client ID persistence
+  - Handles errors and response formatting
+
+- **`client/build/`**: Production React build
+  - Static HTML, CSS, and JavaScript files
+  - Served by Express as static files
+  - Created by running `npm run build` in `client/` directory
+
+## Dashboard Features
+
+### Main Dashboard (Regular Users)
+
+- **Crime Summary Tab**: 
+  - Query FBI crime statistics by state, offense code, month, and year
+  - Offense codes: ASS (Assault), BUR (Burglary), HOM (Homicide), ROB (Robbery), LAR (Larceny), MVT (Motor Vehicle Theft)
+  
+- **Weather Tab**:
+  - Get weather recommendations for cities
+  - Retrieve weather alerts by city or coordinates
+  - Configure forecast days (1-14)
+
+- **City Summary Tab**:
+  - Get comprehensive city summaries
+  - View weather recommendations, alerts, and travel advisories
+  - See crime data and travel safety information
+
+### Admin Dashboard (Admin Users Only)
+
+- **User Management**:
+  - View all users from `users.json`
+  - Create new users (username, email, role)
+  - Users are automatically assigned to the admin's client ID
+
