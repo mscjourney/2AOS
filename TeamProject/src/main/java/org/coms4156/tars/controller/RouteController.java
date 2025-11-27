@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -526,6 +527,39 @@ public class RouteController {
     } catch (Exception e) {
       if (logger.isErrorEnabled()) {
         logger.error("GET /tarsUsers failed", e);
+      }
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /**
+   * Handles DELETE requests to delete a TarsUser by their userId.
+   *
+   * @param userId the unique identifier of the user to delete
+   * @return a ResponseEntity containing the deleted TarsUser if successful,
+   *         NOT_FOUND if user doesn't exist, or INTERNAL_SERVER_ERROR on failure.
+   */
+  @DeleteMapping("/tarsUsers/{userId}")
+  public ResponseEntity<?> deleteTarsUser(@PathVariable long userId) {
+    if (logger.isInfoEnabled()) {
+      logger.info("DELETE /tarsUsers/{} invoked", userId);
+    }
+    try {
+      TarsUser deletedUser = tarsUserService.deleteUser(userId);
+      if (deletedUser == null) {
+        if (logger.isWarnEnabled()) {
+          logger.warn("DELETE /tarsUsers/{} failed: user not found", userId);
+        }
+        return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+      }
+      if (logger.isInfoEnabled()) {
+        logger.info("DELETE /tarsUsers/{} success: deleted user '{}'", 
+            userId, deletedUser.getUsername());
+      }
+      return new ResponseEntity<>(deletedUser, HttpStatus.OK);
+    } catch (Exception e) {
+      if (logger.isErrorEnabled()) {
+        logger.error("DELETE /tarsUsers/{} failed", userId, e);
       }
       return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }

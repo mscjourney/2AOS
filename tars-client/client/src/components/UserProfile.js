@@ -71,10 +71,10 @@ function UserProfile() {
       };
       setUser(initialUser);
       
-      // Get user preferences from userPreferences.json by clientId
+      // Get user preferences from userPreferences.json by userId
       try {
-        console.log(`Loading preferences for clientId: ${loggedInUser.clientId}`);
-        const response = await axios.get(`${API_BASE}/user/client/${loggedInUser.clientId}`);
+        console.log(`Loading preferences for userId: ${loggedInUser.userId}`);
+        const response = await axios.get(`${API_BASE}/preferences/user/${loggedInUser.userId}`);
         console.log('Full API Response:', JSON.stringify(response.data, null, 2));
         
         // Extract preferences from response
@@ -89,20 +89,18 @@ function UserProfile() {
         });
         
         // Set user data (preferences from userPreferences.json)
-        // IMPORTANT: Store the preference entry's id (from userPreferences.json) - this is what we need to update
-        // For charlie (userId: 3), the preference entry has id: 5 in userPreferences.json
         const userWithPrefs = {
-          id: response.data.id, // This is the id from userPreferences.json entry (e.g., 5 for clientId 3)
-          userId: loggedInUser.userId, // Keep userId for reference (e.g., 3 for charlie)
+          id: loggedInUser.userId,
+          userId: loggedInUser.userId,
           clientId: loggedInUser.clientId,
           cityPreferences: cityPrefs,
           weatherPreferences: weatherPrefs,
           temperaturePreferences: tempPrefs
         };
-        console.log('Setting user with preference entry id:', response.data.id, 'userId:', loggedInUser.userId);
+        console.log('Setting user with userId:', loggedInUser.userId);
         setUser(userWithPrefs);
         
-        // Set preferences from userPreferences.json (mapped by clientId)
+        // Set preferences from userPreferences.json (mapped by userId)
         const prefsToSet = {
           cityPreferences: cityPrefs,
           weatherPreferences: weatherPrefs,
@@ -111,18 +109,17 @@ function UserProfile() {
         console.log('Setting preferences state:', prefsToSet);
         setPreferences(prefsToSet);
         
-        console.log('Successfully loaded preferences from userPreferences.json (by clientId):', {
-          clientId: loggedInUser.clientId,
+        console.log('Successfully loaded preferences from userPreferences.json (by userId):', {
           userId: loggedInUser.userId,
-          preferenceEntryId: response.data.id,
+          clientId: loggedInUser.clientId,
           cityPreferences: cityPrefs,
           weatherPreferences: weatherPrefs,
           temperaturePreferences: tempPrefs
         });
       } catch (prefErr) {
-        console.error('Error loading preferences for clientId:', prefErr);
+        console.error('Error loading preferences for userId:', prefErr);
         console.error('Error details:', prefErr.response?.data || prefErr.message);
-        console.log('Using empty preferences for clientId:', loggedInUser.clientId);
+        console.log('Using empty preferences for userId:', loggedInUser.userId);
         // Preferences don't exist yet, use empty preferences
         setPreferences({
           cityPreferences: [],
@@ -283,55 +280,35 @@ function UserProfile() {
         return;
       }
       
-      // Use the preference entry's id from user state (this is the id from userPreferences.json)
-      // For charlie: userId=3, but preference entry id=5 in userPreferences.json
-      // We MUST use the preference entry id (5) to update, not userId (3)
-      const currentUser = user || {
-        id: null,
-        clientId: loggedInUser.clientId,
-        cityPreferences: [],
-        weatherPreferences: [],
-        temperaturePreferences: []
-      };
-      
-      // CRITICAL: Use the preference entry id from userPreferences.json (user.id)
-      // This is the id that exists in the file (e.g., 5), not userId (e.g., 3)
-      // If no preference entry exists yet (id is null), use userId to create new entry
-      const preferenceId = currentUser.id || loggedInUser.userId;
+      // Use userId to save preferences - each user has their own preferences
+      const userId = loggedInUser.userId;
       
       console.log('Saving preferences:', {
-        'user.id (preference entry id)': currentUser.id,
-        'userId (from localStorage)': loggedInUser.userId,
+        'userId': userId,
         'clientId': loggedInUser.clientId,
-        'Using preferenceId for update': preferenceId,
         'preferences': preferences
       });
       
       const updatedUser = {
-        id: preferenceId,
+        id: userId,
         clientId: loggedInUser.clientId,
         cityPreferences: preferences.cityPreferences,
         weatherPreferences: preferences.weatherPreferences,
         temperaturePreferences: preferences.temperaturePreferences
       };
 
-      console.log('Saving preferences with:', {
-        preferenceId,
-        clientId: loggedInUser.clientId,
-        userId: loggedInUser.userId,
-        preferences
-      });
+      console.log('Saving preferences with userId:', userId);
 
       // Try to update first (if entry exists)
       let response;
       try {
-        response = await axios.put(`${API_BASE}/user/${preferenceId}/update`, updatedUser);
+        response = await axios.put(`${API_BASE}/user/${userId}/update`, updatedUser);
         console.log('Update successful:', response.data);
       } catch (updateErr) {
         // If update fails with "not found", try to add/create the entry
         if (updateErr.response?.status === 404 || updateErr.response?.data?.error?.includes('not found')) {
           console.log('Entry not found, creating new entry...');
-          response = await axios.put(`${API_BASE}/user/${preferenceId}/add`, updatedUser);
+          response = await axios.put(`${API_BASE}/user/${userId}/add`, updatedUser);
           console.log('Add successful:', response.data);
         } else {
           throw updateErr;
@@ -340,7 +317,8 @@ function UserProfile() {
       
       setUser({
         ...response.data,
-        id: response.data.id || preferenceId,
+        id: userId,
+        userId: userId,
         clientId: loggedInUser.clientId
       });
       setSuccess('Preferences updated successfully!');
