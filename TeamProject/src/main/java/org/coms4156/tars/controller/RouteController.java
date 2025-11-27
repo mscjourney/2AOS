@@ -693,7 +693,7 @@ public class RouteController {
           city, startDate, endDate);
     }
 
-    try {
+    try { // @PathVariable can never be null, it return 404
       if (city == null || city.trim().isEmpty()) {
         if (logger.isWarnEnabled()) {
           logger.warn("City parameter is empty");

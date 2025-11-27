@@ -53,4 +53,11 @@ public class RouteControllerUnitTest {
     mockMvc.perform(get("/country/Earth"))
         .andExpect(status().isNotFound());
   }
+
+  @Test
+  public void testGetCitySummaryWithNullCity() throws Exception {
+    mockMvc.perform(get("/summary/  ")) // empty path variable
+        .andExpect(status().isBadRequest())
+          .andExpect(content().string("City cannot be empty."));
+  }
 }
