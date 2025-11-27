@@ -12,6 +12,8 @@ import org.coms4156.tars.model.CitySummary;
 import org.coms4156.tars.model.Client;
 import org.coms4156.tars.model.CrimeModel;
 import org.coms4156.tars.model.CrimeSummary;
+import org.coms4156.tars.model.CountryModel;
+import org.coms4156.tars.model.CountrySummary;
 import org.coms4156.tars.model.TarsUser;
 import org.coms4156.tars.model.TravelAdvisory;
 import org.coms4156.tars.model.TravelAdvisoryModel;
@@ -656,7 +658,7 @@ public class RouteController {
    * @param country the country to retrieve the advisory for
    * @return the travel advisory or an error response
    */
-  @GetMapping("/country/{country}")
+  @GetMapping("/country/advisory/{country}")
   public ResponseEntity<?> getCountryAdvisory(@PathVariable String country) {
     logger.info("GET /country/{} invoked", country);
 
@@ -669,13 +671,48 @@ public class RouteController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
       }
 
-      return ResponseEntity.ok(advisory.toString());
+      return ResponseEntity.ok(advisory);
 
     } catch (IllegalArgumentException e) {
       return ResponseEntity.badRequest().body(e.getMessage());
 
     } catch (Exception e) {
       logger.error("Error retrieving advisory for country={}", country, e);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    }
+  }
+
+  /**
+   * Retrieves general country info.
+   *
+   * @param country the country to retrieve the advisory for
+   * @return the travel advisory or an error response
+   */
+  @GetMapping("/summary/country/{country}")
+  public ResponseEntity<?> getCountryInfo(@PathVariable String country) {
+    logger.info("GET /country/{} invoked", country);
+
+    try {
+      TravelAdvisoryModel travelModel = new TravelAdvisoryModel();
+      TravelAdvisory advisory = travelModel.getTravelAdvisory(country);
+
+      if (advisory == null) {
+        logger.warn("No advisory found for country={}", country);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+      }
+
+      CountryModel countryModel = new CountryModel();
+      CountrySummary countrySummary = countryModel.getCountrySummary(country);
+
+      countrySummary.setTravelAdvisory(advisory);
+
+      return ResponseEntity.ok(countrySummary);
+
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.badRequest().body(e.getMessage());
+
+    } catch (Exception e) {
+      logger.error("Error retrieving info for country={}", country, e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
   }
@@ -688,7 +725,7 @@ public class RouteController {
    * @param endDate the end date (optional)
    * @return the city summary or an error response
    */
-  @GetMapping("/summary/{city}")
+  @GetMapping("/summary/city/{city}")
   public ResponseEntity<?> getCitySummary(
       @PathVariable String city,
       @RequestParam(required = false) String state,
