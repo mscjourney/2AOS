@@ -22,6 +22,7 @@ public class CitySummary {
   private WeatherAlert weatherAlert;
   private TravelAdvisory travelAdvisory;
   private List<UserPreference> interestedUsers;
+  private CrimeSummary crimeSummary;
   private String message;
 
   /**
@@ -51,7 +52,8 @@ public class CitySummary {
    */
   public CitySummary(String city, WeatherRecommendation weatherRecommendation,
                      WeatherAlert weatherAlert, TravelAdvisory travelAdvisory,
-                     List<User> interestedUsers, CrimeSummary crimeSummary, String message) {
+                     List<UserPreference> interestedUsers, CrimeSummary crimeSummary, 
+                     String message) {
     this.city = city;
     this.weatherRecommendation = weatherRecommendation;
     this.weatherAlert = weatherAlert;
