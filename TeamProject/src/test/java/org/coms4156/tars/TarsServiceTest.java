@@ -3,17 +3,19 @@ package org.coms4156.tars;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.coms4156.tars.model.UserPreference;
 import org.coms4156.tars.service.TarsService;
+import org.junit.jupiter.api.AfterAll;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,15 +31,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @SpringBootTest
 public class TarsServiceTest {
   
-  String testFilePath = "src/test/resources/test-userPreferences.json";
-
+  private static String testFilePath;
+  private static Path tempFile;
   public TarsService service;
   ObjectMapper mapper = new ObjectMapper();
 
   @BeforeEach
   void setUp() throws IOException {
-    
-    mapper.writeValue(new File(testFilePath), new ArrayList<>());
+    tempFile = Files.createTempFile("test-userPreferences", ".json");
+    testFilePath = tempFile.toString();
+
+    Files.writeString(tempFile, "[]");
     service = new TarsService(testFilePath);
 
     UserPreference user1 = new UserPreference(1L, List.of("sunny"), List.of("70F"), List.of("Boston"));
@@ -46,6 +50,11 @@ public class TarsServiceTest {
 
     service.setUserPreference(user1);
     service.setUserPreference(user2);
+  }
+  
+  @AfterAll
+  static void cleanUp() throws IOException {
+    Files.deleteIfExists(tempFile);
   }
 
   @Test
