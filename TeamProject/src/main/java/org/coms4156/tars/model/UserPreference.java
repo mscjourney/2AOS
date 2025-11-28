@@ -125,11 +125,10 @@ public class UserPreference {
 
   @Override
   public String toString() {
-      return "UserPreference{" +
-              "id: " + id +
-              ", weatherPreferences: " + weatherPreferences +
-              ", temperaturePreferences: " + temperaturePreferences +
-              ", cityPreferences: " + cityPreferences +
-              '}';
+    return "UserPreference{" 
+            + "id: " + id 
+            + ", weatherPreferences: " + weatherPreferences 
+            + ", temperaturePreferences: " + temperaturePreferences 
+            + ", cityPreferences: " + cityPreferences + '}';
   }
 }

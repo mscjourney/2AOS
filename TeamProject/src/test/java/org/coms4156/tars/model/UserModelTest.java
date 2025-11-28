@@ -2,7 +2,6 @@ package org.coms4156.tars.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
@@ -123,7 +122,9 @@ public class UserModelTest {
   @Test
   void printUser() {
     UserPreference user1 = new UserPreference(1L);
-    assertEquals(user1.toString(), "UserPreference{id: 1, weatherPreferences: [], temperaturePreferences: [], cityPreferences: []}");
+    assertEquals(user1.toString(), 
+        "UserPreference{id: 1, weatherPreferences: [], "
+        + "temperaturePreferences: [], cityPreferences: []}");
   }
   
   @Test 

@@ -6,16 +6,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import org.coms4156.tars.controller.RouteController;
 import org.coms4156.tars.model.TarsUser;
-import org.coms4156.tars.model.TravelAdvisoryModel;
 import org.coms4156.tars.model.UserPreference;
 import org.coms4156.tars.model.WeatherModel;
-import org.coms4156.tars.model.WeatherRecommendation;
 import org.coms4156.tars.service.ClientService;
 import org.coms4156.tars.service.TarsService;
 import org.coms4156.tars.service.TarsUserService;
@@ -48,7 +44,8 @@ public class RouteControllerExceptionTest {
 
   @Test
   public void testGetUserListExceptionHandling() throws Exception {
-    Mockito.when(tarsService.getUserPreferenceList()).thenThrow(new RuntimeException("Database error"));
+    Mockito.when(tarsService.getUserPreferenceList())
+        .thenThrow(new RuntimeException("Database error"));
 
     mockMvc.perform(get("/userPreferenceList"))
         .andExpect(status().isInternalServerError());
@@ -57,7 +54,8 @@ public class RouteControllerExceptionTest {
 
   // @Test
   // public void getClientUserListException() throws Exception {
-  //   Mockito.when(tarsService.getUserPreferenceList()).thenThrow(new RuntimeException("Database error"));
+  //   Mockito.when(tarsService.getUserPreferenceList())
+  //       .thenThrow(new RuntimeException("Database error"));
 
   //   mockMvc.perform(get("/userList/client/123"))
   //       .andExpect(status().isInternalServerError());
@@ -68,7 +66,8 @@ public class RouteControllerExceptionTest {
     ObjectMapper mapper = new ObjectMapper();
     
     List<String> emptyPreference = new ArrayList<>();
-    UserPreference preference = new UserPreference(1L, emptyPreference, emptyPreference, emptyPreference);
+    UserPreference preference = 
+        new UserPreference(1L, emptyPreference, emptyPreference, emptyPreference);
     // Return some dummy TarsUser
     Mockito.when(tarsUserService.findById(1L)).thenReturn(new TarsUser());
     // Simulate that null was passed into setUserPreference

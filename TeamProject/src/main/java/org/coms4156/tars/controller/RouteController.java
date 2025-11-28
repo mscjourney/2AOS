@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.coms4156.tars.model.CitySummary;
 import org.coms4156.tars.model.Client;
 import org.coms4156.tars.model.CrimeModel;
@@ -348,7 +347,8 @@ public class RouteController {
    * Handles PUT requests to set a user's preferences.
    *
    * @param id the id of the user that we are adding
-   * @param user the UserPreference object that contains the different preferences of the user.
+   * @param userPreference the UserPreference object that contains the different 
+   *                       preferences of the user.
    * @return a ResponseEntity containing the User Preferences data in json format if successful,
    *          or an error message indicating that the user argument was invalid.
    */
@@ -370,9 +370,10 @@ public class RouteController {
     if (!id.equals(userPreference.getId())) {
       if (logger.isWarnEnabled()) {
         logger.warn("RequestBody userId {} does not match path variable id {}.", 
-                                                                    userPreference.getId(), id);
+                        userPreference.getId(), id);
       }
-      return new ResponseEntity<>("Path Variable and RequestBody User Id do not match.", HttpStatus.BAD_REQUEST);
+      return new ResponseEntity<>("Path Variable and RequestBody User Id do not match.", 
+                                    HttpStatus.BAD_REQUEST);
     }
 
     // Checks that a corresponding TarsUser with specified id already exists.
@@ -426,7 +427,7 @@ public class RouteController {
       }
       return new ResponseEntity<>("TarsUser not found.", HttpStatus.NOT_FOUND);
     }
-    
+
     // Id cannot be negative at this point. Still checks again in clearPreference.
     boolean removed = tarsService.clearPreference(id);
     if (removed) { // UserPreferences successfully cleared
@@ -499,7 +500,8 @@ public class RouteController {
   }
 
   // /**
-  //  * Handles GET requests to retrieve information about all existing users under a specified client.
+  //  * Handles GET requests to retrieve userPreference information about all existing users 
+  //  * under a specified client.
   //  *
   //  * @param clientId the id of the client we want to retrieve user data for.
   //  * @return a ResponseEntity containing the User Preferences data in json format for all users

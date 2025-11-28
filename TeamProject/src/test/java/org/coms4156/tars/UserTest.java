@@ -38,7 +38,8 @@ public class UserTest {
   @Autowired
   private TarsService tarsService;
 
-  ObjectMapper mapper = new ObjectMapper();
+  private ObjectMapper mapper = new ObjectMapper();
+
   /**
    * {@code seedUsers} Seeds initial test users before each test execution.
    *
@@ -119,7 +120,7 @@ public class UserTest {
   }
 
   /**
-   * {@code getUserTest} Tests retrieving a user by ID and validates user data.
+   * {@code getUserPreferenceTestValidId} Tests retrieving a user by ID and validates user data.
    *
    * @throws Exception if the request fails
    */
@@ -134,20 +135,21 @@ public class UserTest {
   }
 
   /**
-   * {@code getUserTestWithValidId} Tests retrieving user with ID 1 and
-   * validates their preferences.
+   * {@code getUserPreferenceTestWithNoPreferences} Test retrieving user with ID 3 who doesn't
+   *                                                have any preferences set.
    *
    * @throws Exception if the request fails
    */
   @Test
   public void getUserPreferenceTestWithNoPreferences() throws Exception {
     mockMvc.perform(get("/retrievePreference/3"))
-      .andExpect(status().isBadRequest())
-      .andExpect(content().string("User had no existing preferences."));
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string("User had no existing preferences."));
   }
 
   /**
-   * {@code getUserTestWithNonExistentId} Tests that requesting preferences of a non-existent TarsUser.
+   * {@code getUserPreferenceTestWithNoTarsUser} Test requesting preferences of 
+   *                                              a non-existent TarsUser.
    *
    * @throws Exception if the request fails
    */
@@ -202,7 +204,8 @@ public class UserTest {
   @Test
   public void setUserPreferenceWithNoTarsUser() throws Exception {
     List<String> emptyPreference = new ArrayList<>();
-    UserPreference preference = new UserPreference(15L, emptyPreference, emptyPreference, emptyPreference);
+    UserPreference preference = 
+        new UserPreference(15L, emptyPreference, emptyPreference, emptyPreference);
     mockMvc.perform(put("/setPreference/15")
       .contentType("application/json")
       .content(mapper.writeValueAsString(preference)))
@@ -213,7 +216,8 @@ public class UserTest {
   @Test
   public void setUserPreferenceNegativeId() throws Exception { 
     List<String> emptyPreference = new ArrayList<>();
-    UserPreference preference = new UserPreference(-1L, emptyPreference, emptyPreference, emptyPreference);
+    UserPreference preference = 
+        new UserPreference(-1L, emptyPreference, emptyPreference, emptyPreference);
     mockMvc.perform(put("/setPreference/-1")
       .contentType("application/json")
       .content(mapper.writeValueAsString(preference)))
@@ -224,7 +228,8 @@ public class UserTest {
   @Test
   public void setUserPreferenceMismatchId() throws Exception {
     List<String> emptyPreference = new ArrayList<>();
-    UserPreference preference = new UserPreference(5L, emptyPreference, emptyPreference, emptyPreference);
+    UserPreference preference = 
+        new UserPreference(5L, emptyPreference, emptyPreference, emptyPreference);
     mockMvc.perform(put("/setPreference/10")
       .contentType("application/json")
       .content(mapper.writeValueAsString(preference)))

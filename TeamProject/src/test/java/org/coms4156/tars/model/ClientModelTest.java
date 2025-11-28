@@ -79,15 +79,15 @@ public class ClientModelTest {
   @Test
   public void testPrintClient() {
     String expected = String.format(
-      "Client{clientId=%d, name='%s', email='%s', rateLimitPerMinute=%d, maxConcurrentRequests=%d}",
-      5L, "John", "test@gmail.com", 60, 5);
+        "Client{clientId=%d, name='%s', email='%s', rateLimitPerMinute=%d, "
+          + "maxConcurrentRequests=%d}", 5L, "John", "test@gmail.com", 60, 5);
 
     assertEquals(expected, client.toString());
 
     client = new Client();
     assertEquals(
-      "Client{clientId=null, name='', email='', rateLimitPerMinute=60, maxConcurrentRequests=5}",
-      client.toString()
+        "Client{clientId=null, name='', email='', rateLimitPerMinute=60, maxConcurrentRequests=5}",
+        client.toString()
     );
   }
 

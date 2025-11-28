@@ -2,12 +2,10 @@ package org.coms4156.tars.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.coms4156.tars.model.UserPreference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,7 +101,8 @@ public class TarsService {
   /**
    * Updates the json file by writing the preference data of the new user into the file.
    *
-   * @param newUser the {@code User} object containing the preferences to be added to the file
+   * @param newUserPreference the {@code UserPreference} object containing the preferences to 
+   *                          be added to the file
    * @return If the new user was successfully added to the file, returns true.
    *         If the id of the new user already existed, we overwrite the preferences data,
    *         and return. Return false if the userPreferences pass in is null.
@@ -147,7 +146,7 @@ public class TarsService {
       users = loadData();
     }
     
-    if ( userId == null || userId < 0x0) {
+    if (userId == null || userId < 0x0) {
       if (logger.isWarnEnabled()) {
         logger.warn("Invalid User Id (negative or null) was passed in");
       }

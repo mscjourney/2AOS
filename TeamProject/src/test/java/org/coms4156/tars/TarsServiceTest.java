@@ -1,29 +1,26 @@
 package org.coms4156.tars;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import org.coms4156.tars.model.UserPreference;
 import org.coms4156.tars.service.TarsService;
 import org.junit.jupiter.api.AfterAll;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * This class contains the tests for the TarsService class.
@@ -44,7 +41,8 @@ public class TarsServiceTest {
     Files.writeString(tempFile, "[]");
     service = new TarsService(testFilePath);
 
-    UserPreference user1 = new UserPreference(1L, List.of("sunny"), List.of("70F"), List.of("Boston"));
+    UserPreference user1 
+        = new UserPreference(1L, List.of("sunny"), List.of("70F"), List.of("Boston"));
     UserPreference user2 = new UserPreference(2L, List.of("rainy"), List.of("60F", "67F"), 
                             List.of("New York", "Paris"));
 
@@ -106,7 +104,8 @@ public class TarsServiceTest {
 
   @Test
   void setUserPreferenceTest() {
-    UserPreference user1 = new UserPreference(1L, List.of("sunny"), List.of("70F"), List.of("Boston"));
+    UserPreference user1 
+        = new UserPreference(1L, List.of("sunny"), List.of("70F"), List.of("Boston"));
     assertEquals(service.getUserPreference(1L), user1);
     assertTrue(service.setUserPreference(user1)); // Modify an existing perference
     UserPreference ret1 = service.getUserPreference(1L);
@@ -132,7 +131,8 @@ public class TarsServiceTest {
 
   @Test
   void testClearPreference() {
-    UserPreference user1 = new UserPreference(1L, List.of("sunny"), List.of("70F"), List.of("Boston"));
+    UserPreference user1 
+        = new UserPreference(1L, List.of("sunny"), List.of("70F"), List.of("Boston"));
     assertEquals(service.getUserPreference(1L), user1);
 
     assertTrue(service.clearPreference(1L));
@@ -182,8 +182,8 @@ public class TarsServiceTest {
     assertNotNull(result2);
     assertEquals(result2.getId(), 2);
     assertEquals(result2.getWeatherPreferences(), List.of("rainy"));
-    assertEquals(result2.getTemperaturePreferences(), List.of("60F","67F"));
-    assertEquals(result2.getCityPreferences(), List.of("New York","Paris"));
+    assertEquals(result2.getTemperaturePreferences(), List.of("60F", "67F"));
+    assertEquals(result2.getCityPreferences(), List.of("New York", "Paris"));
   }
 
   @Test
@@ -211,7 +211,7 @@ public class TarsServiceTest {
   }
 
   @Test
-  public void testSaveDataThrowsIOException() throws Exception {
+  public void testSaveDataThrowsException() throws Exception {
     // Create a spy of your service
     TarsService spyService = Mockito.spy(service);
 
