@@ -1,5 +1,7 @@
 package org.coms4156.tars.model;
 
+import java.lang.reflect.Field;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -9,6 +11,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -17,14 +20,14 @@ import org.junit.jupiter.api.Test;
  */
 public class WeatherAlertModelTest {
 
-  private User testUser;
+  private UserPreference testUser;
 
   @BeforeEach
   void setUp() {
     List<String> cityPreferences = new ArrayList<>();
     cityPreferences.add("New York");
     cityPreferences.add("London");
-    testUser = new User(1, 1, new ArrayList<>(), new ArrayList<>(), cityPreferences);
+    testUser = new UserPreference(1L, new ArrayList<>(), new ArrayList<>(), cityPreferences);
   }
 
   @Test
@@ -57,7 +60,8 @@ public class WeatherAlertModelTest {
 
   @Test
   void testGetUserAlertsWithEmptyCityPreferences() {
-    User userWithNoCities = new User(2, 2, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+    UserPreference userWithNoCities = new UserPreference(2L, new ArrayList<>(), 
+                                                          new ArrayList<>(), new ArrayList<>());
     
     List<WeatherAlert> result = WeatherAlertModel.getUserAlerts(userWithNoCities);
 
@@ -131,7 +135,7 @@ public class WeatherAlertModelTest {
     multipleCities.add("Tokyo");
     multipleCities.add("Sydney");
     
-    User userWithMultipleCities = new User(3, 3, new ArrayList<>(), 
+    UserPreference userWithMultipleCities = new UserPreference(3L, new ArrayList<>(), 
                                             new ArrayList<>(), multipleCities);
     
     List<WeatherAlert> result = WeatherAlertModel.getUserAlerts(userWithMultipleCities);

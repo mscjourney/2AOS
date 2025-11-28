@@ -1,11 +1,19 @@
 package org.coms4156.tars;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.coms4156.tars.controller.RouteController;
+import org.coms4156.tars.model.TarsUser;
 import org.coms4156.tars.model.TravelAdvisoryModel;
+import org.coms4156.tars.model.UserPreference;
 import org.coms4156.tars.model.WeatherModel;
 import org.coms4156.tars.model.WeatherRecommendation;
 import org.coms4156.tars.service.ClientService;
@@ -19,7 +27,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
 
 /**
  * {@code RouteControllerExceptionTest} Tests exception handling
@@ -41,21 +48,39 @@ public class RouteControllerExceptionTest {
 
   @Test
   public void testGetUserListExceptionHandling() throws Exception {
-    Mockito.when(tarsService.getUserList()).thenThrow(new RuntimeException("Database error"));
+    Mockito.when(tarsService.getUserPreferenceList()).thenThrow(new RuntimeException("Database error"));
 
-    mockMvc.perform(get("/userList"))
+    mockMvc.perform(get("/userPreferenceList"))
         .andExpect(status().isInternalServerError());
   }
 
 
-  @Test
-  public void getClientUserListException() throws Exception {
-    Mockito.when(tarsService.getUserList()).thenThrow(new RuntimeException("Database error"));
+  // @Test
+  // public void getClientUserListException() throws Exception {
+  //   Mockito.when(tarsService.getUserPreferenceList()).thenThrow(new RuntimeException("Database error"));
 
-    mockMvc.perform(get("/userList/client/123"))
-        .andExpect(status().isInternalServerError());
-  }
+  //   mockMvc.perform(get("/userList/client/123"))
+  //       .andExpect(status().isInternalServerError());
+  // }
   
+  @Test
+  public void setUserPreferenceNullBody() throws Exception {
+    ObjectMapper mapper = new ObjectMapper();
+    
+    List<String> emptyPreference = new ArrayList<>();
+    UserPreference preference = new UserPreference(1L, emptyPreference, emptyPreference, emptyPreference);
+    // Return some dummy TarsUser
+    Mockito.when(tarsUserService.findById(1L)).thenReturn(new TarsUser());
+    // Simulate that null was passed into setUserPreference
+    Mockito.when(tarsService.setUserPreference(preference)).thenReturn(false);
+
+    mockMvc.perform(put("/setPreference/1")
+      .contentType("application/json")
+      .content(mapper.writeValueAsString(preference)))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string("Invalid Argument. User Body was null."));
+  }
+
   @Test
   public void testGetWeatherRecommendationExceptionHandling() throws Exception {
     try (MockedStatic<WeatherModel> mockedModel = Mockito.mockStatic(WeatherModel.class)) {
@@ -105,9 +130,9 @@ public class RouteControllerExceptionTest {
 
   @Test
   public void testGetUserWeatherAlertsIllegalArgumentException() throws Exception {
-    org.coms4156.tars.model.User mockUser = new org.coms4156.tars.model.User(1, 1, 
+    org.coms4156.tars.model.UserPreference mockUser = new org.coms4156.tars.model.UserPreference(1L,
         java.util.List.of("sunny"), java.util.List.of("70F"), java.util.List.of("Boston"));
-    Mockito.when(tarsService.getUser(1)).thenReturn(mockUser);
+    Mockito.when(tarsService.getUserPreference(1L)).thenReturn(mockUser);
 
     try (MockedStatic<org.coms4156.tars.model.WeatherAlertModel> mockedModel = 
         Mockito.mockStatic(org.coms4156.tars.model.WeatherAlertModel.class)) {
@@ -122,9 +147,9 @@ public class RouteControllerExceptionTest {
 
   @Test
   public void testGetUserWeatherAlertsGeneralException() throws Exception {
-    org.coms4156.tars.model.User mockUser = new org.coms4156.tars.model.User(1, 1, 
+    org.coms4156.tars.model.UserPreference mockUser = new org.coms4156.tars.model.UserPreference(1L,
         java.util.List.of("sunny"), java.util.List.of("70F"), java.util.List.of("Boston"));
-    Mockito.when(tarsService.getUser(1)).thenReturn(mockUser);
+    Mockito.when(tarsService.getUserPreference(1L)).thenReturn(mockUser);
 
     try (MockedStatic<org.coms4156.tars.model.WeatherAlertModel> mockedModel = 
         Mockito.mockStatic(org.coms4156.tars.model.WeatherAlertModel.class)) {

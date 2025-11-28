@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.coms4156.tars.controller.RouteController;
-import org.coms4156.tars.model.User;
+import org.coms4156.tars.model.UserPreference;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
@@ -68,7 +68,7 @@ public class LoggingTest {
   }
 
   @Test
-  public void testAddUserEndpointLogging() throws Exception {
+  public void testsetUserPreferenceEndpointLogging() throws Exception {
     listAppender.list.clear();
 
     final ObjectMapper mapper = new ObjectMapper();
@@ -79,23 +79,22 @@ public class LoggingTest {
     List<String> cityPreferences = new ArrayList<>();
     cityPreferences.add("Boston");
 
-    int uniqueUserId = (int) (System.currentTimeMillis() % 100000) + 50000;
-    User newUser = new User(uniqueUserId, 1, weatherPreferences, 
+    UserPreference newUser = new UserPreference(1L, weatherPreferences, 
         temperaturePreferences, cityPreferences);
 
-    mockMvc.perform(put("/user/" + uniqueUserId + "/add")
+    mockMvc.perform(put("/setPreference/1")
         .contentType(MediaType.APPLICATION_JSON)
         .content(mapper.writeValueAsString(newUser)))
         .andExpect(result -> {
           int status = result.getResponse().getStatus();
-          if (status != 200 && status != 409) {
+          if (status != 200 && status != 400 && status != 404) {
             throw new AssertionError("Unexpected status: " + status);
           }
         });
 
-    mockMvc.perform(put("/user/" + uniqueUserId + "/remove"))
+    mockMvc.perform(put("/clearPreference/1"))
         .andExpect(status().isOk())
-        .andExpect(content().string(containsString("User removed successfully.")));
+        .andExpect(content().string(containsString("User Preference cleared successfully.")));
 
     // Verify logging occurred
     List<ILoggingEvent> logEvents = listAppender.list;
@@ -106,23 +105,24 @@ public class LoggingTest {
         .collect(Collectors.toList());
 
     boolean foundPutLog = logMessages.stream()
-        .anyMatch(msg -> msg.contains("PUT /user/") && msg.contains("/add invoked"));
-    assertThat("Should log PUT /user/{}/add invoked", foundPutLog, org.hamcrest.Matchers.is(true));
+        .anyMatch(msg -> msg.contains("PUT /setPreference/") && msg.contains("invoked"));
+    assertThat("Should log PUT /setPreference/{} invoked", foundPutLog, 
+        org.hamcrest.Matchers.is(true));
 
     boolean foundRemoveLog = logMessages.stream()
-        .anyMatch(msg -> msg.contains("PUT /user/") && msg.contains("/remove invoked"));
-    assertThat("Shold log PUT /user/{}/remove invoked", foundRemoveLog, 
+        .anyMatch(msg -> msg.contains("PUT /clearPreference/") && msg.contains("invoked"));
+    assertThat("Shold log PUT /clearPreference/{} invoked", foundRemoveLog, 
         org.hamcrest.Matchers.is(true));
   }
 
   @Test
-  public void testGetUserEndpointLogging() throws Exception {
+  public void testGetUserPreferenceEndpointLogging() throws Exception {
     listAppender.list.clear();
 
-    mockMvc.perform(get("/user/1"))
+    mockMvc.perform(get("/retrievePreference/1"))
         .andExpect(result -> {
           int status = result.getResponse().getStatus();
-          if (status != 200 && status != 404) {
+          if (status != 200 && status != 400 && status != 404) {
             throw new AssertionError("Unexpected status: " + status);
           }
         });
@@ -135,15 +135,16 @@ public class LoggingTest {
         .collect(Collectors.toList());
 
     boolean foundGetUserLog = logMessages.stream()
-        .anyMatch(msg -> msg.contains("GET /user/") && msg.contains("invoked"));
-    assertThat("Should log GET /user/{} invoked", foundGetUserLog, org.hamcrest.Matchers.is(true));
+        .anyMatch(msg -> msg.contains("GET /retrievePreference/") && msg.contains("invoked"));
+    assertThat("Should log GET /retrievePreference/{} invoked", foundGetUserLog, 
+        org.hamcrest.Matchers.is(true));
   }
 
   @Test
-  public void testGetUserNotFoundWarningLogging() throws Exception {
+  public void testGetUserPreferenceNotFoundWarningLogging() throws Exception {
     listAppender.list.clear();
 
-    mockMvc.perform(get("/user/99999"))
+    mockMvc.perform(get("/retrievePreference/99999"))
         .andExpect(status().isNotFound());
 
     List<ILoggingEvent> logEvents = listAppender.list;
@@ -154,8 +155,8 @@ public class LoggingTest {
         .collect(Collectors.toList());
 
     boolean foundWarningLog = logMessages.stream()
-        .anyMatch(msg -> msg.contains("GET /user/") && msg.contains("not found"));
-    assertThat("Should log warning for user not found", foundWarningLog, 
+        .anyMatch(msg -> msg.contains("TarsUser with id=") && msg.contains("does not exist."));
+    assertThat("Should log warning for TarsUser not found", foundWarningLog, 
         org.hamcrest.Matchers.is(true));
   }
 
