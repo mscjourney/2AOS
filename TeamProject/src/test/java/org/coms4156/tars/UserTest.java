@@ -13,7 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
-import org.coms4156.tars.model.User;
+import org.coms4156.tars.model.UserPreference;
 import org.coms4156.tars.service.TarsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,6 +38,7 @@ public class UserTest {
   @Autowired
   private TarsService tarsService;
 
+  ObjectMapper mapper = new ObjectMapper();
   /**
    * {@code seedUsers} Seeds initial test users before each test execution.
    *
@@ -46,33 +47,34 @@ public class UserTest {
   @BeforeEach
   void seedUsers() throws Exception {
     tarsService.loadData();
+    UserPreference user1 = new UserPreference(1L,
+        List.of("sunny"), List.of("70F"), List.of("Boston"));
 
-    ObjectMapper mapper = new ObjectMapper();
-
-    User user1 = new User(1, 1, List.of("sunny"), List.of("70F"), List.of("Boston"));
-    User user2 = new User(2, 2,
+    UserPreference user2 = new UserPreference(2L,
         List.of("rainy"),
         List.of("60F", "67F"),
         List.of("New York",  "Paris"));
 
-    mockMvc.perform(put("/user/1/add")
+    mockMvc.perform(put("/setPreference/1")
         .contentType("application/json")
         .content(mapper.writeValueAsString(user1)))
-        // Accept either 200 (added) or 409 (already exists)
+        // Accept either 200 (added) or 400 (RequestBody is null) 
+        // or 404 (TarsUser could not be found)
         .andExpect(result -> {
           int status = result.getResponse().getStatus();
-          if (status != 200 && status != 409) {
+          if (status != 200 && status != 400 && status != 404) {
             throw new AssertionError("Unexpected status when seeding user 2: " + status);
           }
         });
 
-    mockMvc.perform(put("/user/2/add")
+    mockMvc.perform(put("/setPreference/2")
         .contentType("application/json")
         .content(mapper.writeValueAsString(user2)))
-        // Accept either 200 (added) or 409 (already exists)
+        // Accept either 200 (added) or 400 (RequestBody is null) 
+        // or 404 (TarsUser could not be found)
         .andExpect(result -> {
           int status = result.getResponse().getStatus();
-          if (status != 200 && status != 409) {
+          if (status != 200 && status != 400 && status != 404) {
             throw new AssertionError("Unexpected status when seeding user 2: " + status);
           }
         });
@@ -85,7 +87,7 @@ public class UserTest {
    */
   @Test
   public void indexTest() throws Exception {
-    this.mockMvc.perform(get("/"))
+    mockMvc.perform(get("/"))
       .andExpect(status().isOk())
         .andExpect(content().string(containsString("Welcome to the TARS Home Page!")));
   }
@@ -97,7 +99,7 @@ public class UserTest {
    */
   @Test
   public void indexTestWithIndexPath() throws Exception {
-    this.mockMvc.perform(get("/index"))
+    mockMvc.perform(get("/index"))
       .andExpect(status().isOk())
         .andExpect(content().string(containsString("Welcome to the TARS Home Page!")));
   }
@@ -110,7 +112,7 @@ public class UserTest {
    */
   @Test
   public void indexTestResponseContentType() throws Exception {
-    this.mockMvc.perform(get("/"))
+    mockMvc.perform(get("/"))
         .andExpect(status().isOk())
         .andExpect(content().contentType("text/plain;charset=UTF-8"))
         .andExpect(content().string(containsString("Welcome to the TARS Home Page!")));
@@ -122,54 +124,42 @@ public class UserTest {
    * @throws Exception if the request fails
    */
   @Test
-  public void getUserTest() throws Exception {
-    this.mockMvc.perform(get("/user/2"))
+  public void getUserPreferenceTestValidId() throws Exception {
+    mockMvc.perform(get("/retrievePreference/2"))
       .andExpect(status().isOk())
-      .andExpect(jsonPath("$.id", is(2)))
+      .andExpect(jsonPath("$.id").value(2))
       .andExpect(jsonPath("$.weatherPreferences", contains("rainy")))
       .andExpect(jsonPath("$.temperaturePreferences", contains("60F", "67F")))
         .andExpect(jsonPath("$.cityPreferences", contains("New York", "Paris")));
-
-    this.mockMvc.perform(get("/user/0"))
-      .andExpect(status().isNotFound())
-        .andExpect(content().string(containsString("User not found.")));
   }
 
   /**
-   * {@code getUserTestWithValidId1} Tests retrieving user with ID 1 and
+   * {@code getUserTestWithValidId} Tests retrieving user with ID 1 and
    * validates their preferences.
    *
    * @throws Exception if the request fails
    */
   @Test
-  public void getUserTestWithValidId1() throws Exception {
-    this.mockMvc.perform(get("/user/1"))
-      .andExpect(status().isOk())
-      .andExpect(jsonPath("$.id", is(1)))
-      .andExpect(jsonPath("$.clientId", is(1)))
-      .andExpect(jsonPath("$.weatherPreferences", contains("sunny")))
-        .andExpect(jsonPath("$.cityPreferences", contains("Boston")));
+  public void getUserPreferenceTestWithNoPreferences() throws Exception {
+    mockMvc.perform(get("/retrievePreference/3"))
+      .andExpect(status().isBadRequest())
+      .andExpect(content().string("User had no existing preferences."));
   }
 
   /**
-   * {@code getUserTestWithNonExistentId} Tests that requesting a non-existent user ID returns 404.
+   * {@code getUserTestWithNonExistentId} Tests that requesting preferences of a non-existent TarsUser.
    *
    * @throws Exception if the request fails
    */
   @Test
-  public void getUserTestWithNonExistentId() throws Exception {
-    this.mockMvc.perform(get("/user/9999"))
+  public void getUserPreferenceTestWithNoTarsUser() throws Exception {
+    mockMvc.perform(get("/retrievePreference/9999"))
       .andExpect(status().isNotFound())
-        .andExpect(content().string(containsString("User not found.")));
+        .andExpect(content().string(containsString("TarsUser not found.")));
   }
 
-  /**
-   * {@code addUserTest} Tests adding a new user and verifies duplicate user rejection.
-   *
-   * @throws Exception if the request fails
-   */
   @Test
-  public void addUserTest() throws Exception {
+  public void setUserPreferenceTestValidId() throws Exception {
     List<String> weatherPreferences = new ArrayList<>();
     weatherPreferences.add("snowy");
 
@@ -181,136 +171,104 @@ public class UserTest {
     cityPreferences.add("Rome");
     cityPreferences.add("Syndey");
     
-    ObjectMapper mapper = new ObjectMapper();
-
-    // Use a unique user ID based on current timestamp to avoid conflicts
-    // Uses a placeholder ID for some given client
-    int uniqueUserId = (int) (System.currentTimeMillis() % 10000) + 1000;
-    User newUser = new User(uniqueUserId, 2, weatherPreferences, temperaturePreferences, 
-                              cityPreferences);
-
-    this.mockMvc.perform(put("/user/" + uniqueUserId + "/add")
+    UserPreference newUserPreference = 
+        new UserPreference(1L, weatherPreferences, temperaturePreferences, cityPreferences);
+    mockMvc.perform(put("/setPreference/1")
       .contentType("application/json")
-      .content(mapper.writeValueAsString(newUser)))
+      .content(mapper.writeValueAsString(newUserPreference)))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id", is(uniqueUserId)))
+        .andExpect(jsonPath("$.id").value(1))
         .andExpect(jsonPath("$.weatherPreferences", contains("snowy")))
         .andExpect(jsonPath("$.temperaturePreferences", contains("88F", "15C")))
         .andExpect(jsonPath("$.cityPreferences", contains("Rome", "Syndey")));
 
-    // Test adding the same user again should fail
-    this.mockMvc.perform(put("/user/" + uniqueUserId + "/add")
+    weatherPreferences.add("sunny");
+    temperaturePreferences.add("60F");
+    cityPreferences.add("Venice");
+
+    // Should be able to setPreferences for same User multiple times
+    UserPreference modifiedUserPreference = 
+        new UserPreference(1L, weatherPreferences, temperaturePreferences, cityPreferences);
+    mockMvc.perform(put("/setPreference/1")
       .contentType("application/json")
-      .content(mapper.writeValueAsString(newUser)))
-        .andExpect(status().isConflict())
-        .andExpect(content().string(containsString("User Id already exists.")));
-
-    // Remove the user to not modify the json file.
-    this.mockMvc.perform(put("/user/" + uniqueUserId + "/remove"))
-      .andExpect(status().isOk())
-        .andExpect(content().string(containsString("User removed successfully.")));
-  }
-
-  @Test
-  public void addUserMultipleTimes() throws Exception {
-    ObjectMapper mapper = new ObjectMapper();
-
-    int userId = (int) (System.currentTimeMillis() % 10000) + 1000;
-    User newUser = new User(userId, 10);
-    this.mockMvc.perform(put("/user/" + userId + "/add")
-      .contentType("application/json")
-      .content(mapper.writeValueAsString(newUser)))
+      .content(mapper.writeValueAsString(modifiedUserPreference)))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id", is(userId)))
-        .andExpect(jsonPath("$.clientId", is(10)));
-    
-    this.mockMvc.perform(put("/user/" + userId + "/add")
-      .contentType("application/json")
-      .content(mapper.writeValueAsString(newUser)))
-        .andExpect(status().isConflict())
-        .andExpect(content().string(containsString("User Id already exists.")));
-  }
-
-  /**
-   * {@code addUserTestWithNullBody} Tests that adding a user with an empty
-   * request body returns 400.
-   *
-   * @throws Exception if the request fails
-   */
-  @Test
-  public void addUserTestWithNullBody() throws Exception {
-    // Spring rejects empty body with 400 before reaching controller
-    this.mockMvc.perform(put("/user/100/add")
-      .contentType("application/json")
-      .content(""))
-        .andExpect(status().isBadRequest());
+        .andExpect(jsonPath("$.id").value(1))
+        .andExpect(jsonPath("$.weatherPreferences", contains("snowy", "sunny")))
+        .andExpect(jsonPath("$.temperaturePreferences", contains("88F", "15C", "60F")))
+        .andExpect(jsonPath("$.cityPreferences", contains("Rome", "Syndey", "Venice")));
   }
 
   @Test
-  public void removeUserWithNegativeId() throws Exception {
-    this.mockMvc.perform(put("/user/-5/remove"))
+  public void setUserPreferenceWithNoTarsUser() throws Exception {
+    List<String> emptyPreference = new ArrayList<>();
+    UserPreference preference = new UserPreference(15L, emptyPreference, emptyPreference, emptyPreference);
+    mockMvc.perform(put("/setPreference/15")
+      .contentType("application/json")
+      .content(mapper.writeValueAsString(preference)))
+        .andExpect(status().isNotFound())
+        .andExpect(content().string("TarsUser not found."));
+  }
+
+  @Test
+  public void setUserPreferenceNegativeId() throws Exception { 
+    List<String> emptyPreference = new ArrayList<>();
+    UserPreference preference = new UserPreference(-1L, emptyPreference, emptyPreference, emptyPreference);
+    mockMvc.perform(put("/setPreference/-1")
+      .contentType("application/json")
+      .content(mapper.writeValueAsString(preference)))
         .andExpect(status().isBadRequest())
-        .andExpect(content().string(containsString("User Id cannot be negative.")));
+        .andExpect(content().string("User Id cannot be negative."));
   }
 
   @Test
-  public void removeNonExistentUser() throws Exception {
-    this.mockMvc.perform(put("/user/" + 123510 + "/remove"))
-      .andExpect(status().isConflict())
-        .andExpect(content().string(containsString("User removed failed.")));
-  }
-
-  @Test
-  public void removeUserMultipleTimes() throws Exception {
-    ObjectMapper mapper = new ObjectMapper();
-
-    int userId = 10;
-    User newUser = new User(userId, 5);
-
-    this.mockMvc.perform(put("/user/" + userId + "/add")
+  public void setUserPreferenceMismatchId() throws Exception {
+    List<String> emptyPreference = new ArrayList<>();
+    UserPreference preference = new UserPreference(5L, emptyPreference, emptyPreference, emptyPreference);
+    mockMvc.perform(put("/setPreference/10")
       .contentType("application/json")
-      .content(mapper.writeValueAsString(newUser)))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id", is(userId)))
-        .andExpect(jsonPath("$.clientId", is(5)));
-    
-    this.mockMvc.perform(put("/user/" + userId + "/remove"))
-      .andExpect(status().isOk())
-        .andExpect(content().string(containsString("User removed successfully.")));
-
-    this.mockMvc.perform(put("/user/" + userId + "/remove"))
-      .andExpect(status().isConflict())
-        .andExpect(content().string(containsString("User removed failed.")));
+      .content(mapper.writeValueAsString(preference)))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string("Path Variable and RequestBody User Id do not match."));
   }
 
-  /**
-   * {@code getUserList} Tests retrieving the list of all users.
-   *
-   * @throws Exception if the request fails
-   */
   @Test
-  public void getUserList() throws Exception {
-    this.mockMvc.perform(get("/userList")).andDo(print())
+  public void clearPreferenceValidId() throws Exception {
+    mockMvc.perform(put("/clearPreference/1"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$[0].id", is(1)))
-        .andExpect(jsonPath("$[0].clientId", is(1)))
+        .andExpect(content().string("User Preference cleared successfully."));
+
+    // Cannot clear a preference that was already cleared
+    mockMvc.perform(put("/clearPreference/1"))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string("User had no existing preferences."));
+  }
+
+  @Test
+  public void clearPreferenceNoTarsUser() throws Exception {
+    mockMvc.perform(put("/clearPreference/10"))
+        .andExpect(status().isNotFound())
+        .andExpect(content().string("TarsUser not found."));   
+  }
+
+  @Test
+  public void clearPreferenceNegativeId() throws Exception {
+    mockMvc.perform(put("/clearPreference/-4"))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string("User Id cannot be negative."));   
+  }
+
+  @Test
+  public void testGetUserPreferenceList() throws Exception {
+    mockMvc.perform(get("/userPreferenceList"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].id").value(1))
         .andExpect(jsonPath("$[0].weatherPreferences", contains("sunny")))
-        .andExpect(jsonPath("$[1].id", is(2)))
-        .andExpect(jsonPath("$[1].clientId", is(2)))
-        .andExpect(jsonPath("$[1].weatherPreferences", contains("rainy")));
-  }
-
-  @Test
-  public void getClientUserList() throws Exception {
-    this.mockMvc.perform(get("/userList/client/1"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$[0].id", is(1)))
-        .andExpect(jsonPath("$[0].clientId", is(1)))
-        .andExpect(jsonPath("$[0].weatherPreferences", contains("sunny")));
-    
-    this.mockMvc.perform(get("/userList/client/2")).andDo(print())
-        .andExpect(jsonPath("$[0].id", is(2)))
-        .andExpect(jsonPath("$[0].clientId", is(2)))
-        .andExpect(jsonPath("$[0].weatherPreferences", contains("rainy")));
+        .andExpect(jsonPath("$[0].temperaturePreferences", contains("70F")))
+        .andExpect(jsonPath("$[0].cityPreferences", contains("Boston")))
+        .andExpect(jsonPath("$[1].id").value(2))
+        .andExpect(jsonPath("$[1].weatherPreferences", contains("rainy")))
+        .andExpect(jsonPath("$[1].temperaturePreferences", contains("60F", "67F")))
+        .andExpect(jsonPath("$[1].cityPreferences", contains("New York", "Paris")));
   }
 }

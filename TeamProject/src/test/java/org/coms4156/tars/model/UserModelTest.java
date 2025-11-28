@@ -16,29 +16,22 @@ import org.springframework.boot.test.context.SpringBootTest;
  */
 @SpringBootTest
 public class UserModelTest {
-  public User user;
+  public UserPreference user;
 
   @BeforeEach
   public void setUpUserForTesting() {
-    user = new User(1, 1);
+    user = new UserPreference(1L);
   }
 
   @Test
-  void testUserAndClientId() {
+  void testUserId() {
     assertEquals(user.getId(), 1);
-    assertEquals(user.getClientId(), 1);
 
-    user = new User();
-    assertEquals(user.getId(), 0);
-    assertEquals(user.getClientId(), -1);
+    user = new UserPreference();
+    assertEquals(user.getId(), null);
 
-    user = new User(10, 15);
+    user = new UserPreference(10L);
     assertEquals(user.getId(), 10);
-    assertEquals(user.getClientId(), 15);
-
-    IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, 
-                                                () -> new User(-1, 5));
-    assertEquals("User Id cannot be negative.", ex.getMessage());
   }
 
   @Test
@@ -89,13 +82,13 @@ public class UserModelTest {
 
   @Test
   void testEqualsUser() {
-    User newUser = new User(1, 1);
+    UserPreference newUser = new UserPreference(1L);
     assertTrue(user.equals(newUser));
 
-    newUser = new User(2, 1);
+    newUser = new UserPreference(2L);
     assertFalse(user.equals(newUser));
 
-    newUser = new User();
+    newUser = new UserPreference();
     assertFalse(user.equals(newUser));
   }
 
@@ -116,11 +109,37 @@ public class UserModelTest {
 
   @Test
   void testHashCode() {
-    User user1 = new User(1, 1);
-    User user2 = new User(1, 2);
+    UserPreference user1 = new UserPreference(1L);
+    UserPreference user2 = new UserPreference(1L);
     assertEquals(user1.hashCode(), user2.hashCode());
     
-    User user3 = new User(2, 1);
-    assertTrue(user1.hashCode() != user3.hashCode() || user1.getId() != user3.getId());
+    UserPreference user3 = new UserPreference(2L);
+    assertTrue(user1.hashCode() != user3.hashCode() || !user1.getId().equals(user3.getId()));
+
+    UserPreference user0 = new UserPreference();
+    assertEquals(user0.hashCode(), 0);
+  }
+
+  @Test
+  void printUser() {
+    UserPreference user1 = new UserPreference(1L);
+    assertEquals(user1.toString(), "UserPreference{id: 1, weatherPreferences: [], temperaturePreferences: [], cityPreferences: []}");
+  }
+  
+  @Test 
+  void testUserInitializationFull() {
+    List<String> cityPreferences = new ArrayList<>();
+    cityPreferences.add("Syndey");
+    cityPreferences.add("London");
+
+    List<String> tempPreferences = new ArrayList<>();
+    tempPreferences.add("82F");
+
+    user = new UserPreference(1L, new ArrayList<>(), tempPreferences, cityPreferences);
+    
+    assertEquals(user.getId(), 1);
+    assertEquals(user.getWeatherPreferences(), new ArrayList<>());
+    assertEquals(user.getTemperaturePreferences(), tempPreferences);
+    assertEquals(user.getCityPreferences(), cityPreferences);
   }
 }
