@@ -303,7 +303,7 @@ public class WeatherAlertModel {
    * @return a list of WeatherAlert Objects containing the alerts for the user's city preferences.
    * @throws IllegalArgumentException if an invalid user is specified
    */
-  public static List<WeatherAlert> getUserAlerts(User user) {
+  public static List<WeatherAlert> getUserAlerts(UserPreference user) {
     if (user == null) {
       throw new IllegalArgumentException("User cannot be null");
     }
