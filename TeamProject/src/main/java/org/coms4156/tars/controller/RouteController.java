@@ -1,6 +1,7 @@
 package org.coms4156.tars.controller;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -735,9 +736,11 @@ public class RouteController {
    */
   @GetMapping("/summary/{city}")
   public ResponseEntity<?> getCitySummary(
-        @PathVariable String city,
-        @RequestParam(required = false) String startDate,
-        @RequestParam(required = false) String endDate) {
+      @PathVariable String city,
+      @RequestParam(required = false) String state,
+      @RequestParam(required = false) String startDate,
+      @RequestParam(required = false) String endDate) {
+
 
     if (logger.isInfoEnabled()) {
       logger.info("GET /summary/{} invoked with startDate={} endDate={}",
@@ -820,11 +823,15 @@ public class RouteController {
 
       // Get travel advisory for the city's country
       TravelAdvisory travelAdvisory = null;
+      boolean isUnitedStates = false;
       try {
         TravelAdvisoryModel advisoryModel = new TravelAdvisoryModel();
         String country = CitySummary.getCountryFromCity(city);
         if (country != null && !country.trim().isEmpty()) {
           travelAdvisory = advisoryModel.getTravelAdvisory(country);
+        }
+        if (country.equals("United States")) {
+          isUnitedStates = true;
         }
         // If country lookup failed, try using city name as country name (works for some cases)
         if (travelAdvisory == null) {
@@ -914,13 +921,60 @@ public class RouteController {
         }
       }
 
+      // If its a US city we can add crime data
+      CrimeSummary crimeSummary = null;
+      String offense = null;
+      String month = null;
+      String year = null;
+      if (isUnitedStates && state != null) {
+        try {
+          CrimeModel model = new CrimeModel();
+
+          if (state == null) {
+            logger.warn("Could not determine state for US city {}", city);
+          } else {
+
+            LocalDate today = LocalDate.now();
+
+            offense = "V";        // violent crime as default
+            month = String.valueOf(today.getMonthValue());         //current month
+            year = String.valueOf(today.getYear());;        // current year
+
+            String result = model.getCrimeSummary(state, offense, month, year);
+
+            if (logger.isDebugEnabled()) {
+              logger.debug("Crime API result for state={} offense={} month={} year={}: {}",
+                      state, offense, month, year, result);
+            }
+
+            crimeSummary = new CrimeSummary(
+                    state,
+                    month,
+                    year,
+                    "Fetched crime data for offense=" + offense + " : " + result
+            );
+
+            if (logger.isInfoEnabled()) {
+              logger.info("Crime summary created for state={} offense={}", state, offense);
+            }
+          }
+
+        } catch (Exception e) {
+          if (logger.isErrorEnabled()) {
+            logger.error("Error fetching crime summary for state={} offense={} month={} year={}",
+                    state, offense, month, year, e);
+          }
+        }
+      }
+
       CitySummary summary = new CitySummary(
-          city,
-          weatherRecommendation,
-          weatherAlert,
-          travelAdvisory,
-          interestedUsers,
-          messageBuilder.toString()
+              city,
+              weatherRecommendation,
+              weatherAlert,
+              travelAdvisory,
+              interestedUsers,
+              crimeSummary,
+              messageBuilder.toString()
       );
 
       if (logger.isInfoEnabled()) {
