@@ -44,22 +44,22 @@ public class TravelAdvisoryModel {
     }
   }
 
+  // Duplicate version of getTravelAdvisory is never called
+  // /**
+  //  * Returns the advisory JSON node for a given country.
+  //  */
+  // public JsonNode getAdvisoryForCountry(String country) {
+  //   if (country == null || country.trim().isEmpty()) {
+  //     throw new IllegalArgumentException("Country cannot be empty.");
+  //   }
 
-  /**
-   * Returns the advisory JSON node for a given country.
-   */
-  public JsonNode getAdvisoryForCountry(String country) {
-    if (country == null || country.trim().isEmpty()) {
-      throw new IllegalArgumentException("Country cannot be empty.");
-    }
-
-    for (JsonNode node : advisoryArray) {
-      if (node.get("country").asText().equalsIgnoreCase(country)) {
-        return node;
-      }
-    }
-    return null;
-  }
+  //   for (JsonNode node : advisoryArray) {
+  //     if (node.get("country").asText().equalsIgnoreCase(country)) {
+  //       return node;
+  //     }
+  //   }
+  //   return null;
+  // }
 
   /**
    * Returns a TravelAdvisory object for a given country.

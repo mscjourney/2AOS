@@ -6,7 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import org.coms4156.tars.model.User;
+import org.coms4156.tars.model.UserPreference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,7 +24,7 @@ public class TarsService {
   private static final Logger logger = LoggerFactory.getLogger(TarsService.class);
   private final File userFile;
   private final ObjectMapper mapper = new ObjectMapper();
-  private List<User> users;
+  private List<UserPreference> users;
 
   /**
    * Constructor with path injected from application properties.
@@ -40,7 +40,7 @@ public class TarsService {
         if (parent != null) {
           parent.mkdirs();
         }
-        mapper.writeValue(userFile, new ArrayList<User>());
+        mapper.writeValue(userFile, new ArrayList<UserPreference>());
         if (logger.isInfoEnabled()) {
           logger.info("Created new user preferences file at: {}", 
               userFile.getAbsolutePath());
@@ -62,9 +62,9 @@ public class TarsService {
   /**
    *  Loads the existing user preferences data from USER_FILENAME.
    */
-  public List<User> loadData() {
+  public List<UserPreference> loadData() {
     try {
-      return mapper.readValue(this.userFile, new TypeReference<List<User>>() {});
+      return mapper.readValue(this.userFile, new TypeReference<List<UserPreference>>() {});
     } catch (IOException e) {
       if (logger.isErrorEnabled()) {
         logger.error("Failed to load users from {}", userFile.getPath(), e);
@@ -91,7 +91,7 @@ public class TarsService {
    *
    * @return a List of User objects representing all users stored in the service
    */
-  public synchronized List<User> getUserList() {
+  public synchronized List<UserPreference> getUserPreferenceList() {
     if (users == null) {
       users = loadData();
     }
@@ -101,67 +101,75 @@ public class TarsService {
   /**
    * Updates the json file by writing the preference data of the new user into the file.
    *
-   * @param newUser the {@code User} object containing the preferences to be added to the file
+   * @param newUserPreference the {@code UserPreference} object containing the preferences to 
+   *                          be added to the file
    * @return If the new user was successfully added to the file, returns true.
-   *         If the id of the new user already existed, we do not write the user data to the file
-   *         and return false.
+   *         If the id of the new user already existed, we overwrite the preferences data,
+   *         and return. Return false if the userPreferences pass in is null.
    */
-  public synchronized boolean addUser(User newUser) {
+  public synchronized boolean setUserPreference(UserPreference newUserPreference) {
     if (users == null) {
       users = loadData();
     }
-    if (newUser == null) {
+  
+    if (newUserPreference == null || newUserPreference.getId() == null) {
       if (logger.isWarnEnabled()) {
-        logger.warn("Attempted to add null user");
+        logger.warn("User Body or User Id is null");
       }
       return false;
     }
-    for (User user : users) {
-      if (user.equals(newUser)) {
-        return false;
+    
+    // If userPreference already exists, modify the entry.
+    for (int i = 0; i < users.size(); i++) {
+      if (users.get(i).getId().equals(newUserPreference.getId())) {
+        users.set(i, newUserPreference);
+        saveData();
+        return true;
       }
     }
-    users.add(newUser);
+
+
+    users.add(newUserPreference);
     saveData();
     return true;
   }
   
   /**
-   * Updates the json file by removing the preference data of an existing user.
+   * Updates the json file by clearing the preference data of an existing user.
    *
    * @param userId the id of the user whose data we want to remove
-   * @return If the existing user was sucessfully removed from the file, returns true.
-   *         If the userId specified does nto exists or is an invalid userId (< 0), returns false.
+   * @return If the existing user was successfully cleared in the file, returns true.
+   *         If the userId specified does not exist or is an invalid userId (< 0), returns false.
    */
-  public synchronized boolean removeUser(int userId) {
+  public synchronized boolean clearPreference(Long userId) {
     if (users == null) {
       users = loadData();
     }
     
-    if (userId < 0) {
+    if (userId == null || userId < 0x0) {
       if (logger.isWarnEnabled()) {
-        logger.warn("Attempted to remove a negative user id");
+        logger.warn("Invalid User Id (negative or null) was passed in");
       }
       return false;
     }
-    User toRemove = null;
-    for (User user : users) {
-      if (user.getId() == userId) {
+
+    UserPreference toRemove = null;
+    for (UserPreference user : users) {
+      if (user.getId().equals(userId)) {
         toRemove = user;
         break;
       }
     }
-
-    if (toRemove == null) {
-      if (logger.isWarnEnabled()) {
-        logger.warn("Attempted to remove non-existing user with id {}", userId);
-      }
-      return false;
+    if (toRemove != null) {
+      users.remove(toRemove);
+      saveData();
+      return true;
     }
 
-    users.remove(toRemove);
-    saveData();
-    return true;
+    if (logger.isWarnEnabled()) {
+      logger.warn("User Preference with id {} could not be found", userId);
+    }
+    return false;
   }
 
   /**
@@ -171,36 +179,24 @@ public class TarsService {
    * @return If the user specified by userId exists, returns the {@code User} object containing
    *         the user's preferences. If no such user exists, returns null.
    */
-  public synchronized User getUser(int userId) {
+  public synchronized UserPreference getUserPreference(Long userId) {
     if (users == null) {
       users = loadData();
     }
 
-    if (userId < 0) {
+    if (userId == null || userId < 0) {
       if (logger.isWarnEnabled()) {
-        logger.warn("User Id cannot be negative");
+        logger.warn("Invalid User Id (negative or null) was passed in");
       }
       return null;
     }
     
-    for (User user : users) {
-      if (user.getId() == userId) {
+    for (UserPreference user : users) {
+      if (user.getId().equals(userId)) {
         return user;
       }
     }
 
     return null;
-  }
-
-  /**
-   * Prints all users currently stored in the service.
-   */
-  public synchronized void printUsers() {
-    if (users == null) {
-      users = loadData();
-    }
-    if (logger.isInfoEnabled()) {
-      users.forEach(u -> logger.info("User: {}", u));
-    }
   }
 }

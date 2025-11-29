@@ -64,9 +64,7 @@ public class WeatherAlertModelBranchTest {
    */
   @Test
   public void testGetUserAlertsWithValidUser() {
-    User user = new User(1, 1, 
-        List.of("sunny"), 
-        List.of("70F"), 
+    UserPreference user = new UserPreference(1L, List.of("sunny"), List.of("70F"), 
         List.of("Boston", "New York"));
     
     List<WeatherAlert> alerts = WeatherAlertModel.getUserAlerts(user);
@@ -80,10 +78,7 @@ public class WeatherAlertModelBranchTest {
    */
   @Test
   public void testGetUserAlertsWithEmptyCityPreferences() {
-    User user = new User(1, 1, 
-        List.of("sunny"), 
-        List.of("70F"), 
-        List.of());
+    UserPreference user = new UserPreference(1L, List.of("sunny"), List.of("70F"), List.of());
     
     List<WeatherAlert> alerts = WeatherAlertModel.getUserAlerts(user);
     assertNotNull(alerts);

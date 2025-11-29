@@ -159,7 +159,6 @@ public class WeatherAlertTest {
     assertTrue(weatherAlert.getRecommendations().isEmpty());
   }
 
- 
   @Test
   void testToString() {
     WeatherAlert weatherAlert = new WeatherAlert(

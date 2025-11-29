@@ -6,9 +6,8 @@ import java.util.List;
 /**
  * This class defines the User Preference model.
  */
-public class User {
-  private final int id;
-  private final int clientId;
+public class UserPreference {
+  private final Long id;
   private List<String> weatherPreferences;
   private List<String> temperaturePreferences;
   private List<String> cityPreferences;
@@ -17,14 +16,9 @@ public class User {
    * Basic User constructor.
    *
    * @param id the id of the user
-   * @param clientId the id of the client in charge of this user
    */
-  public User(int id, int clientId) {
-    if (id < 0) {
-      throw new IllegalArgumentException("User Id cannot be negative.");
-    }
+  public UserPreference(Long id) {
     this.id = id;
-    this.clientId = clientId;
     this.weatherPreferences = new ArrayList<>();
     this.temperaturePreferences = new ArrayList<>();
     this.cityPreferences = new ArrayList<>();
@@ -33,18 +27,13 @@ public class User {
   /**
    * Complete User constructor.
    *
-   * @param clientId the id of the client in charge of this user
    * @param weatherPrefs a list containing the user's weather preferences
    * @param temperaturePrefs a list containing the user's temperature preferences
    * @param cityPrefs a list containing the user's city preferences
    */
-  public User(int id, int clientId, List<String> weatherPrefs, 
+  public UserPreference(Long id, List<String> weatherPrefs, 
                 List<String> temperaturePrefs, List<String> cityPrefs) {
-    if (id < 0) {
-      throw new IllegalArgumentException("User Id cannot be negative.");
-    }
     this.id = id;
-    this.clientId = clientId;
     this.weatherPreferences = weatherPrefs;
     this.temperaturePreferences = temperaturePrefs;
     this.cityPreferences = cityPrefs;
@@ -53,9 +42,8 @@ public class User {
   /**
    * No args constructor.
    */
-  public User() {
-    this.id = 0;
-    this.clientId = -1;
+  public UserPreference() {
+    this.id = null;
     this.weatherPreferences = new ArrayList<>();
     this.temperaturePreferences = new ArrayList<>();
     this.cityPreferences = new ArrayList<>();
@@ -112,12 +100,8 @@ public class User {
     return this.cityPreferences;
   }
 
-  public int getId() {
-    return this.id;
-  }
-
-  public int getClientId() {
-    return this.clientId;
+  public Long getId() {
+    return id != null ? this.id : null;
   }
 
   @Override
@@ -130,12 +114,21 @@ public class User {
       return false;
     }
 
-    User user = (User) obj;
-    return this.id == user.id;
+    UserPreference user = (UserPreference) obj;
+    return this.id.equals(user.id);
   }
 
   @Override
   public int hashCode() {
-    return this.id;
+    return id != null ? id.hashCode() : 0;
+  }
+
+  @Override
+  public String toString() {
+    return "UserPreference{" 
+            + "id: " + id 
+            + ", weatherPreferences: " + weatherPreferences 
+            + ", temperaturePreferences: " + temperaturePreferences 
+            + ", cityPreferences: " + cityPreferences + '}';
   }
 }

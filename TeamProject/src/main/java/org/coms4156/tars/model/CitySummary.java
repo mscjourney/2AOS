@@ -21,7 +21,7 @@ public class CitySummary {
   private WeatherRecommendation weatherRecommendation;
   private WeatherAlert weatherAlert;
   private TravelAdvisory travelAdvisory;
-  private List<User> interestedUsers;
+  private List<UserPreference> interestedUsers;
   private CrimeSummary crimeSummary;
   private String message;
 
@@ -37,7 +37,7 @@ public class CitySummary {
    */
   public CitySummary(String city, WeatherRecommendation weatherRecommendation,
                      WeatherAlert weatherAlert, TravelAdvisory travelAdvisory,
-                     List<User> interestedUsers, String message) {
+                     List<UserPreference> interestedUsers, String message) {
     this.city = city;
     this.weatherRecommendation = weatherRecommendation;
     this.weatherAlert = weatherAlert;
@@ -52,7 +52,8 @@ public class CitySummary {
    */
   public CitySummary(String city, WeatherRecommendation weatherRecommendation,
                      WeatherAlert weatherAlert, TravelAdvisory travelAdvisory,
-                     List<User> interestedUsers, CrimeSummary crimeSummary, String message) {
+                     List<UserPreference> interestedUsers, CrimeSummary crimeSummary, 
+                     String message) {
     this.city = city;
     this.weatherRecommendation = weatherRecommendation;
     this.weatherAlert = weatherAlert;
@@ -108,11 +109,11 @@ public class CitySummary {
     this.travelAdvisory = travelAdvisory;
   }
 
-  public List<User> getInterestedUsers() {
+  public List<UserPreference> getInterestedUsers() {
     return interestedUsers;
   }
 
-  public void setInterestedUsers(List<User> interestedUsers) {
+  public void setInterestedUsers(List<UserPreference> interestedUsers) {
     this.interestedUsers = interestedUsers;
   }
 
