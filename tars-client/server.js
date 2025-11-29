@@ -58,22 +58,11 @@ app.get('/api/client-id', async (req, res) => {
   }
 });
 
-// Get all clients
+// Get all clients - proxy to Java backend
 app.get('/api/clients', async (req, res) => {
   try {
-    const clientsJsonPath = path.resolve(__dirname, '..', 'TeamProject', 'data', 'clients.json');
-    let clients = [];
-    
-    if (fs.existsSync(clientsJsonPath)) {
-      const data = await fs.readJson(clientsJsonPath);
-      clients = Array.isArray(data) ? data : [];
-      console.log(`Loaded ${clients.length} clients from clients.json`);
-    } else {
-      console.error('clients.json not found at:', clientsJsonPath);
-      return res.json([]);
-    }
-    
-    res.json(Array.isArray(clients) ? clients : []);
+    const clients = await apiClient.getClients();
+    res.json(clients);
   } catch (error) {
     console.error('Error getting clients:', error);
     res.status(500).json({ error: error.message });
@@ -176,119 +165,42 @@ app.get('/api/user/:id', async (req, res) => {
   }
 });
 
-// Get user preferences by clientId (from userPreferences.json)
+// Get user preferences by clientId - proxy to Java backend
 app.get('/api/user/client/:clientId', async (req, res) => {
   try {
     const clientId = parseInt(req.params.clientId);
-    console.log(`Loading preferences for clientId: ${clientId}`);
-    
-    // Read directly from userPreferences.json file
-    const userPrefsJsonPath = path.join(__dirname, '..', 'TeamProject', 'data', 'userPreferences.json');
-    let allUsers = [];
-    
-    if (fs.existsSync(userPrefsJsonPath)) {
-      allUsers = await fs.readJson(userPrefsJsonPath);
-      console.log(`Read ${allUsers.length} preference entries directly from userPreferences.json`);
-      console.log('Available entries:', allUsers.map(u => `id:${u.id}, clientId:${u.clientId} (type: ${typeof u.clientId})`).join(', '));
-    } else {
-      console.error('userPreferences.json not found at:', userPrefsJsonPath);
-      return res.json({
-        id: null,
-        clientId: clientId,
-        cityPreferences: [],
-        weatherPreferences: [],
-        temperaturePreferences: []
-      });
-    }
-    
-    // Find user preferences that match the clientId (ensure both are numbers for comparison)
-    const userPrefs = allUsers.find(user => {
-      const userClientId = typeof user.clientId === 'string' ? parseInt(user.clientId) : user.clientId;
-      return userClientId === clientId;
-    });
-    
-    if (userPrefs) {
-      console.log(`Found preferences for clientId ${clientId}:`, {
-        id: userPrefs.id,
-        clientId: userPrefs.clientId,
-        cities: userPrefs.cityPreferences?.length || 0,
-        weather: userPrefs.weatherPreferences?.length || 0,
-        temp: userPrefs.temperaturePreferences?.length || 0
-      });
-      res.json(userPrefs);
-    } else {
-      console.log(`No preferences found for clientId ${clientId}, returning empty preferences`);
-      // Return empty preferences if not found
-      res.json({
-        id: null,
-        clientId: clientId,
-        cityPreferences: [],
-        weatherPreferences: [],
-        temperaturePreferences: []
-      });
-    }
+    const userPrefs = await apiClient.getUserByClientId(clientId);
+    res.json(userPrefs);
   } catch (error) {
     console.error('Error getting user by clientId:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// Get user preferences by userId (from userPreferences.json) - for profile page
+// Get user preferences by userId - proxy to Java backend
 app.get('/api/preferences/user/:userId', async (req, res) => {
   try {
     const userId = parseInt(req.params.userId);
-    console.log(`Loading preferences for userId: ${userId}`);
-    
-    // Read directly from userPreferences.json file
-    const userPrefsJsonPath = path.join(__dirname, '..', 'TeamProject', 'data', 'userPreferences.json');
-    let allPrefs = [];
-    
-    if (fs.existsSync(userPrefsJsonPath)) {
-      allPrefs = await fs.readJson(userPrefsJsonPath);
-      console.log(`Read ${allPrefs.length} preference entries from userPreferences.json`);
-    } else {
-      console.error('userPreferences.json not found at:', userPrefsJsonPath);
-      return res.json({
-        id: userId,
-        userId: userId,
-        cityPreferences: [],
-        weatherPreferences: [],
-        temperaturePreferences: []
-      });
-    }
-    
-    // Find user preferences that match the userId (stored as 'id' in the file)
-    const userPrefs = allPrefs.find(pref => {
-      const prefId = typeof pref.id === 'string' ? parseInt(pref.id) : pref.id;
-      return prefId === userId;
+    const userPrefs = await apiClient.getUserPreference(userId);
+    // Add userId field for frontend compatibility
+    res.json({
+      ...userPrefs,
+      userId: userId
     });
-    
-    if (userPrefs) {
-      console.log(`Found preferences for userId ${userId}:`, {
-        id: userPrefs.id,
-        clientId: userPrefs.clientId,
-        cities: userPrefs.cityPreferences?.length || 0,
-        weather: userPrefs.weatherPreferences?.length || 0,
-        temp: userPrefs.temperaturePreferences?.length || 0
-      });
-      res.json({
-        ...userPrefs,
-        userId: userId
-      });
-    } else {
-      console.log(`No preferences found for userId ${userId}, returning empty preferences`);
-      // Return empty preferences if not found
-      res.json({
-        id: userId,
-        userId: userId,
-        cityPreferences: [],
-        weatherPreferences: [],
-        temperaturePreferences: []
-      });
-    }
   } catch (error) {
     console.error('Error getting preferences by userId:', error);
-    res.status(500).json({ error: error.message });
+    // If user not found, return empty preferences (Java returns error, but we want empty prefs)
+    if (error.message.includes('not found') || error.message.includes('404')) {
+      res.json({
+        id: userId,
+        userId: userId,
+        cityPreferences: [],
+        weatherPreferences: [],
+        temperaturePreferences: []
+      });
+    } else {
+      res.status(500).json({ error: error.message });
+    }
   }
 });
 
@@ -303,28 +215,17 @@ app.get('/api/userList', async (req, res) => {
   }
 });
 
-// Get all TARS users (from users.json) - for admin dashboard
+// Get all TARS users - proxy to Java backend
 app.get('/api/tarsUsers', async (req, res) => {
   try {
-    // Read users.json directly
-    const usersJsonPath = path.resolve(__dirname, '..', 'TeamProject', 'data', 'users.json');
-    
-    if (!fs.existsSync(usersJsonPath)) {
-      console.error('users.json not found at:', usersJsonPath);
-      return res.json([]);
-    }
-    
-    const tarsUsers = await fs.readJson(usersJsonPath);
-    console.log(`Loaded ${Array.isArray(tarsUsers) ? tarsUsers.length : 0} users from users.json`);
-    
-    // Ensure we always return an array
-    res.json(Array.isArray(tarsUsers) ? tarsUsers : []);
+    const users = await apiClient.getTarsUsers();
+    res.json(users);
   } catch (error) {
     console.error('Error getting TARS users:', error);
-    // Return empty array on error instead of error object
-    res.json([]);
+    res.status(500).json({ error: error.message });
   }
 });
+
 
 // Delete a TARS user - for admin dashboard (calls Java backend)
 app.delete('/api/tarsUsers/:userId', async (req, res) => {
@@ -361,99 +262,22 @@ app.get('/api/userList/client/:clientId', async (req, res) => {
   }
 });
 
-// Login endpoint - find user by username, email, or userId
+// Login endpoint - proxy to Java backend
 app.post('/api/login', async (req, res) => {
   try {
     const { username, email, userId } = req.body;
-    
-    console.log('Login attempt:', { username, email, userId });
-    
-    if (!username && !email && !userId) {
-      return res.status(400).json({ error: 'Username, email, or userId is required' });
-    }
-
-    // Read users.json directly to get TarsUser data (username, email, userId)
-    const usersJsonPath = path.join(__dirname, '..', 'TeamProject', 'data', 'users.json');
-    let tarsUsers = [];
-    
-    try {
-      if (fs.existsSync(usersJsonPath)) {
-        tarsUsers = await fs.readJson(usersJsonPath);
-        console.log(`Loaded ${tarsUsers.length} users from database`);
-      } else {
-        console.error('users.json not found at:', usersJsonPath);
-        return res.status(500).json({ error: 'User database not found' });
-      }
-    } catch (err) {
-      console.error('Error reading users.json:', err);
-      return res.status(500).json({ error: 'Failed to read user database: ' + err.message });
-    }
-
-    // Find user by userId, username, or email
-    let foundTarsUser = null;
-    
-    if (userId) {
-      foundTarsUser = tarsUsers.find(u => u.userId === parseInt(userId));
-      console.log('Searching by userId:', userId, 'Found:', foundTarsUser ? 'Yes' : 'No');
-    } else if (username) {
-      const searchUsername = username.toLowerCase().trim();
-      foundTarsUser = tarsUsers.find(u => 
-        u.username && u.username.toLowerCase() === searchUsername
-      );
-      console.log('Searching by username:', searchUsername, 'Found:', foundTarsUser ? 'Yes' : 'No');
-    } else if (email) {
-      const searchEmail = email.toLowerCase().trim();
-      foundTarsUser = tarsUsers.find(u => 
-        u.email && u.email.toLowerCase() === searchEmail
-      );
-      console.log('Searching by email:', searchEmail);
-      console.log('Available emails:', tarsUsers.map(u => u.email).join(', '));
-      console.log('Found:', foundTarsUser ? 'Yes' : 'No');
-    }
-
-    if (!foundTarsUser) {
-      return res.status(404).json({ error: 'User not found. Please check your credentials.' });
-    }
-
-    // Check if user is active
-    if (!foundTarsUser.active) {
-      return res.status(403).json({ error: 'User account is inactive.' });
-    }
-
-    // Get user preferences using userId
-    let userPreferences = null;
-    try {
-      userPreferences = await apiClient.getUser(foundTarsUser.userId);
-    } catch (err) {
-      // User preferences might not exist yet, that's okay
-      console.log('User preferences not found for userId', foundTarsUser.userId, ', creating empty preferences');
-      userPreferences = {
-        id: foundTarsUser.userId,
-        clientId: foundTarsUser.clientId,
-        cityPreferences: [],
-        weatherPreferences: [],
-        temperaturePreferences: []
-      };
-    }
-
-    console.log('Login successful for user:', foundTarsUser.username || foundTarsUser.email);
-
-    // Return user data for login
-    res.json({
-      userId: foundTarsUser.userId,
-      clientId: foundTarsUser.clientId,
-      username: foundTarsUser.username,
-      email: foundTarsUser.email,
-      role: foundTarsUser.role,
-      preferences: {
-        cityPreferences: userPreferences.cityPreferences || [],
-        weatherPreferences: userPreferences.weatherPreferences || [],
-        temperaturePreferences: userPreferences.temperaturePreferences || []
-      }
-    });
+    const loginResult = await apiClient.login(username, email, userId);
+    res.json(loginResult);
   } catch (error) {
     console.error('Error during login:', error);
-    res.status(500).json({ error: error.message });
+    const errorMsg = error.response?.data 
+      ? (typeof error.response.data === 'object' 
+          ? JSON.stringify(error.response.data) 
+          : error.response.data)
+      : error.message;
+    // Preserve status codes from backend
+    const statusCode = error.response?.status || 500;
+    res.status(statusCode).json({ error: errorMsg });
   }
 });
 
