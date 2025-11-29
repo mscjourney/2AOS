@@ -15,10 +15,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import ch.qos.logback.classic.Level;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.coms4156.tars.model.Client;
 import org.coms4156.tars.model.TarsUser;
 import org.coms4156.tars.model.UserPreference;
@@ -1217,14 +1217,14 @@ public class ClientEndPointUnitTest {
    */
   @Test
   public void updateUserPreferenceSuccessTest() throws Exception {
-    Long userId = 1L;
-    UserPreference userPreference = new UserPreference(userId);
+    final Long userId = 1L;
     List<String> weatherPrefs = new ArrayList<>();
     weatherPrefs.add("sunny");
     List<String> tempPrefs = new ArrayList<>();
     tempPrefs.add("70F");
     List<String> cityPrefs = new ArrayList<>();
     cityPrefs.add("New York");
+    UserPreference userPreference = new UserPreference(userId);
     userPreference.setWeatherPreferences(weatherPrefs);
     userPreference.setTemperaturePreferences(tempPrefs);
     userPreference.setCityPreferences(cityPrefs);
@@ -1318,11 +1318,10 @@ public class ClientEndPointUnitTest {
   @Test
   public void updateUserPreferenceUpdateFailureTest() throws Exception {
     Long userId = 1L;
-    UserPreference userPreference = new UserPreference(userId);
-
     TarsUser mockUser = new TarsUser();
     mockUser.setUserId(userId);
     mockUser.setActive(true);
+    UserPreference userPreference = new UserPreference(userId);
 
     when(tarsUserService.findById(userId)).thenReturn(mockUser);
     when(tarsService.updateUser(userPreference)).thenReturn(false);
@@ -1343,14 +1342,14 @@ public class ClientEndPointUnitTest {
    */
   @Test
   public void addUserPreferenceSuccessTest() throws Exception {
-    Long userId = 1L;
-    UserPreference userPreference = new UserPreference(userId);
+    final Long userId = 1L;
     List<String> weatherPrefs = new ArrayList<>();
     weatherPrefs.add("cloudy");
     List<String> tempPrefs = new ArrayList<>();
     tempPrefs.add("65F");
     List<String> cityPrefs = new ArrayList<>();
     cityPrefs.add("Boston");
+    UserPreference userPreference = new UserPreference(userId);
     userPreference.setWeatherPreferences(weatherPrefs);
     userPreference.setTemperaturePreferences(tempPrefs);
     userPreference.setCityPreferences(cityPrefs);
@@ -1444,11 +1443,10 @@ public class ClientEndPointUnitTest {
   @Test
   public void addUserPreferenceAddFailureTest() throws Exception {
     Long userId = 1L;
-    UserPreference userPreference = new UserPreference(userId);
-
     TarsUser mockUser = new TarsUser();
     mockUser.setUserId(userId);
     mockUser.setActive(true);
+    UserPreference userPreference = new UserPreference(userId);
 
     when(tarsUserService.findById(userId)).thenReturn(mockUser);
     when(tarsService.setUserPreference(userPreference)).thenReturn(false);
@@ -1469,7 +1467,6 @@ public class ClientEndPointUnitTest {
    */
   @Test
   public void loginWithUsernameSuccessTest() throws Exception {
-    String username = "alice";
     TarsUser mockUser = new TarsUser();
     mockUser.setUserId(1L);
     mockUser.setClientId(1L);
@@ -1490,7 +1487,7 @@ public class ClientEndPointUnitTest {
     when(tarsService.getUserPreference(1L)).thenReturn(mockPrefs);
 
     Map<String, String> loginBody = new HashMap<>();
-    loginBody.put("username", username);
+    loginBody.put("username", "alice");
 
     mockMvc.perform(post("/login")
             .contentType(MediaType.APPLICATION_JSON)
@@ -1510,7 +1507,6 @@ public class ClientEndPointUnitTest {
    */
   @Test
   public void loginWithEmailSuccessTest() throws Exception {
-    String email = "alice@gmail.com";
     TarsUser mockUser = new TarsUser();
     mockUser.setUserId(1L);
     mockUser.setClientId(1L);
@@ -1528,7 +1524,7 @@ public class ClientEndPointUnitTest {
     when(tarsService.getUserPreference(1L)).thenReturn(mockPrefs);
 
     Map<String, String> loginBody = new HashMap<>();
-    loginBody.put("email", email);
+    loginBody.put("email", "alice@gmail.com");
 
     mockMvc.perform(post("/login")
             .contentType(MediaType.APPLICATION_JSON)
@@ -1615,7 +1611,6 @@ public class ClientEndPointUnitTest {
    */
   @Test
   public void loginInactiveUserTest() throws Exception {
-    String username = "bob";
     TarsUser mockUser = new TarsUser();
     mockUser.setUserId(2L);
     mockUser.setUsername("bob");
@@ -1627,7 +1622,7 @@ public class ClientEndPointUnitTest {
     when(tarsUserService.listUsers()).thenReturn(allUsers);
 
     Map<String, String> loginBody = new HashMap<>();
-    loginBody.put("username", username);
+    loginBody.put("username", "bob");
 
     mockMvc.perform(post("/login")
             .contentType(MediaType.APPLICATION_JSON)

@@ -182,14 +182,14 @@ public class RouteControllerUnitTest {
 
   @Test
   public void testUpdateUserPreferenceIntegration() throws Exception {
-    Long userId = 1L;
-    UserPreference userPreference = new UserPreference(userId);
+    final Long userId = 1L;
     List<String> weatherPrefs = new ArrayList<>();
     weatherPrefs.add("sunny");
     List<String> tempPrefs = new ArrayList<>();
     tempPrefs.add("75F");
     List<String> cityPrefs = new ArrayList<>();
     cityPrefs.add("Boston");
+    UserPreference userPreference = new UserPreference(userId);
     userPreference.setWeatherPreferences(weatherPrefs);
     userPreference.setTemperaturePreferences(tempPrefs);
     userPreference.setCityPreferences(cityPrefs);
@@ -215,14 +215,14 @@ public class RouteControllerUnitTest {
 
   @Test
   public void testAddUserPreferenceIntegration() throws Exception {
-    Long userId = 1L;
-    UserPreference userPreference = new UserPreference(userId);
+    final Long userId = 1L;
     List<String> weatherPrefs = new ArrayList<>();
     weatherPrefs.add("cloudy");
     List<String> tempPrefs = new ArrayList<>();
     tempPrefs.add("68F");
     List<String> cityPrefs = new ArrayList<>();
     cityPrefs.add("Seattle");
+    UserPreference userPreference = new UserPreference(userId);
     userPreference.setWeatherPreferences(weatherPrefs);
     userPreference.setTemperaturePreferences(tempPrefs);
     userPreference.setCityPreferences(cityPrefs);
