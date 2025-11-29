@@ -358,6 +358,79 @@ class TarsApiClient {
       throw new Error(`Failed to get country summary: ${errorMsg}`);
     }
   }
+
+  /**
+   * Get all clients
+   */
+  async getClients() {
+    try {
+      const response = await axios.get(`${this.baseUrl}/clients`);
+      return response.data;
+    } catch (error) {
+      const errorMsg = error.response?.data 
+        ? (typeof error.response.data === 'object' 
+            ? JSON.stringify(error.response.data) 
+            : error.response.data)
+        : error.message;
+      throw new Error(`Failed to get clients: ${errorMsg}`);
+    }
+  }
+
+  /**
+   * Get user by clientId
+   */
+  async getUserByClientId(clientId) {
+    try {
+      const response = await axios.get(`${this.baseUrl}/user/client/${clientId}`);
+      return response.data;
+    } catch (error) {
+      const errorMsg = error.response?.data 
+        ? (typeof error.response.data === 'object' 
+            ? JSON.stringify(error.response.data) 
+            : error.response.data)
+        : error.message;
+      throw new Error(`Failed to get user by clientId: ${errorMsg}`);
+    }
+  }
+
+  /**
+   * Get user preferences by userId
+   */
+  async getUserPreference(userId) {
+    try {
+      const response = await axios.get(`${this.baseUrl}/retrievePreference/${userId}`);
+      return response.data;
+    } catch (error) {
+      const errorMsg = error.response?.data 
+        ? (typeof error.response.data === 'object' 
+            ? JSON.stringify(error.response.data) 
+            : error.response.data)
+        : error.message;
+      throw new Error(`Failed to get user preference: ${errorMsg}`);
+    }
+  }
+
+  /**
+   * Login user by username, email, or userId
+   */
+  async login(username, email, userId) {
+    try {
+      const body = {};
+      if (username) body.username = username;
+      if (email) body.email = email;
+      if (userId) body.userId = userId;
+      
+      const response = await axios.post(`${this.baseUrl}/login`, body);
+      return response.data;
+    } catch (error) {
+      const errorMsg = error.response?.data 
+        ? (typeof error.response.data === 'object' 
+            ? JSON.stringify(error.response.data) 
+            : error.response.data)
+        : error.message;
+      throw new Error(`Failed to login: ${errorMsg}`);
+    }
+  }
 }
 
 module.exports = TarsApiClient;

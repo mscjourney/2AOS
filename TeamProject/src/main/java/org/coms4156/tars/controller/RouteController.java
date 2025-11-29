@@ -93,6 +93,32 @@ public class RouteController {
   }
 
   /**
+   * Handles GET requests to retrieve all clients.
+   *
+   * @return a ResponseEntity containing a list of all Client objects if successful,
+   *         or an error response if the operation fails
+   */
+  @GetMapping("/clients")
+  public ResponseEntity<?> getClients() {
+    if (logger.isInfoEnabled()) {
+      logger.info("GET /clients invoked");
+    }
+    try {
+      List<Client> clients = clientService.getClientList();
+      if (logger.isInfoEnabled()) {
+        logger.info("GET /clients success: returned {} clients", clients.size());
+      }
+      return ResponseEntity.ok(clients);
+    } catch (Exception e) {
+      if (logger.isErrorEnabled()) {
+        logger.error("GET /clients failed", e);
+      }
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body("Failed to retrieve clients: " + e.getMessage());
+    }
+  }
+
+  /**
    * An endpoint to create a new client.
    * Request Method: POST
    * Returns a new client resource.
@@ -694,27 +720,221 @@ public class RouteController {
   // /**
   //  * Handles GET requests to retrieve userPreference information about all existing users 
   //  * under a specified client.
-  //  *
-  //  * @param clientId the id of the client we want to retrieve user data for.
-  //  * @return a ResponseEntity containing the User Preferences data in json format for all users
-  //  *          under a client specified by clientId. Returns an empty json if no users are found.
-  //  *          Otherwise, return the status code INTERNAL_SERVER_ERROR.
-  //  */
-  // @GetMapping("/userList/client/{clientId}")
-  // public ResponseEntity<List<UserPreference>> getClientUserList(@PathVariable int clientId) {
-  //   try {
-  //     List<UserPreference> userList = tarsService.getUserPreferenceList();
-  //     List<UserPreference> clientUserList = new ArrayList<>();
-  //     for (UserPreference user : userList) {
-  //       if (user.getClientId() == clientId) {
-  //         clientUserList.add(user);
-  //       }
-  //     }
-  //     return new ResponseEntity<>(clientUserList, HttpStatus.OK);
-  //   } catch (Exception e) {
-  //     return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-  //   }
-  // }
+  /**
+   * Handles GET requests to retrieve user preferences for a specific clientId.
+   * This finds the TarsUser with the matching clientId and returns their preferences.
+   *
+   * @param clientId the id of the client we want to retrieve user data for
+   * @return a ResponseEntity containing the UserPreference for the user with the specified clientId,
+   *         or empty preferences if not found
+   */
+  @GetMapping("/user/client/{clientId}")
+  public ResponseEntity<?> getUserByClientId(@PathVariable Long clientId) {
+    if (logger.isInfoEnabled()) {
+      logger.info("GET /user/client/{} invoked", clientId);
+    }
+    try {
+      // Find TarsUser by clientId
+      List<TarsUser> allUsers = tarsUserService.listUsers();
+      TarsUser foundUser = null;
+      for (TarsUser user : allUsers) {
+        if (user.getClientId() != null && user.getClientId().equals(clientId)) {
+          foundUser = user;
+          break;
+        }
+      }
+      
+      if (foundUser == null) {
+        if (logger.isWarnEnabled()) {
+          logger.warn("No user found for clientId={}", clientId);
+        }
+        // Return empty preferences
+        UserPreference emptyPrefs = new UserPreference();
+        return ResponseEntity.ok(emptyPrefs);
+      }
+      
+      // Get preferences for this user
+      UserPreference userPrefs = tarsService.getUserPreference(foundUser.getUserId());
+      if (userPrefs == null) {
+        // User exists but has no preferences yet
+        UserPreference emptyPrefs = new UserPreference(foundUser.getUserId());
+        if (logger.isInfoEnabled()) {
+          logger.info("GET /user/client/{} success: user found but no preferences", clientId);
+        }
+        return ResponseEntity.ok(emptyPrefs);
+      }
+      
+      if (logger.isInfoEnabled()) {
+        logger.info("GET /user/client/{} success: found user preferences", clientId);
+      }
+      return ResponseEntity.ok(userPrefs);
+    } catch (Exception e) {
+      if (logger.isErrorEnabled()) {
+        logger.error("GET /user/client/{} failed", clientId, e);
+      }
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body("Failed to retrieve user for client: " + e.getMessage());
+    }
+  }
+
+  /**
+   * Handles GET requests to retrieve all user preferences
+   *          under a client specified by clientId. Returns an empty json if no users are found.
+   *          Otherwise, return the status code INTERNAL_SERVER_ERROR.
+   *
+   * @param clientId the id of the client we want to retrieve user data for
+   * @return a ResponseEntity containing the User Preferences data in json format for all users
+   *          under a client specified by clientId. Returns an empty json if no users are found.
+   *          Otherwise, return the status code INTERNAL_SERVER_ERROR.
+   */
+  @GetMapping("/userList/client/{clientId}")
+  public ResponseEntity<?> getClientUserList(@PathVariable Long clientId) {
+    if (logger.isInfoEnabled()) {
+      logger.info("GET /userList/client/{} invoked", clientId);
+    }
+    try {
+      // Get all TarsUsers for this clientId
+      List<TarsUser> allUsers = tarsUserService.listUsers();
+      List<TarsUser> clientUsers = new ArrayList<>();
+      for (TarsUser user : allUsers) {
+        if (user.getClientId() != null && user.getClientId().equals(clientId)) {
+          clientUsers.add(user);
+        }
+      }
+      
+      // Get preferences for each user
+      List<UserPreference> clientUserList = new ArrayList<>();
+      for (TarsUser user : clientUsers) {
+        UserPreference prefs = tarsService.getUserPreference(user.getUserId());
+        if (prefs != null) {
+          clientUserList.add(prefs);
+        } else {
+          // Create empty preferences for users without preferences
+          clientUserList.add(new UserPreference(user.getUserId()));
+        }
+      }
+      
+      if (logger.isInfoEnabled()) {
+        logger.info("GET /userList/client/{} success: found {} users", clientId, clientUserList.size());
+      }
+      return ResponseEntity.ok(clientUserList);
+    } catch (Exception e) {
+      if (logger.isErrorEnabled()) {
+        logger.error("GET /userList/client/{} failed", clientId, e);
+      }
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body("Failed to retrieve users for client: " + e.getMessage());
+    }
+  }
+
+  /**
+   * Handles POST requests for user login.
+   * Finds a user by username, email, or userId and returns their data with preferences.
+   *
+   * @param body JSON object containing username, email, or userId
+   * @return a ResponseEntity containing user data and preferences if successful,
+   *         or an error message if user not found or inactive
+   */
+  @PostMapping("/login")
+  public ResponseEntity<?> login(@RequestBody Map<String, String> body) {
+    if (logger.isInfoEnabled()) {
+      logger.info("POST /login invoked");
+    }
+    
+    try {
+      String username = body != null ? body.get("username") : null;
+      String email = body != null ? body.get("email") : null;
+      String userIdStr = body != null ? body.get("userId") : null;
+      
+      if (username == null && email == null && userIdStr == null) {
+        return ResponseEntity.badRequest()
+            .body("Username, email, or userId is required");
+      }
+      
+      // Find user by userId, username, or email
+      TarsUser foundUser = null;
+      List<TarsUser> allUsers = tarsUserService.listUsers();
+      
+      if (userIdStr != null) {
+        try {
+          Long userId = Long.parseLong(userIdStr);
+          foundUser = tarsUserService.findById(userId);
+        } catch (NumberFormatException e) {
+          if (logger.isWarnEnabled()) {
+            logger.warn("Invalid userId format: {}", userIdStr);
+          }
+        }
+      } else if (username != null) {
+        String searchUsername = username.toLowerCase().trim();
+        for (TarsUser user : allUsers) {
+          if (user.getUsername() != null 
+              && user.getUsername().toLowerCase().equals(searchUsername)) {
+            foundUser = user;
+            break;
+          }
+        }
+      } else if (email != null) {
+        String searchEmail = email.toLowerCase().trim();
+        for (TarsUser user : allUsers) {
+          if (user.getEmail() != null 
+              && user.getEmail().toLowerCase().equals(searchEmail)) {
+            foundUser = user;
+            break;
+          }
+        }
+      }
+      
+      if (foundUser == null) {
+        if (logger.isWarnEnabled()) {
+          logger.warn("Login failed: user not found");
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body("User not found. Please check your credentials.");
+      }
+      
+      // Check if user is active
+      if (!foundUser.getActive()) {
+        if (logger.isWarnEnabled()) {
+          logger.warn("Login failed: user account inactive userId={}", foundUser.getUserId());
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+            .body("User account is inactive.");
+      }
+      
+      // Get user preferences
+      UserPreference userPrefs = tarsService.getUserPreference(foundUser.getUserId());
+      if (userPrefs == null) {
+        // User exists but has no preferences yet - create empty preferences
+        userPrefs = new UserPreference(foundUser.getUserId());
+      }
+      
+      // Build response
+      Map<String, Object> response = new java.util.HashMap<>();
+      response.put("userId", foundUser.getUserId());
+      response.put("clientId", foundUser.getClientId());
+      response.put("username", foundUser.getUsername());
+      response.put("email", foundUser.getEmail());
+      response.put("role", foundUser.getRole());
+      
+      Map<String, Object> preferences = new java.util.HashMap<>();
+      preferences.put("cityPreferences", userPrefs.getCityPreferences());
+      preferences.put("weatherPreferences", userPrefs.getWeatherPreferences());
+      preferences.put("temperaturePreferences", userPrefs.getTemperaturePreferences());
+      response.put("preferences", preferences);
+      
+      if (logger.isInfoEnabled()) {
+        logger.info("Login successful for user: userId={}", foundUser.getUserId());
+      }
+      return ResponseEntity.ok(response);
+      
+    } catch (Exception e) {
+      if (logger.isErrorEnabled()) {
+        logger.error("POST /login failed", e);
+      }
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body("Login failed: " + e.getMessage());
+    }
+  }
 
   /**
    * Handles GET requests to retrieve weather recommendations for a specified city
