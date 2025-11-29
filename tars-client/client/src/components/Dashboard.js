@@ -41,6 +41,10 @@ function Dashboard() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   
+  // Country summary state
+  const [countrySummary, setCountrySummary] = useState(null);
+  const [summaryCountry, setSummaryCountry] = useState('United States');
+  
   useEffect(() => {
     initializeClient();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -176,6 +180,57 @@ function Dashboard() {
     }
   };
 
+  const handleGetCountrySummary = async () => {
+    try {
+      setError(null);
+      setCountrySummary(null); // Clear previous results
+      const response = await axios.get(`${API_BASE}/countrySummary/${encodeURIComponent(summaryCountry)}`);
+      console.log('Country summary response:', response.data);
+      console.log('Response type:', typeof response.data);
+      console.log('Response keys:', response.data ? Object.keys(response.data) : 'null');
+      console.log('Country value:', response.data?.country);
+      console.log('Capital value:', response.data?.capital);
+      console.log('Message value:', response.data?.message);
+      
+      // Check if response is HTML (route not matching)
+      if (typeof response.data === 'string' && response.data.includes('<!doctype html>')) {
+        console.error('Received HTML instead of JSON - route not matching on server');
+        setError('Server routing error: Received HTML instead of JSON. Please check server logs.');
+        setCountrySummary(null);
+        return;
+      }
+      
+      if (response.data) {
+        // Handle both direct response and wrapped response
+        const data = response.data.data || response.data;
+        // Verify it's actually JSON data, not HTML
+        if (typeof data === 'string' && data.includes('<!doctype html>')) {
+          console.error('Response data is HTML string');
+          setError('Server returned HTML instead of JSON data');
+          setCountrySummary(null);
+          return;
+        }
+        setCountrySummary(data);
+      } else {
+        setError('No data received from server');
+      }
+    } catch (err) {
+      console.error('Error getting country summary:', err);
+      console.error('Error response:', err.response);
+      setCountrySummary(null); // Clear on error
+      const errorMsg = err.response?.data?.error 
+        ? (typeof err.response.data.error === 'object' 
+            ? JSON.stringify(err.response.data.error) 
+            : err.response.data.error)
+        : err.response?.data 
+        ? (typeof err.response.data === 'object' 
+            ? JSON.stringify(err.response.data) 
+            : err.response.data)
+        : err.message;
+      setError(errorMsg || 'Failed to fetch country summary');
+    }
+  };
+
   if (loading) {
     return (
       <div className="dashboard">
@@ -280,6 +335,12 @@ function Dashboard() {
           onClick={() => setActiveTab('city')}
         >
           City Summary
+        </button>
+        <button 
+          className={activeTab === 'country' ? 'tab active' : 'tab'}
+          onClick={() => setActiveTab('country')}
+        >
+          Country Summary
         </button>
       </div>
 
@@ -828,6 +889,75 @@ function Dashboard() {
                           </div>
                         ))}
                       </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'country' && (
+          <div className="country-summary">
+            <div className="card">
+              <h2>Country Summary</h2>
+              {error && <div className="alert alert-error"><strong>Error:</strong> {error}</div>}
+              <div className="form-group">
+                <label>Country:</label>
+                <input
+                  type="text"
+                  value={summaryCountry}
+                  onChange={(e) => setSummaryCountry(e.target.value)}
+                  className="form-control"
+                  placeholder="e.g., United States"
+                />
+              </div>
+              <button onClick={handleGetCountrySummary} className="btn-primary">Get Country Summary</button>
+              {countrySummary && (
+                <div className="result">
+                  <h3>Summary for {countrySummary.country || summaryCountry || 'Unknown Country'}</h3>
+                  {countrySummary.capital && (
+                    <p><strong>Capital:</strong> {countrySummary.capital}</p>
+                  )}
+                  {countrySummary.message && (
+                    <p className="summary-message">{countrySummary.message}</p>
+                  )}
+                  {(!countrySummary.country && !countrySummary.capital && !countrySummary.message && !countrySummary.travelAdvisory) && (
+                    <div className="alert" style={{background: '#fff3cd', borderLeft: '4px solid #ffc107', padding: '1rem', marginTop: '1rem'}}>
+                      <strong>Debug Info:</strong> Response received but structure may be unexpected. Check browser console for details.
+                      <details style={{marginTop: '0.5rem'}}>
+                        <summary style={{cursor: 'pointer', color: '#667eea'}}>Show raw response</summary>
+                        <pre style={{marginTop: '0.5rem', fontSize: '0.85rem', overflow: 'auto', background: '#f7fafc', padding: '0.5rem', borderRadius: '4px'}}>
+                          {JSON.stringify(countrySummary, null, 2)}
+                        </pre>
+                      </details>
+                    </div>
+                  )}
+                  
+                  {countrySummary.travelAdvisory && (
+                    <div className="summary-section">
+                      <h4>Travel Advisory</h4>
+                      {countrySummary.travelAdvisory.country && (
+                        <p><strong>Country:</strong> {countrySummary.travelAdvisory.country}</p>
+                      )}
+                      {countrySummary.travelAdvisory.level && (
+                        <p><strong>Advisory Level:</strong> <span style={{ 
+                          color: countrySummary.travelAdvisory.level.includes('Level 4') ? '#e53e3e' :
+                                 countrySummary.travelAdvisory.level.includes('Level 3') ? '#dd6b20' :
+                                 countrySummary.travelAdvisory.level.includes('Level 2') ? '#d69e2e' : '#38a169',
+                          fontWeight: '600'
+                        }}>{countrySummary.travelAdvisory.level}</span></p>
+                      )}
+                      {countrySummary.travelAdvisory.risk_indicators && countrySummary.travelAdvisory.risk_indicators.length > 0 && (
+                        <div>
+                          <strong>Risk Indicators:</strong>
+                          <ul>
+                            {countrySummary.travelAdvisory.risk_indicators.map((risk, idx) => (
+                              <li key={idx}>{risk}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

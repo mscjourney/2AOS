@@ -92,7 +92,12 @@ class TarsApiClient {
       });
       return response.data;
     } catch (error) {
-      throw new Error(`Failed to create client: ${error.response?.data || error.message}`);
+      const errorMsg = error.response?.data 
+        ? (typeof error.response.data === 'object' 
+            ? JSON.stringify(error.response.data) 
+            : error.response.data)
+        : error.message;
+      throw new Error(`Failed to create client: ${errorMsg}`);
     }
   }
 
@@ -109,7 +114,12 @@ class TarsApiClient {
       });
       return response.data;
     } catch (error) {
-      throw new Error(`Failed to create user: ${error.response?.data || error.message}`);
+      const errorMsg = error.response?.data 
+        ? (typeof error.response.data === 'object' 
+            ? JSON.stringify(error.response.data) 
+            : error.response.data)
+        : error.message;
+      throw new Error(`Failed to create user: ${errorMsg}`);
     }
   }
 
@@ -121,7 +131,12 @@ class TarsApiClient {
       const response = await axios.put(`${this.baseUrl}/user/${userId}/add`, user);
       return response.data;
     } catch (error) {
-      throw new Error(`Failed to add user: ${error.response?.data || error.message}`);
+      const errorMsg = error.response?.data 
+        ? (typeof error.response.data === 'object' 
+            ? JSON.stringify(error.response.data) 
+            : error.response.data)
+        : error.message;
+      throw new Error(`Failed to add user: ${errorMsg}`);
     }
   }
 
@@ -133,7 +148,12 @@ class TarsApiClient {
       const response = await axios.put(`${this.baseUrl}/user/${userId}/update`, user);
       return response.data;
     } catch (error) {
-      throw new Error(`Failed to update user: ${error.response?.data || error.message}`);
+      const errorMsg = error.response?.data 
+        ? (typeof error.response.data === 'object' 
+            ? JSON.stringify(error.response.data) 
+            : error.response.data)
+        : error.message;
+      throw new Error(`Failed to update user: ${errorMsg}`);
     }
   }
 
@@ -311,7 +331,31 @@ class TarsApiClient {
       );
       return response.data;
     } catch (error) {
-      throw new Error(`Failed to get city summary: ${error.response?.data || error.message}`);
+      const errorMsg = error.response?.data 
+        ? (typeof error.response.data === 'object' 
+            ? JSON.stringify(error.response.data) 
+            : error.response.data)
+        : error.message;
+      throw new Error(`Failed to get city summary: ${errorMsg}`);
+    }
+  }
+
+  /**
+   * Get country summary
+   */
+  async getCountrySummary(country) {
+    try {
+      const response = await axios.get(
+        `${this.baseUrl}/countrySummary/${encodeURIComponent(country)}`
+      );
+      return response.data;
+    } catch (error) {
+      const errorMsg = error.response?.data 
+        ? (typeof error.response.data === 'object' 
+            ? JSON.stringify(error.response.data) 
+            : error.response.data)
+        : error.message;
+      throw new Error(`Failed to get country summary: ${errorMsg}`);
     }
   }
 }
