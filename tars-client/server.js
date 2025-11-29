@@ -7,15 +7,42 @@ const TarsApiClient = require('./src/tarsApiClient');
 const app = express();
 const PORT = 3001;
 
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'client/build')));
-
 // Initialize API client
 const apiClient = new TarsApiClient('http://localhost:8080');
 
-// API Routes
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Debug middleware - log ALL requests
+app.use((req, res, next) => {
+  console.log(`[REQUEST] ${req.method} ${req.path} ${req.originalUrl}`);
+  next();
+});
+
+// CRITICAL: Register country summary route FIRST, before any other routes
+// This must be a direct app.get() to ensure it's matched before static middleware
+app.get('/api/countrySummary/:country', async (req, res) => {
+  console.log('=== Country summary route hit ===');
+  console.log('Full URL:', req.originalUrl);
+  console.log('Request path:', req.path);
+  console.log('Request params:', req.params);
+
+  try {
+    const { country } = req.params;
+    const decodedCountry = decodeURIComponent(country);
+    console.log('Fetching country summary for:', decodedCountry);
+    const summary = await apiClient.getCountrySummary(decodedCountry);
+    console.log('Country summary result:', summary);
+    res.setHeader('Content-Type', 'application/json');
+    res.json(summary);
+  } catch (error) {
+    console.error('Error getting country summary:', error);
+    res.setHeader('Content-Type', 'application/json');
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'TARS Client Server is running' });
 });
@@ -523,8 +550,30 @@ app.get('/api/summary/:city', async (req, res) => {
   }
 });
 
-// Serve React app for all other routes (only if build exists)
+// Serve static files from React build (ONLY for non-API routes)
+// This middleware explicitly excludes /api/* paths
+app.use((req, res, next) => {
+  console.log(`[STATIC MIDDLEWARE] Checking: ${req.path}`);
+  // Skip ALL static file serving for API routes
+  if (req.path.startsWith('/api/')) {
+    console.log(`[STATIC MIDDLEWARE] Skipping API route: ${req.path}`);
+    return next();
+  }
+  console.log(`[STATIC MIDDLEWARE] Serving static files for: ${req.path}`);
+  // Only serve static files for non-API routes
+  express.static(path.join(__dirname, 'client/build'))(req, res, next);
+});
+
+// Serve React app for all other non-API routes (only if build exists)
+// This catch-all MUST come after all API routes and static middleware
 app.get('*', (req, res) => {
+  console.log(`[CATCH-ALL] Matching route: ${req.path}`);
+  // Double-check: Don't serve React app for API routes
+  if (req.path.startsWith('/api/')) {
+    console.error('[CATCH-ALL] API route not found (caught by catch-all):', req.path);
+    return res.status(404).json({ error: 'API endpoint not found: ' + req.path });
+  }
+  
   const buildPath = path.join(__dirname, 'client/build', 'index.html');
   if (fs.existsSync(buildPath)) {
     res.sendFile(buildPath);

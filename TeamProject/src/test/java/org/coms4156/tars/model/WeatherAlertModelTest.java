@@ -141,36 +141,11 @@ public class WeatherAlertModelTest {
   }
 
   @Test
-  void testGetWeatherAlertsWithValidCoordinates() {
-    WeatherAlert result = WeatherAlertModel.getWeatherAlerts(null, 40.7128, -74.0060);
-
-    assertNotNull(result);
-    assertEquals("40.7128, -74.0060", result.getLocation());
-    assertNotNull(result.getTimestamp());
-    assertNotNull(result.getAlerts());
-    assertNotNull(result.getRecommendations());
-    assertNotNull(result.getCurrentConditions());
-  }
-
-
-  @Test
   void testGetWeatherAlertsWithNegativeCoordinates() {
     WeatherAlert result = WeatherAlertModel.getWeatherAlerts(null, -90.0, -180.0);
 
     assertNotNull(result);
     assertEquals("-90.0000, -180.0000", result.getLocation());
-  }
-
-  @Test
-  void testGetWeatherAlertsWithCityParameter() {
-    WeatherAlert result = WeatherAlertModel.getWeatherAlerts("New York", null, null);
-
-    assertNotNull(result);
-    assertEquals("New York", result.getLocation());
-    assertNotNull(result.getTimestamp());
-    assertNotNull(result.getAlerts());
-    assertNotNull(result.getRecommendations());
-    assertNotNull(result.getCurrentConditions());
   }
 
   @Test

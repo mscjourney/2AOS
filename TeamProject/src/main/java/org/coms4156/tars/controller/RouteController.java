@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.coms4156.tars.model.CitySummary;
 import org.coms4156.tars.model.Client;
+import org.coms4156.tars.model.CountryModel;
+import org.coms4156.tars.model.CountrySummary;
 import org.coms4156.tars.model.CrimeModel;
 import org.coms4156.tars.model.CrimeSummary;
 import org.coms4156.tars.model.TarsUser;
@@ -484,6 +486,132 @@ public class RouteController {
     return new ResponseEntity<>("User had no existing preferences.", HttpStatus.BAD_REQUEST);
   }
 
+  /**
+   * Handles PUT requests to update user preferences.
+   * This endpoint matches the frontend API call pattern.
+   *
+   * @param userId the id of the user to update
+   * @param userPreference the UserPreference object containing the updated preferences
+   * @return a ResponseEntity containing the updated UserPreference if successful,
+   *         or an error message if the user was not found or invalid.
+   */
+  @PutMapping({"/user/{userId}/update"})
+  public ResponseEntity<?> updateUserPreference(@PathVariable Long userId,
+                                              @RequestBody UserPreference userPreference) {
+    if (logger.isInfoEnabled()) {
+      logger.info("PUT /user/{}/update invoked", userId);
+    }
+
+    if (userId == null || userId < 0) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("PUT /user/{}/update failed: invalid userId", userId);
+      }
+      return new ResponseEntity<>("User Id cannot be negative.", HttpStatus.BAD_REQUEST);
+    }
+
+    if (userPreference == null) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("PUT /user/{}/update failed: request body is null", userId);
+      }
+      return new ResponseEntity<>("Request body cannot be null.", HttpStatus.BAD_REQUEST);
+    }
+
+    if (!userId.equals(userPreference.getId())) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("PUT /user/{}/update failed: userId mismatch. Path: {}, Body: {}",
+            userId, userPreference.getId());
+      }
+      return new ResponseEntity<>("Path Variable and RequestBody User Id do not match.",
+          HttpStatus.BAD_REQUEST);
+    }
+
+    // Check that the TarsUser exists
+    TarsUser tarsUser = tarsUserService.findById(userId);
+    if (tarsUser == null) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("PUT /user/{}/update failed: TarsUser not found", userId);
+      }
+      return new ResponseEntity<>("TarsUser not found.", HttpStatus.NOT_FOUND);
+    }
+
+    // Update the user preferences
+    boolean updated = tarsService.updateUser(userPreference);
+    if (updated) {
+      if (logger.isInfoEnabled()) {
+        logger.info("PUT /user/{}/update success", userId);
+      }
+      return new ResponseEntity<>(userPreference, HttpStatus.OK);
+    } else {
+      if (logger.isWarnEnabled()) {
+        logger.warn("PUT /user/{}/update failed: updateUser returned false", userId);
+      }
+      return new ResponseEntity<>("Failed to update user preferences.", HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /**
+   * Handles PUT requests to add user preferences.
+   * This endpoint matches the frontend API call pattern.
+   *
+   * @param userId the id of the user to add preferences for
+   * @param userPreference the UserPreference object containing the preferences
+   * @return a ResponseEntity containing the added UserPreference if successful,
+   *         or an error message if the user was not found or invalid.
+   */
+  @PutMapping({"/user/{userId}/add"})
+  public ResponseEntity<?> addUserPreference(@PathVariable Long userId,
+                                             @RequestBody UserPreference userPreference) {
+    if (logger.isInfoEnabled()) {
+      logger.info("PUT /user/{}/add invoked", userId);
+    }
+
+    if (userId == null || userId < 0) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("PUT /user/{}/add failed: invalid userId", userId);
+      }
+      return new ResponseEntity<>("User Id cannot be negative.", HttpStatus.BAD_REQUEST);
+    }
+
+    if (userPreference == null) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("PUT /user/{}/add failed: request body is null", userId);
+      }
+      return new ResponseEntity<>("Request body cannot be null.", HttpStatus.BAD_REQUEST);
+    }
+
+    if (!userId.equals(userPreference.getId())) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("PUT /user/{}/add failed: userId mismatch. Path: {}, Body: {}",
+            userId, userPreference.getId());
+      }
+      return new ResponseEntity<>("Path Variable and RequestBody User Id do not match.",
+          HttpStatus.BAD_REQUEST);
+    }
+
+    // Check that the TarsUser exists
+    TarsUser tarsUser = tarsUserService.findById(userId);
+    if (tarsUser == null) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("PUT /user/{}/add failed: TarsUser not found", userId);
+      }
+      return new ResponseEntity<>("TarsUser not found.", HttpStatus.NOT_FOUND);
+    }
+
+    // Add or update the user preferences (setUserPreference handles both)
+    boolean added = tarsService.setUserPreference(userPreference);
+    if (added) {
+      if (logger.isInfoEnabled()) {
+        logger.info("PUT /user/{}/add success", userId);
+      }
+      return new ResponseEntity<>(userPreference, HttpStatus.OK);
+    } else {
+      if (logger.isWarnEnabled()) {
+        logger.warn("PUT /user/{}/add failed: setUserPreference returned false", userId);
+      }
+      return new ResponseEntity<>("Failed to add user preferences.", HttpStatus.BAD_REQUEST);
+    }
+  }
+
   // #TODO: /userPreferencesList
   /**
    * Handles GET requests to retrieve preference information about all the existing users.
@@ -787,6 +915,57 @@ public class RouteController {
     } catch (Exception e) {
       logger.error("Error retrieving advisory for country={}", country, e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    }
+  }
+
+  /**
+   * Retrieves a country summary for a given country.
+   *
+   * @param country the country to summarize
+   * @return the country summary or an error response
+   */
+  @GetMapping("/countrySummary/{country}")
+  public ResponseEntity<?> getCountrySummary(@PathVariable String country) {
+    if (logger.isInfoEnabled()) {
+      logger.info("GET /countrySummary/{} invoked", country);
+    }
+
+    try {
+      CountryModel countryModel = new CountryModel();
+      CountrySummary summary = countryModel.getCountrySummary(country);
+
+      if (summary == null) {
+        if (logger.isWarnEnabled()) {
+          logger.warn("No country summary found for country={}", country);
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body("Country not found: " + country);
+      }
+
+      // Get travel advisory for the country
+      TravelAdvisoryModel advisoryModel = new TravelAdvisoryModel();
+      TravelAdvisory advisory = advisoryModel.getTravelAdvisory(country);
+
+      // Set the travel advisory in the summary
+      summary.setTravelAdvisory(advisory);
+
+      if (logger.isInfoEnabled()) {
+        logger.info("GET /countrySummary/{} success", country);
+      }
+      return ResponseEntity.ok(summary);
+
+    } catch (IllegalArgumentException e) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("GET /countrySummary/{} failed: {}", country, e.getMessage());
+      }
+      return ResponseEntity.badRequest().body(e.getMessage());
+
+    } catch (Exception e) {
+      if (logger.isErrorEnabled()) {
+        logger.error("Error retrieving country summary for country={}", country, e);
+      }
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body("Error retrieving country summary: " + e.getMessage());
     }
   }
 

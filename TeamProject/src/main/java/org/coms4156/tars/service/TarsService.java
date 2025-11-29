@@ -175,11 +175,11 @@ public class TarsService {
   /**
    * Updates the preferences of an existing user in the json file.
    *
-   * @param updatedUser the {@code User} object containing the updated preferences
+   * @param updatedUser the {@code UserPreference} object containing the updated preferences
    * @return If the user was successfully updated, returns true.
    *         If the user does not exist or updatedUser is null, returns false.
    */
-  public synchronized boolean updateUser(User updatedUser) {
+  public synchronized boolean updateUser(UserPreference updatedUser) {
     if (users == null) {
       users = loadData();
     }
@@ -199,7 +199,7 @@ public class TarsService {
     }
     
     for (int i = 0; i < users.size(); i++) {
-      User user = users.get(i);
+      UserPreference user = users.get(i);
       if (user.getId() == updatedUser.getId()) {
         // Update the user's preferences
         user.setWeatherPreferences(updatedUser.getWeatherPreferences());
@@ -223,7 +223,7 @@ public class TarsService {
    * Finds the user from the list based on the user id.
    *
    * @param userId the id of the user
-   * @return If the user specified by userId exists, returns the {@code User} object containing
+   * @return If the user specified by userId exists, returns the {@code UserPreference} object containing
    *         the user's preferences. If no such user exists, returns null.
    */
   public synchronized UserPreference getUserPreference(Long userId) {

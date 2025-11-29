@@ -1,1 +1,42 @@
-[{"clientId":1,"username":"alice","email":"alice@gmail.com","role":"admin","userId":1,"active":true,"signUpDate":"2023-01-15T09:30:00Z","lastLogin":"2024-06-15T10:20:30Z"},{"clientId":2,"username":"bob","email":"bob@bobandsons.com","role":"user","userId":2,"active":false,"signUpDate":"2022-11-20T11:45:00Z","lastLogin":"2024-05-10T14:50:00Z"},{"clientId":3,"username":"charlie","email":"charlie@yahoo.com","role":"user","userId":3,"active":true,"signUpDate":"2024-03-05T08:00:00Z","lastLogin":"2024-06-18T16:30:15Z"},{"clientId":4,"username":"jdoe","email":"jdoe@employed.com","role":"ADMIN","userId":4,"active":true,"signUpDate":"2025-11-03T01:05:06.944919Z","lastLogin":""},{"clientId":1,"username":"test","email":"test1@gmail.com","role":"user","userId":5,"active":true,"signUpDate":"2025-11-25T01:14:09.654655Z","lastLogin":""},{"clientId":6,"username":"1","email":"test@gmail.com","role":"user","userId":6,"active":true,"signUpDate":"2025-11-26T23:51:52.981168Z","lastLogin":""},{"clientId":6,"username":"user","email":"user@gmail.com","role":"user","userId":7,"active":true,"signUpDate":"2025-11-27T00:38:37.076844Z","lastLogin":""},{"clientId":1,"username":"test2","email":"test-123@gmail.com","role":"user","userId":8,"active":true,"signUpDate":"2025-11-27T00:42:58.439526Z","lastLogin":""},{"clientId":1,"username":"test45","email":"test45@gmail.com","role":"user","userId":9,"active":true,"signUpDate":"2025-11-27T00:44:25.796648Z","lastLogin":""},{"clientId":1,"username":"hello","email":"hello@gmail.com","role":"user","userId":10,"active":true,"signUpDate":"2025-11-27T00:47:05.907499Z","lastLogin":""},{"clientId":1,"username":"hello2","email":"hello123@gmail.com","role":"user","userId":11,"active":true,"signUpDate":"2025-11-27T00:47:45.981669Z","lastLogin":""},{"clientId":1,"username":"anya","email":"test1234@gmail.com","role":"user","userId":12,"active":true,"signUpDate":"2025-11-27T01:14:09.465064Z","lastLogin":""},{"clientId":1,"username":"alice3","email":"alice34@gmail.com","role":"user","userId":13,"active":true,"signUpDate":"2025-11-27T01:16:31.932851Z","lastLogin":""},{"clientId":1,"username":"testing","email":"test-1234@gmail.com","role":"user","userId":14,"active":true,"signUpDate":"2025-11-27T01:22:33.158771Z","lastLogin":""}]
+[
+  {
+    "clientId": 1,
+    "username": "alice",
+    "email": "alice@gmail.com",
+    "role": "admin",
+    "userId": 1,
+    "active": true,
+    "signUpDate": "2023-01-15T09:30:00Z",
+    "lastLogin": "2024-06-15T10:20:30Z"
+  },
+  {
+    "clientId": 2,
+    "username": "bob",
+    "email": "bob@bobandsons.com",
+    "role": "user",
+    "userId": 2,
+    "active": false,
+    "signUpDate": "2022-11-20T11:45:00Z",
+    "lastLogin": "2024-05-10T14:50:00Z"
+  },
+  {
+    "clientId": 3,
+    "username": "charlie",
+    "email": "charlie@yahoo.com",
+    "role": "user",
+    "userId": 3,
+    "active": true,
+    "signUpDate": "2024-03-05T08:00:00Z",
+    "lastLogin": "2024-06-18T16:30:15Z"
+  },
+  {
+    "clientId": 4,
+    "username": "jdoe",
+    "email": "jdoe@employed.com",
+    "role": "ADMIN",
+    "userId": 4,
+    "active": true,
+    "signUpDate": "2025-11-03T01:05:06.944919Z",
+    "lastLogin": ""
+  }
+]

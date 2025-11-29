@@ -1,5 +1,8 @@
 package org.coms4156.tars.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * {@code CountrySummary} Constructs a CountrySummary with the specified parameters.
  *
@@ -8,10 +11,18 @@ package org.coms4156.tars.model;
  * @param travelAdvisory the travel advisory for the city
  * @param message the message associated with the country summary
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class CountrySummary {
+  @JsonProperty("country")
   private String country;
+  
+  @JsonProperty("capital")
   private String capital;
+  
+  @JsonProperty("travelAdvisory")
   private TravelAdvisory travelAdvisory;
+  
+  @JsonProperty("message")
   private String message;
 
   CountrySummary(String country, String capital, TravelAdvisory travelAdvisory, String message) {

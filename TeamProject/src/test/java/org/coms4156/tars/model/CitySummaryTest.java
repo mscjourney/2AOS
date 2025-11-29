@@ -23,7 +23,7 @@ public class CitySummaryTest {
   private WeatherRecommendation weatherRecommendation;
   private WeatherAlert weatherAlert;
   private TravelAdvisory travelAdvisory;
-  private List<User> interestedUsers;
+  private List<UserPreference> interestedUsers;
   private String message;
 
   @BeforeEach
@@ -38,8 +38,8 @@ public class CitySummaryTest {
         "Level 1: Exercise normal precautions", riskIndicators);
     
     interestedUsers = new ArrayList<>();
-    interestedUsers.add(new User(1, 1));
-    interestedUsers.add(new User(2, 1));
+    interestedUsers.add(new UserPreference(1L));
+    interestedUsers.add(new UserPreference(2L));
     
     message = "Test message for city summary";
   }
@@ -167,10 +167,10 @@ public class CitySummaryTest {
   void testSetInterestedUsers() {
     citySummary = new CitySummary();
     
-    List<User> newUsers = new ArrayList<>();
-    newUsers.add(new User(3, 2));
-    newUsers.add(new User(4, 2));
-    newUsers.add(new User(5, 2));
+    List<UserPreference> newUsers = new ArrayList<>();
+    newUsers.add(new UserPreference(3L));
+    newUsers.add(new UserPreference(4L));
+    newUsers.add(new UserPreference(5L));
     
     citySummary.setInterestedUsers(newUsers);
     
@@ -282,7 +282,7 @@ public class CitySummaryTest {
     TravelAdvisory advisory = new TravelAdvisory("France", 
         "Level 2: Exercise increased caution", new ArrayList<>());
     
-    List<User> users = Arrays.asList(new User(10, 5), new User(11, 5));
+    List<UserPreference> users = Arrays.asList(new UserPreference(10L), new UserPreference(11L));
     
     citySummary = new CitySummary("Paris", rec, alert, advisory, users, 
                                   "Beautiful city with great weather.");

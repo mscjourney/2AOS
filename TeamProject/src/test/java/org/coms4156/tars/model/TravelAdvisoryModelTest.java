@@ -6,8 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import java.util.ArrayList;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,40 +30,40 @@ public class TravelAdvisoryModelTest {
 
   @Test
   void testGetAdvisoryForCountryValidCountry() {
-    JsonNode advisory = travelAdvisoryModel.getAdvisoryForCountry("United States");
+    TravelAdvisory advisory = travelAdvisoryModel.getTravelAdvisory("United States");
     
     assertNotNull(advisory);
-    assertEquals("United States", advisory.get("country").asText());
+    assertEquals("United States", advisory.getCountry());
   }
 
   @Test
   void testGetAdvisoryForCountryCaseInsensitive() {
-    JsonNode advisory1 = travelAdvisoryModel.getAdvisoryForCountry("united states");
-    JsonNode advisory2 = travelAdvisoryModel.getAdvisoryForCountry("UNITED STATES");
-    JsonNode advisory3 = travelAdvisoryModel.getAdvisoryForCountry("United States");
+    TravelAdvisory advisory1 = travelAdvisoryModel.getTravelAdvisory("united states");
+    TravelAdvisory advisory2 = travelAdvisoryModel.getTravelAdvisory("UNITED STATES");
+    TravelAdvisory advisory3 = travelAdvisoryModel.getTravelAdvisory("United States");
     
     assertNotNull(advisory1);
     assertNotNull(advisory2);
     assertNotNull(advisory3);
-    assertEquals("United States", advisory1.get("country").asText());
-    assertEquals("United States", advisory2.get("country").asText());
-    assertEquals("United States", advisory3.get("country").asText());
+    assertEquals("United States", advisory1.getCountry());
+    assertEquals("United States", advisory2.getCountry());
+    assertEquals("United States", advisory3.getCountry());
   }
 
   @Test
   void testGetAdvisoryForCountryWithRiskIndicators() {
-    JsonNode advisory = travelAdvisoryModel.getAdvisoryForCountry("Afghanistan");
+    TravelAdvisory advisory = travelAdvisoryModel.getTravelAdvisory("Afghanistan");
     
     assertNotNull(advisory);
-    assertEquals("Afghanistan", advisory.get("country").asText());
-    assertTrue(advisory.has("level"));
-    assertTrue(advisory.has("risk_indicators"));
-    assertTrue(advisory.get("risk_indicators").isArray());
+    assertEquals("Afghanistan", advisory.getCountry());
+    assertNotNull(advisory.getLevel());
+    assertNotNull(advisory.getRiskIndicators());
+    assertTrue(advisory.getRiskIndicators().size() > 0);
   }
 
   @Test
   void testGetAdvisoryForCountryNotFound() {
-    JsonNode advisory = travelAdvisoryModel.getAdvisoryForCountry("NonExistentCountry");
+    TravelAdvisory advisory = travelAdvisoryModel.getTravelAdvisory("NonExistentCountry");
     
     assertNull(advisory);
   }
@@ -73,21 +71,21 @@ public class TravelAdvisoryModelTest {
   @Test
   void testGetAdvisoryForCountryNull() {
     assertThrows(IllegalArgumentException.class, () -> {
-      travelAdvisoryModel.getAdvisoryForCountry(null);
+      travelAdvisoryModel.getTravelAdvisory(null);
     });
   }
 
   @Test
   void testGetAdvisoryForCountryEmpty() {
     assertThrows(IllegalArgumentException.class, () -> {
-      travelAdvisoryModel.getAdvisoryForCountry("");
+      travelAdvisoryModel.getTravelAdvisory("");
     });
   }
 
   @Test
   void testGetAdvisoryForCountryWhitespace() {
     assertThrows(IllegalArgumentException.class, () -> {
-      travelAdvisoryModel.getAdvisoryForCountry("   ");
+      travelAdvisoryModel.getTravelAdvisory("   ");
     });
   }
 
@@ -186,7 +184,7 @@ public class TravelAdvisoryModelTest {
     TravelAdvisory advisory = travelAdvisoryModel.getTravelAdvisory("Afghanistan");
     
     assertNotNull(advisory);
-    ArrayList<String> riskIndicators = advisory.getRiskIndicators();
+    java.util.List<String> riskIndicators = advisory.getRiskIndicators();
     assertNotNull(riskIndicators);
     
     // Verify that risk indicators are properly populated
@@ -208,10 +206,10 @@ public class TravelAdvisoryModelTest {
     // The method uses equalsIgnoreCase but doesn't trim, so whitespace won't match
     // Test that whitespace-only input throws exception
     assertThrows(IllegalArgumentException.class, () -> {
-      travelAdvisoryModel.getAdvisoryForCountry("   ");
+      travelAdvisoryModel.getTravelAdvisory("   ");
     });
     
-    JsonNode advisory = travelAdvisoryModel.getAdvisoryForCountry("  United States  ");
+    TravelAdvisory advisory = travelAdvisoryModel.getTravelAdvisory("  United States  ");
     assertNull(advisory);
   }
 
@@ -227,12 +225,12 @@ public class TravelAdvisoryModelTest {
   @Test
   void testGetAdvisoryForCountryWithPartialMatch() {
     // Test that exact match is required (case-insensitive)
-    JsonNode advisory1 = travelAdvisoryModel.getAdvisoryForCountry("united");
-    JsonNode advisory2 = travelAdvisoryModel.getAdvisoryForCountry("states");
+    TravelAdvisory advisory1 = travelAdvisoryModel.getTravelAdvisory("united");
+    TravelAdvisory advisory2 = travelAdvisoryModel.getTravelAdvisory("states");
     
     // Should not find partial matches
-    assertTrue(advisory1 == null || advisory1.get("country").asText().equals("United States"));
-    assertTrue(advisory2 == null || advisory2.get("country").asText().equals("United States"));
+    assertTrue(advisory1 == null || advisory1.getCountry().equals("United States"));
+    assertTrue(advisory2 == null || advisory2.getCountry().equals("United States"));
   }
 
   @Test
@@ -250,10 +248,10 @@ public class TravelAdvisoryModelTest {
   @Test
   void testGetAdvisoryForCountryWithSpecialCharacters() {
     // Test countries that might have special characters in the data
-    JsonNode advisory = travelAdvisoryModel.getAdvisoryForCountry("Côte d'Ivoire");
+    TravelAdvisory advisory = travelAdvisoryModel.getTravelAdvisory("Côte d'Ivoire");
     
     // May or may not exist in data, but should not throw exception
-    assertTrue(advisory == null || advisory.has("country"));
+    assertTrue(advisory == null || advisory.getCountry() != null);
   }
 }
 
