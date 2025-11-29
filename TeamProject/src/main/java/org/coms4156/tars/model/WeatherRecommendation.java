@@ -10,6 +10,8 @@ public class WeatherRecommendation {
   private String city;
   private List<String> recommendedDays;
   private String message;
+  private double minTemperature;
+  private double maxTemperature;
 
   /**
    * Creates a new {@code WeatherRecommendation} with the specified city,
@@ -23,6 +25,27 @@ public class WeatherRecommendation {
     this.city = city;
     this.recommendedDays = recommendedDays;
     this.message = message;
+    this.minTemperature = 0;
+    this.maxTemperature = 0;
+  }
+
+  /**
+   * Creates a new {@code WeatherRecommendation} with the specified city,
+   * list of recommended days, and descriptive message.
+   *
+   * @param city the name of the city for which the recommendation applies
+   * @param recommendedDays a list of dates that have favorable or clear weather
+   * @param message a descriptive message summarizing the weather recommendation
+   * @param minTemperature for this time period
+   * @param maxTemperature temperature for this time period
+   */
+  public WeatherRecommendation(String city, List<String> recommendedDays, String message,
+                               double minTemperature, double maxTemperature) {
+    this.city = city;
+    this.recommendedDays = recommendedDays;
+    this.message = message;
+    this.minTemperature = minTemperature;
+    this.maxTemperature = maxTemperature;
   }
 
   public WeatherRecommendation() {}
@@ -52,6 +75,22 @@ public class WeatherRecommendation {
     this.message = message;
   }
 
+  public double getMinTemperature() {
+    return minTemperature;
+  }
+
+  public void setMinTemperature(double minTemperature) {
+    this.minTemperature = minTemperature;
+  }
+
+  public double getMaxTemperature() {
+    return maxTemperature;
+  }
+
+  public void setMaxTemperature(double maxTemperature) {
+    this.maxTemperature = maxTemperature;
+  }
+
   // toString() for debugging
   @Override
   public String toString() {
@@ -59,6 +98,8 @@ public class WeatherRecommendation {
             + "city='" + city + '\''
             + ", recommendedDays=" + recommendedDays
             + ", message='" + message + '\''
+            + ", minTemperature=" + minTemperature
+            + ", maxTemperature=" + maxTemperature
             + '}';
   }
 }
