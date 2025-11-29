@@ -8,16 +8,20 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import ch.qos.logback.classic.Level;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.coms4156.tars.model.Client;
 import org.coms4156.tars.model.TarsUser;
+import org.coms4156.tars.model.UserPreference;
 import org.coms4156.tars.service.ClientService;
 import org.coms4156.tars.service.TarsService;
 import org.coms4156.tars.service.TarsUserService;
@@ -1204,5 +1208,428 @@ public class ClientEndPointUnitTest {
           "ERROR suppressed at OFF."
       );
     }
+  }
+
+
+  /**
+   * {@code updateUserPreferenceSuccessTest} Verifies successful user preference
+   * update with valid data returns 200 OK.
+   */
+  @Test
+  public void updateUserPreferenceSuccessTest() throws Exception {
+    final Long userId = 1L;
+    List<String> weatherPrefs = new ArrayList<>();
+    weatherPrefs.add("sunny");
+    List<String> tempPrefs = new ArrayList<>();
+    tempPrefs.add("70F");
+    List<String> cityPrefs = new ArrayList<>();
+    cityPrefs.add("New York");
+    UserPreference userPreference = new UserPreference(userId);
+    userPreference.setWeatherPreferences(weatherPrefs);
+    userPreference.setTemperaturePreferences(tempPrefs);
+    userPreference.setCityPreferences(cityPrefs);
+
+    TarsUser mockUser = new TarsUser();
+    mockUser.setUserId(userId);
+    mockUser.setActive(true);
+
+    when(tarsUserService.findById(userId)).thenReturn(mockUser);
+    when(tarsService.updateUser(userPreference)).thenReturn(true);
+
+    mockMvc.perform(put("/user/" + userId + "/update")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(userPreference)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(userId.intValue()));
+
+    verify(tarsUserService).findById(userId);
+    verify(tarsService).updateUser(userPreference);
+  }
+
+  /**
+   * {@code updateUserPreferenceNegativeUserIdTest} Validates negative userId
+   * returns 400 BAD REQUEST.
+   */
+  @Test
+  public void updateUserPreferenceNegativeUserIdTest() throws Exception {
+    Long userId = -1L;
+    UserPreference userPreference = new UserPreference(userId);
+
+    mockMvc.perform(put("/user/" + userId + "/update")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(userPreference)))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string("User Id cannot be negative."));
+  }
+
+  /**
+   * {@code updateUserPreferenceNullBodyTest} Ensures null request body
+   * returns 400 BAD REQUEST.
+   */
+  @Test
+  public void updateUserPreferenceNullBodyTest() throws Exception {
+    Long userId = 1L;
+    mockMvc.perform(put("/user/" + userId + "/update")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("null"))
+        .andExpect(status().isBadRequest());
+  }
+
+  /**
+   * {@code updateUserPreferenceUserIdMismatchTest} Validates userId mismatch
+   * between path and body returns 400 BAD REQUEST.
+   */
+  @Test
+  public void updateUserPreferenceUserIdMismatchTest() throws Exception {
+    Long userId = 1L;
+    UserPreference userPreference = new UserPreference(2L);
+
+    mockMvc.perform(put("/user/" + userId + "/update")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(userPreference)))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string("Path Variable and RequestBody User Id do not match."));
+  }
+
+  /**
+   * {@code updateUserPreferenceUserNotFoundTest} Confirms non-existent user
+   * returns 404 NOT FOUND.
+   */
+  @Test
+  public void updateUserPreferenceUserNotFoundTest() throws Exception {
+    Long userId = 999L;
+    UserPreference userPreference = new UserPreference(userId);
+
+    when(tarsUserService.findById(userId)).thenReturn(null);
+
+    mockMvc.perform(put("/user/" + userId + "/update")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(userPreference)))
+        .andExpect(status().isNotFound())
+        .andExpect(content().string("TarsUser not found."));
+
+    verify(tarsUserService).findById(userId);
+  }
+
+  /**
+   * {@code updateUserPreferenceUpdateFailureTest} Validates 400 BAD REQUEST
+   * when service update returns false.
+   */
+  @Test
+  public void updateUserPreferenceUpdateFailureTest() throws Exception {
+    Long userId = 1L;
+    TarsUser mockUser = new TarsUser();
+    mockUser.setUserId(userId);
+    mockUser.setActive(true);
+    UserPreference userPreference = new UserPreference(userId);
+
+    when(tarsUserService.findById(userId)).thenReturn(mockUser);
+    when(tarsService.updateUser(userPreference)).thenReturn(false);
+
+    mockMvc.perform(put("/user/" + userId + "/update")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(userPreference)))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string("Failed to update user preferences."));
+
+    verify(tarsService).updateUser(userPreference);
+  }
+
+
+  /**
+   * {@code addUserPreferenceSuccessTest} Verifies successful user preference
+   * addition with valid data returns 200 OK.
+   */
+  @Test
+  public void addUserPreferenceSuccessTest() throws Exception {
+    final Long userId = 1L;
+    List<String> weatherPrefs = new ArrayList<>();
+    weatherPrefs.add("cloudy");
+    List<String> tempPrefs = new ArrayList<>();
+    tempPrefs.add("65F");
+    List<String> cityPrefs = new ArrayList<>();
+    cityPrefs.add("Boston");
+    UserPreference userPreference = new UserPreference(userId);
+    userPreference.setWeatherPreferences(weatherPrefs);
+    userPreference.setTemperaturePreferences(tempPrefs);
+    userPreference.setCityPreferences(cityPrefs);
+
+    TarsUser mockUser = new TarsUser();
+    mockUser.setUserId(userId);
+    mockUser.setActive(true);
+
+    when(tarsUserService.findById(userId)).thenReturn(mockUser);
+    when(tarsService.setUserPreference(userPreference)).thenReturn(true);
+
+    mockMvc.perform(put("/user/" + userId + "/add")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(userPreference)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(userId.intValue()));
+
+    verify(tarsUserService).findById(userId);
+    verify(tarsService).setUserPreference(userPreference);
+  }
+
+  /**
+   * {@code addUserPreferenceNegativeUserIdTest} Validates negative userId
+   * returns 400 BAD REQUEST.
+   */
+  @Test
+  public void addUserPreferenceNegativeUserIdTest() throws Exception {
+    Long userId = -1L;
+    UserPreference userPreference = new UserPreference(userId);
+
+    mockMvc.perform(put("/user/" + userId + "/add")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(userPreference)))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string("User Id cannot be negative."));
+  }
+
+  /**
+   * {@code addUserPreferenceNullBodyTest} Ensures null request body
+   * returns 400 BAD REQUEST.
+   */
+  @Test
+  public void addUserPreferenceNullBodyTest() throws Exception {
+    Long userId = 1L;
+    mockMvc.perform(put("/user/" + userId + "/add")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("null"))
+        .andExpect(status().isBadRequest());
+  }
+
+  /**
+   * {@code addUserPreferenceUserIdMismatchTest} Validates userId mismatch
+   * between path and body returns 400 BAD REQUEST.
+   */
+  @Test
+  public void addUserPreferenceUserIdMismatchTest() throws Exception {
+    Long userId = 1L;
+    UserPreference userPreference = new UserPreference(2L);
+
+    mockMvc.perform(put("/user/" + userId + "/add")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(userPreference)))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string("Path Variable and RequestBody User Id do not match."));
+  }
+
+  /**
+   * {@code addUserPreferenceUserNotFoundTest} Confirms non-existent user
+   * returns 404 NOT FOUND.
+   */
+  @Test
+  public void addUserPreferenceUserNotFoundTest() throws Exception {
+    Long userId = 999L;
+    UserPreference userPreference = new UserPreference(userId);
+
+    when(tarsUserService.findById(userId)).thenReturn(null);
+
+    mockMvc.perform(put("/user/" + userId + "/add")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(userPreference)))
+        .andExpect(status().isNotFound())
+        .andExpect(content().string("TarsUser not found."));
+
+    verify(tarsUserService).findById(userId);
+  }
+
+  /**
+   * {@code addUserPreferenceAddFailureTest} Validates 400 BAD REQUEST
+   * when service add returns false.
+   */
+  @Test
+  public void addUserPreferenceAddFailureTest() throws Exception {
+    Long userId = 1L;
+    TarsUser mockUser = new TarsUser();
+    mockUser.setUserId(userId);
+    mockUser.setActive(true);
+    UserPreference userPreference = new UserPreference(userId);
+
+    when(tarsUserService.findById(userId)).thenReturn(mockUser);
+    when(tarsService.setUserPreference(userPreference)).thenReturn(false);
+
+    mockMvc.perform(put("/user/" + userId + "/add")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(userPreference)))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string("Failed to add user preferences."));
+
+    verify(tarsService).setUserPreference(userPreference);
+  }
+
+
+  /**
+   * {@code loginWithUsernameSuccessTest} Verifies successful login with
+   * username returns 200 OK with user data and preferences.
+   */
+  @Test
+  public void loginWithUsernameSuccessTest() throws Exception {
+    TarsUser mockUser = new TarsUser();
+    mockUser.setUserId(1L);
+    mockUser.setClientId(1L);
+    mockUser.setUsername("alice");
+    mockUser.setEmail("alice@gmail.com");
+    mockUser.setRole("admin");
+    mockUser.setActive(true);
+
+    List<TarsUser> allUsers = new ArrayList<>();
+    allUsers.add(mockUser);
+
+    UserPreference mockPrefs = new UserPreference(1L);
+    List<String> cityPrefs = new ArrayList<>();
+    cityPrefs.add("New York");
+    mockPrefs.setCityPreferences(cityPrefs);
+
+    when(tarsUserService.listUsers()).thenReturn(allUsers);
+    when(tarsService.getUserPreference(1L)).thenReturn(mockPrefs);
+
+    Map<String, String> loginBody = new HashMap<>();
+    loginBody.put("username", "alice");
+
+    mockMvc.perform(post("/login")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(loginBody)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.userId").value(1))
+        .andExpect(jsonPath("$.username").value("alice"))
+        .andExpect(jsonPath("$.preferences").exists());
+
+    verify(tarsUserService).listUsers();
+    verify(tarsService).getUserPreference(1L);
+  }
+
+  /**
+   * {@code loginWithEmailSuccessTest} Verifies successful login with
+   * email returns 200 OK.
+   */
+  @Test
+  public void loginWithEmailSuccessTest() throws Exception {
+    TarsUser mockUser = new TarsUser();
+    mockUser.setUserId(1L);
+    mockUser.setClientId(1L);
+    mockUser.setUsername("alice");
+    mockUser.setEmail("alice@gmail.com");
+    mockUser.setRole("admin");
+    mockUser.setActive(true);
+
+    List<TarsUser> allUsers = new ArrayList<>();
+    allUsers.add(mockUser);
+
+    UserPreference mockPrefs = new UserPreference(1L);
+
+    when(tarsUserService.listUsers()).thenReturn(allUsers);
+    when(tarsService.getUserPreference(1L)).thenReturn(mockPrefs);
+
+    Map<String, String> loginBody = new HashMap<>();
+    loginBody.put("email", "alice@gmail.com");
+
+    mockMvc.perform(post("/login")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(loginBody)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.userId").value(1));
+
+    verify(tarsUserService).listUsers();
+  }
+
+  /**
+   * {@code loginWithUserIdSuccessTest} Verifies successful login with
+   * userId returns 200 OK.
+   */
+  @Test
+  public void loginWithUserIdSuccessTest() throws Exception {
+    Long userId = 1L;
+    TarsUser mockUser = new TarsUser();
+    mockUser.setUserId(userId);
+    mockUser.setClientId(1L);
+    mockUser.setUsername("alice");
+    mockUser.setEmail("alice@gmail.com");
+    mockUser.setRole("admin");
+    mockUser.setActive(true);
+
+    UserPreference mockPrefs = new UserPreference(userId);
+
+    when(tarsUserService.findById(userId)).thenReturn(mockUser);
+    when(tarsService.getUserPreference(userId)).thenReturn(mockPrefs);
+
+    Map<String, String> loginBody = new HashMap<>();
+    loginBody.put("userId", userId.toString());
+
+    mockMvc.perform(post("/login")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(loginBody)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.userId").value(userId.intValue()));
+
+    verify(tarsUserService).findById(userId);
+  }
+
+  /**
+   * {@code loginMissingCredentialsTest} Validates missing credentials
+   * returns 400 BAD REQUEST.
+   */
+  @Test
+  public void loginMissingCredentialsTest() throws Exception {
+    Map<String, String> loginBody = new HashMap<>();
+
+    mockMvc.perform(post("/login")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(loginBody)))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string("Username, email, or userId is required"));
+  }
+
+  /**
+   * {@code loginUserNotFoundTest} Confirms non-existent user
+   * returns 404 NOT FOUND.
+   */
+  @Test
+  public void loginUserNotFoundTest() throws Exception {
+    String username = "nonexistent";
+    List<TarsUser> allUsers = new ArrayList<>();
+
+    when(tarsUserService.listUsers()).thenReturn(allUsers);
+
+    Map<String, String> loginBody = new HashMap<>();
+    loginBody.put("username", username);
+
+    mockMvc.perform(post("/login")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(loginBody)))
+        .andExpect(status().isNotFound())
+        .andExpect(content().string("User not found. Please check your credentials."));
+
+    verify(tarsUserService).listUsers();
+  }
+
+  /**
+   * {@code loginInactiveUserTest} Validates inactive user
+   * returns 403 FORBIDDEN.
+   */
+  @Test
+  public void loginInactiveUserTest() throws Exception {
+    TarsUser mockUser = new TarsUser();
+    mockUser.setUserId(2L);
+    mockUser.setUsername("bob");
+    mockUser.setActive(false);
+
+    List<TarsUser> allUsers = new ArrayList<>();
+    allUsers.add(mockUser);
+
+    when(tarsUserService.listUsers()).thenReturn(allUsers);
+
+    Map<String, String> loginBody = new HashMap<>();
+    loginBody.put("username", "bob");
+
+    mockMvc.perform(post("/login")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(loginBody)))
+        .andExpect(status().isForbidden())
+        .andExpect(content().string("User account is inactive."));
+
+    verify(tarsUserService).listUsers();
   }
 }

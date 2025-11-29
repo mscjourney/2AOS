@@ -13,7 +13,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests parameter validation and basic functionality.
+ * Comprehensive tests for WeatherAlertModel.
+ * Includes parameter validation, basic functionality, edge cases, boundary conditions,
+ * and error handling.
  */
 public class WeatherAlertModelTest {
 
@@ -26,6 +28,8 @@ public class WeatherAlertModelTest {
     cityPreferences.add("London");
     testUser = new UserPreference(1L, new ArrayList<>(), new ArrayList<>(), cityPreferences);
   }
+
+  // ========== Parameter Validation Tests ==========
 
   @Test
   void testGetWeatherAlertsWithNoParameters() {
@@ -56,6 +60,66 @@ public class WeatherAlertModelTest {
   }
 
   @Test
+  void testGetWeatherAlertsWithEmptyCityName() {
+    assertThrows(IllegalArgumentException.class, () -> {
+      WeatherAlertModel.getWeatherAlerts("", null, null);
+    });
+  }
+
+  @Test
+  void testGetWeatherAlertsWithWhitespaceOnlyCity() {
+    assertThrows(IllegalArgumentException.class, () -> {
+      WeatherAlertModel.getWeatherAlerts("   ", null, null);
+    });
+  }
+
+  // ========== Basic Functionality Tests ==========
+
+  @Test
+  void testGetWeatherAlertsWithValidCoordinates() {
+    WeatherAlert result = WeatherAlertModel.getWeatherAlerts(null, 40.7128, -74.0060);
+
+    assertNotNull(result);
+    assertEquals("40.7128, -74.0060", result.getLocation());
+    assertNotNull(result.getTimestamp());
+    assertNotNull(result.getAlerts());
+    assertNotNull(result.getRecommendations());
+    assertNotNull(result.getCurrentConditions());
+  }
+
+  @Test
+  void testGetWeatherAlertsWithCityParameter() {
+    WeatherAlert result = WeatherAlertModel.getWeatherAlerts("New York", null, null);
+
+    assertNotNull(result);
+    assertEquals("New York", result.getLocation());
+    assertNotNull(result.getTimestamp());
+    assertNotNull(result.getAlerts());
+    assertNotNull(result.getRecommendations());
+    assertNotNull(result.getCurrentConditions());
+  }
+
+  @Test
+  void testGetWeatherAlertsWithNullCityButValidCoordinates() {
+    WeatherAlert alert = WeatherAlertModel.getWeatherAlerts(null, 40.7128, -74.0060);
+    
+    assertNotNull(alert);
+    assertTrue(alert.getLocation().contains("40.7128"));
+    assertTrue(alert.getLocation().contains("-74.0060"));
+  }
+
+  @Test
+  void testGetWeatherAlertsWithCityAndCoordinates() {
+    // When both city and coordinates are provided, coordinates should be used
+    WeatherAlert alert = WeatherAlertModel.getWeatherAlerts("New York", 51.5074, -0.1278);
+    
+    assertNotNull(alert);
+    // Should use coordinates, not city name
+    assertTrue(alert.getLocation().contains("51.5074"));
+    assertTrue(alert.getLocation().contains("-0.1278"));
+  }
+
+  @Test
   void testGetUserAlertsWithEmptyCityPreferences() {
     UserPreference userWithNoCities = new UserPreference(2L, new ArrayList<>(), 
                                                           new ArrayList<>(), new ArrayList<>());
@@ -77,36 +141,11 @@ public class WeatherAlertModelTest {
   }
 
   @Test
-  void testGetWeatherAlertsWithValidCoordinates() {
-    WeatherAlert result = WeatherAlertModel.getWeatherAlerts(null, 40.7128, -74.0060);
-
-    assertNotNull(result);
-    assertEquals("40.7128, -74.0060", result.getLocation());
-    assertNotNull(result.getTimestamp());
-    assertNotNull(result.getAlerts());
-    assertNotNull(result.getRecommendations());
-    assertNotNull(result.getCurrentConditions());
-  }
-
-
-  @Test
   void testGetWeatherAlertsWithNegativeCoordinates() {
     WeatherAlert result = WeatherAlertModel.getWeatherAlerts(null, -90.0, -180.0);
 
     assertNotNull(result);
     assertEquals("-90.0000, -180.0000", result.getLocation());
-  }
-
-  @Test
-  void testGetWeatherAlertsWithCityParameter() {
-    WeatherAlert result = WeatherAlertModel.getWeatherAlerts("New York", null, null);
-
-    assertNotNull(result);
-    assertEquals("New York", result.getLocation());
-    assertNotNull(result.getTimestamp());
-    assertNotNull(result.getAlerts());
-    assertNotNull(result.getRecommendations());
-    assertNotNull(result.getCurrentConditions());
   }
 
   @Test

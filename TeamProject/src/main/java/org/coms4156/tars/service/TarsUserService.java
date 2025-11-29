@@ -401,4 +401,35 @@ public class TarsUserService {
     return false;
   }
 
+  /**
+   * {@code deleteUser} Deletes a user by their userId.
+   *
+   * @param userId the unique identifier for the user to delete
+   * @return the deleted TarsUser if found and deleted, or null if not found
+   */
+  public synchronized TarsUser deleteUser(Long userId) {
+    if (userId == null) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("deleteUser rejected: null userId");
+      }
+      return null;
+    }
+
+    TarsUser targetUser = findById(userId);
+    if (targetUser == null) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("deleteUser: user not found id={}", userId);
+      }
+      return null;
+    }
+
+    users.remove(targetUser);
+    persist();
+    
+    if (logger.isInfoEnabled()) {
+      logger.info("Deleted TarsUser id={} username='{}'", userId, targetUser.getUsername());
+    }
+    return targetUser;
+  }
+
 }

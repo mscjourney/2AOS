@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.coms4156.tars.model.CitySummary;
 import org.coms4156.tars.model.Client;
+import org.coms4156.tars.model.CountryModel;
+import org.coms4156.tars.model.CountrySummary;
 import org.coms4156.tars.model.CrimeModel;
 import org.coms4156.tars.model.CrimeSummary;
 import org.coms4156.tars.model.TarsUser;
@@ -27,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -87,6 +90,32 @@ public class RouteController {
       logger.info("GET /index invoked");
     }
     return "Welcome to the TARS Home Page!";
+  }
+
+  /**
+   * Handles GET requests to retrieve all clients.
+   *
+   * @return a ResponseEntity containing a list of all Client objects if successful,
+   *         or an error response if the operation fails
+   */
+  @GetMapping("/clients")
+  public ResponseEntity<?> getClients() {
+    if (logger.isInfoEnabled()) {
+      logger.info("GET /clients invoked");
+    }
+    try {
+      List<Client> clients = clientService.getClientList();
+      if (logger.isInfoEnabled()) {
+        logger.info("GET /clients success: returned {} clients", clients.size());
+      }
+      return ResponseEntity.ok(clients);
+    } catch (Exception e) {
+      if (logger.isErrorEnabled()) {
+        logger.error("GET /clients failed", e);
+      }
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body("Failed to retrieve clients: " + e.getMessage());
+    }
   }
 
   /**
@@ -404,14 +433,15 @@ public class RouteController {
    * Handles PUT requests to remove a user.
    *
    * @param id the id of the user that we are removing
-   * @return a ResponseEntity containing the message stating whether the user removal was
-   *          successful or not.
+   * @return a ResponseEntity containing a success message if the user was successfully removed,
+   *          or an error message indicating that the user was not found or the id is invalid.
    */
   @PutMapping({"/clearPreference/{id}"})
   public ResponseEntity<?> clearUserPreference(@PathVariable Long id) {    
     if (logger.isInfoEnabled()) {
       logger.info("PUT /clearPreference/{} invoked", id);
     }
+    
     if (id < 0) {
       if (logger.isWarnEnabled()) {
         logger.warn("PUT /clearPreference/{} failed: User cannot have negative ids", id);
@@ -482,6 +512,132 @@ public class RouteController {
     return new ResponseEntity<>("User had no existing preferences.", HttpStatus.BAD_REQUEST);
   }
 
+  /**
+   * Handles PUT requests to update user preferences.
+   * This endpoint matches the frontend API call pattern.
+   *
+   * @param userId the id of the user to update
+   * @param userPreference the UserPreference object containing the updated preferences
+   * @return a ResponseEntity containing the updated UserPreference if successful,
+   *         or an error message if the user was not found or invalid.
+   */
+  @PutMapping({"/user/{userId}/update"})
+  public ResponseEntity<?> updateUserPreference(@PathVariable Long userId,
+                                              @RequestBody UserPreference userPreference) {
+    if (logger.isInfoEnabled()) {
+      logger.info("PUT /user/{}/update invoked", userId);
+    }
+
+    if (userId == null || userId < 0) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("PUT /user/{}/update failed: invalid userId", userId);
+      }
+      return new ResponseEntity<>("User Id cannot be negative.", HttpStatus.BAD_REQUEST);
+    }
+
+    if (userPreference == null) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("PUT /user/{}/update failed: request body is null", userId);
+      }
+      return new ResponseEntity<>("Request body cannot be null.", HttpStatus.BAD_REQUEST);
+    }
+
+    if (!userId.equals(userPreference.getId())) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("PUT /user/{}/update failed: userId mismatch. Path: {}, Body: {}",
+            userId, userPreference.getId());
+      }
+      return new ResponseEntity<>("Path Variable and RequestBody User Id do not match.",
+          HttpStatus.BAD_REQUEST);
+    }
+
+    // Check that the TarsUser exists
+    TarsUser tarsUser = tarsUserService.findById(userId);
+    if (tarsUser == null) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("PUT /user/{}/update failed: TarsUser not found", userId);
+      }
+      return new ResponseEntity<>("TarsUser not found.", HttpStatus.NOT_FOUND);
+    }
+
+    // Update the user preferences
+    boolean updated = tarsService.updateUser(userPreference);
+    if (updated) {
+      if (logger.isInfoEnabled()) {
+        logger.info("PUT /user/{}/update success", userId);
+      }
+      return new ResponseEntity<>(userPreference, HttpStatus.OK);
+    } else {
+      if (logger.isWarnEnabled()) {
+        logger.warn("PUT /user/{}/update failed: updateUser returned false", userId);
+      }
+      return new ResponseEntity<>("Failed to update user preferences.", HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /**
+   * Handles PUT requests to add user preferences.
+   * This endpoint matches the frontend API call pattern.
+   *
+   * @param userId the id of the user to add preferences for
+   * @param userPreference the UserPreference object containing the preferences
+   * @return a ResponseEntity containing the added UserPreference if successful,
+   *         or an error message if the user was not found or invalid.
+   */
+  @PutMapping({"/user/{userId}/add"})
+  public ResponseEntity<?> addUserPreference(@PathVariable Long userId,
+                                             @RequestBody UserPreference userPreference) {
+    if (logger.isInfoEnabled()) {
+      logger.info("PUT /user/{}/add invoked", userId);
+    }
+
+    if (userId == null || userId < 0) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("PUT /user/{}/add failed: invalid userId", userId);
+      }
+      return new ResponseEntity<>("User Id cannot be negative.", HttpStatus.BAD_REQUEST);
+    }
+
+    if (userPreference == null) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("PUT /user/{}/add failed: request body is null", userId);
+      }
+      return new ResponseEntity<>("Request body cannot be null.", HttpStatus.BAD_REQUEST);
+    }
+
+    if (!userId.equals(userPreference.getId())) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("PUT /user/{}/add failed: userId mismatch. Path: {}, Body: {}",
+            userId, userPreference.getId());
+      }
+      return new ResponseEntity<>("Path Variable and RequestBody User Id do not match.",
+          HttpStatus.BAD_REQUEST);
+    }
+
+    // Check that the TarsUser exists
+    TarsUser tarsUser = tarsUserService.findById(userId);
+    if (tarsUser == null) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("PUT /user/{}/add failed: TarsUser not found", userId);
+      }
+      return new ResponseEntity<>("TarsUser not found.", HttpStatus.NOT_FOUND);
+    }
+
+    // Add or update the user preferences (setUserPreference handles both)
+    boolean added = tarsService.setUserPreference(userPreference);
+    if (added) {
+      if (logger.isInfoEnabled()) {
+        logger.info("PUT /user/{}/add success", userId);
+      }
+      return new ResponseEntity<>(userPreference, HttpStatus.OK);
+    } else {
+      if (logger.isWarnEnabled()) {
+        logger.warn("PUT /user/{}/add failed: setUserPreference returned false", userId);
+      }
+      return new ResponseEntity<>("Failed to add user preferences.", HttpStatus.BAD_REQUEST);
+    }
+  }
+
   // #TODO: /userPreferencesList
   /**
    * Handles GET requests to retrieve preference information about all the existing users.
@@ -496,6 +652,67 @@ public class RouteController {
       List<UserPreference> userPreferenceList = tarsService.getUserPreferenceList();
       return new ResponseEntity<>(userPreferenceList, HttpStatus.OK);
     } catch (Exception e) {
+      if (logger.isErrorEnabled()) {
+        logger.error("GET /userList failed", e);
+      }
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /**
+   * Handles GET requests to retrieve all TarsUsers from users.json.
+   *
+   * @return a ResponseEntity containing all TarsUser objects in json format if successful.
+   *          Otherwise, return the status code INTERNAL_SERVER_ERROR.
+   */
+  @GetMapping("/tarsUsers")
+  public ResponseEntity<List<TarsUser>> getTarsUsers() {
+    if (logger.isInfoEnabled()) {
+      logger.info("GET /tarsUsers invoked");
+    }
+    try {
+      List<TarsUser> tarsUsers = tarsUserService.listUsers();
+      if (logger.isInfoEnabled()) {
+        logger.info("GET /tarsUsers success: returned {} users", tarsUsers.size());
+      }
+      return new ResponseEntity<>(tarsUsers, HttpStatus.OK);
+    } catch (Exception e) {
+      if (logger.isErrorEnabled()) {
+        logger.error("GET /tarsUsers failed", e);
+      }
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /**
+   * Handles DELETE requests to delete a TarsUser by their userId.
+   *
+   * @param userId the unique identifier of the user to delete
+   * @return a ResponseEntity containing the deleted TarsUser if successful,
+   *         NOT_FOUND if user doesn't exist, or INTERNAL_SERVER_ERROR on failure.
+   */
+  @DeleteMapping("/tarsUsers/{userId}")
+  public ResponseEntity<?> deleteTarsUser(@PathVariable long userId) {
+    if (logger.isInfoEnabled()) {
+      logger.info("DELETE /tarsUsers/{} invoked", userId);
+    }
+    try {
+      TarsUser deletedUser = tarsUserService.deleteUser(userId);
+      if (deletedUser == null) {
+        if (logger.isWarnEnabled()) {
+          logger.warn("DELETE /tarsUsers/{} failed: user not found", userId);
+        }
+        return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+      }
+      if (logger.isInfoEnabled()) {
+        logger.info("DELETE /tarsUsers/{} success: deleted user '{}'", 
+            userId, deletedUser.getUsername());
+      }
+      return new ResponseEntity<>(deletedUser, HttpStatus.OK);
+    } catch (Exception e) {
+      if (logger.isErrorEnabled()) {
+        logger.error("DELETE /tarsUsers/{} failed", userId, e);
+      }
       return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
@@ -503,27 +720,222 @@ public class RouteController {
   // /**
   //  * Handles GET requests to retrieve userPreference information about all existing users 
   //  * under a specified client.
-  //  *
-  //  * @param clientId the id of the client we want to retrieve user data for.
-  //  * @return a ResponseEntity containing the User Preferences data in json format for all users
-  //  *          under a client specified by clientId. Returns an empty json if no users are found.
-  //  *          Otherwise, return the status code INTERNAL_SERVER_ERROR.
-  //  */
-  // @GetMapping("/userList/client/{clientId}")
-  // public ResponseEntity<List<UserPreference>> getClientUserList(@PathVariable int clientId) {
-  //   try {
-  //     List<UserPreference> userList = tarsService.getUserPreferenceList();
-  //     List<UserPreference> clientUserList = new ArrayList<>();
-  //     for (UserPreference user : userList) {
-  //       if (user.getClientId() == clientId) {
-  //         clientUserList.add(user);
-  //       }
-  //     }
-  //     return new ResponseEntity<>(clientUserList, HttpStatus.OK);
-  //   } catch (Exception e) {
-  //     return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-  //   }
-  // }
+  /**
+   * Handles GET requests to retrieve user preferences for a specific clientId.
+   * This finds the TarsUser with the matching clientId and returns their preferences.
+   *
+   * @param clientId the id of the client we want to retrieve user data for
+   * @return a ResponseEntity containing the UserPreference for the user
+   *         with the specified clientId, or empty preferences if not found
+   */
+  @GetMapping("/user/client/{clientId}")
+  public ResponseEntity<?> getUserByClientId(@PathVariable Long clientId) {
+    if (logger.isInfoEnabled()) {
+      logger.info("GET /user/client/{} invoked", clientId);
+    }
+    try {
+      // Find TarsUser by clientId
+      List<TarsUser> allUsers = tarsUserService.listUsers();
+      TarsUser foundUser = null;
+      for (TarsUser user : allUsers) {
+        if (user.getClientId() != null && user.getClientId().equals(clientId)) {
+          foundUser = user;
+          break;
+        }
+      }
+      
+      if (foundUser == null) {
+        if (logger.isWarnEnabled()) {
+          logger.warn("No user found for clientId={}", clientId);
+        }
+        // Return empty preferences
+        UserPreference emptyPrefs = new UserPreference();
+        return ResponseEntity.ok(emptyPrefs);
+      }
+      
+      // Get preferences for this user
+      UserPreference userPrefs = tarsService.getUserPreference(foundUser.getUserId());
+      if (userPrefs == null) {
+        // User exists but has no preferences yet
+        UserPreference emptyPrefs = new UserPreference(foundUser.getUserId());
+        if (logger.isInfoEnabled()) {
+          logger.info("GET /user/client/{} success: user found but no preferences", clientId);
+        }
+        return ResponseEntity.ok(emptyPrefs);
+      }
+      
+      if (logger.isInfoEnabled()) {
+        logger.info("GET /user/client/{} success: found user preferences", clientId);
+      }
+      return ResponseEntity.ok(userPrefs);
+    } catch (Exception e) {
+      if (logger.isErrorEnabled()) {
+        logger.error("GET /user/client/{} failed", clientId, e);
+      }
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body("Failed to retrieve user for client: " + e.getMessage());
+    }
+  }
+
+  /**
+   * Handles GET requests to retrieve all user preferences
+   *          under a client specified by clientId. Returns an empty json if no users are found.
+   *          Otherwise, return the status code INTERNAL_SERVER_ERROR.
+   *
+   * @param clientId the id of the client we want to retrieve user data for
+   * @return a ResponseEntity containing the User Preferences data in json format for all users
+   *          under a client specified by clientId. Returns an empty json if no users are found.
+   *          Otherwise, return the status code INTERNAL_SERVER_ERROR.
+   */
+  @GetMapping("/userList/client/{clientId}")
+  public ResponseEntity<?> getClientUserList(@PathVariable Long clientId) {
+    if (logger.isInfoEnabled()) {
+      logger.info("GET /userList/client/{} invoked", clientId);
+    }
+    try {
+      // Get all TarsUsers for this clientId
+      List<TarsUser> allUsers = tarsUserService.listUsers();
+      List<TarsUser> clientUsers = new ArrayList<>();
+      for (TarsUser user : allUsers) {
+        if (user.getClientId() != null && user.getClientId().equals(clientId)) {
+          clientUsers.add(user);
+        }
+      }
+      
+      // Get preferences for each user
+      List<UserPreference> clientUserList = new ArrayList<>();
+      for (TarsUser user : clientUsers) {
+        UserPreference prefs = tarsService.getUserPreference(user.getUserId());
+        if (prefs != null) {
+          clientUserList.add(prefs);
+        } else {
+          // Create empty preferences for users without preferences
+          clientUserList.add(new UserPreference(user.getUserId()));
+        }
+      }
+      
+      if (logger.isInfoEnabled()) {
+        logger.info("GET /userList/client/{} success: found {} users",
+            clientId, clientUserList.size());
+      }
+      return ResponseEntity.ok(clientUserList);
+    } catch (Exception e) {
+      if (logger.isErrorEnabled()) {
+        logger.error("GET /userList/client/{} failed", clientId, e);
+      }
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body("Failed to retrieve users for client: " + e.getMessage());
+    }
+  }
+
+  /**
+   * Handles POST requests for user login.
+   * Finds a user by username, email, or userId and returns their data with preferences.
+   *
+   * @param body JSON object containing username, email, or userId
+   * @return a ResponseEntity containing user data and preferences if successful,
+   *         or an error message if user not found or inactive
+   */
+  @PostMapping("/login")
+  public ResponseEntity<?> login(@RequestBody Map<String, String> body) {
+    if (logger.isInfoEnabled()) {
+      logger.info("POST /login invoked");
+    }
+    
+    try {
+      String username = body != null ? body.get("username") : null;
+      String email = body != null ? body.get("email") : null;
+      String userIdStr = body != null ? body.get("userId") : null;
+      
+      if (username == null && email == null && userIdStr == null) {
+        return ResponseEntity.badRequest()
+            .body("Username, email, or userId is required");
+      }
+      
+      // Find user by userId, username, or email
+      TarsUser foundUser = null;
+      List<TarsUser> allUsers = tarsUserService.listUsers();
+      
+      if (userIdStr != null) {
+        try {
+          Long userId = Long.parseLong(userIdStr);
+          foundUser = tarsUserService.findById(userId);
+        } catch (NumberFormatException e) {
+          if (logger.isWarnEnabled()) {
+            logger.warn("Invalid userId format: {}", userIdStr);
+          }
+        }
+      } else if (username != null) {
+        String searchUsername = username.toLowerCase().trim();
+        for (TarsUser user : allUsers) {
+          if (user.getUsername() != null 
+              && user.getUsername().toLowerCase().equals(searchUsername)) {
+            foundUser = user;
+            break;
+          }
+        }
+      } else if (email != null) {
+        String searchEmail = email.toLowerCase().trim();
+        for (TarsUser user : allUsers) {
+          if (user.getEmail() != null 
+              && user.getEmail().toLowerCase().equals(searchEmail)) {
+            foundUser = user;
+            break;
+          }
+        }
+      }
+      
+      if (foundUser == null) {
+        if (logger.isWarnEnabled()) {
+          logger.warn("Login failed: user not found");
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body("User not found. Please check your credentials.");
+      }
+      
+      // Check if user is active
+      if (!foundUser.getActive()) {
+        if (logger.isWarnEnabled()) {
+          logger.warn("Login failed: user account inactive userId={}", foundUser.getUserId());
+        }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+            .body("User account is inactive.");
+      }
+      
+      // Get user preferences
+      UserPreference userPrefs = tarsService.getUserPreference(foundUser.getUserId());
+      if (userPrefs == null) {
+        // User exists but has no preferences yet - create empty preferences
+        userPrefs = new UserPreference(foundUser.getUserId());
+      }
+      
+      // Build response
+      Map<String, Object> response = new java.util.HashMap<>();
+      response.put("userId", foundUser.getUserId());
+      response.put("clientId", foundUser.getClientId());
+      response.put("username", foundUser.getUsername());
+      response.put("email", foundUser.getEmail());
+      response.put("role", foundUser.getRole());
+      
+      Map<String, Object> preferences = new java.util.HashMap<>();
+      preferences.put("cityPreferences", userPrefs.getCityPreferences());
+      preferences.put("weatherPreferences", userPrefs.getWeatherPreferences());
+      preferences.put("temperaturePreferences", userPrefs.getTemperaturePreferences());
+      response.put("preferences", preferences);
+      
+      if (logger.isInfoEnabled()) {
+        logger.info("Login successful for user: userId={}", foundUser.getUserId());
+      }
+      return ResponseEntity.ok(response);
+      
+    } catch (Exception e) {
+      if (logger.isErrorEnabled()) {
+        logger.error("POST /login failed", e);
+      }
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body("Login failed: " + e.getMessage());
+    }
+  }
 
   /**
    * Handles GET requests to retrieve weather recommendations for a specified city
@@ -552,57 +964,6 @@ public class RouteController {
       // if (logger.isDebugEnabled()) {
       //   logger.debug("Recommendation detail: {}", recommendation);
       // }
-      return ResponseEntity.ok(recommendation);
-
-    } catch (Exception e) {
-      if (logger.isErrorEnabled()) {
-        logger.error("Error generating recommendation city={} days={}", city, days, e);
-      }
-      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  /**
-   * Handles GET requests to retrieve weather recommendations for a specified city
-   * and number of forecast days given user preferences.
-   */
-  @GetMapping("/recommendation/weather/user")
-  public ResponseEntity<WeatherRecommendation> getUserWeatherRecommendation(
-          @RequestParam String city,
-          @RequestParam long userId,
-          @RequestParam int days) {
-    if (logger.isInfoEnabled()) {
-      logger.info("GET /recommendation/weather city={} days={}", city, days);
-    }
-    try {
-      if (days <= 0 || days > 14) {
-        if (logger.isWarnEnabled()) {
-          logger.warn("Invalid days parameter: {}", days);
-        }
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-      }
-
-      UserPreference user = tarsService.getUserPreference(userId);
-      if (userId < 0) {
-        if (logger.isWarnEnabled()) {
-          logger.warn("Negative userId provided: {}", userId);
-        }
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-      }
-
-      if (user == null) {
-        if (logger.isWarnEnabled()) {
-          logger.warn("No user found for id={}", userId);
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-      }
-
-      WeatherRecommendation recommendation = WeatherModel.getUserRecDays(city, days, user);
-
-      if (logger.isInfoEnabled()) {
-        logger.info("Weather recommendation generated for city={} days={}", city, days);
-      }
-
       return ResponseEntity.ok(recommendation);
 
     } catch (Exception e) {
@@ -742,7 +1103,8 @@ public class RouteController {
         logger.error("Error fetching crime summary state={} offense={} month={} year={}", 
             state, offense, month, year, e);
       }
-      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+      String errorMessage = e.getMessage() != null ? e.getMessage() : "Unknown error occurred";
+      return new ResponseEntity<>("Error: " + errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -774,6 +1136,57 @@ public class RouteController {
     } catch (Exception e) {
       logger.error("Error retrieving advisory for country={}", country, e);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    }
+  }
+
+  /**
+   * Retrieves a country summary for a given country.
+   *
+   * @param country the country to summarize
+   * @return the country summary or an error response
+   */
+  @GetMapping("/countrySummary/{country}")
+  public ResponseEntity<?> getCountrySummary(@PathVariable String country) {
+    if (logger.isInfoEnabled()) {
+      logger.info("GET /countrySummary/{} invoked", country);
+    }
+
+    try {
+      CountryModel countryModel = new CountryModel();
+      CountrySummary summary = countryModel.getCountrySummary(country);
+
+      if (summary == null) {
+        if (logger.isWarnEnabled()) {
+          logger.warn("No country summary found for country={}", country);
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body("Country not found: " + country);
+      }
+
+      // Get travel advisory for the country
+      TravelAdvisoryModel advisoryModel = new TravelAdvisoryModel();
+      TravelAdvisory advisory = advisoryModel.getTravelAdvisory(country);
+
+      // Set the travel advisory in the summary
+      summary.setTravelAdvisory(advisory);
+
+      if (logger.isInfoEnabled()) {
+        logger.info("GET /countrySummary/{} success", country);
+      }
+      return ResponseEntity.ok(summary);
+
+    } catch (IllegalArgumentException e) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("GET /countrySummary/{} failed: {}", country, e.getMessage());
+      }
+      return ResponseEntity.badRequest().body(e.getMessage());
+
+    } catch (Exception e) {
+      if (logger.isErrorEnabled()) {
+        logger.error("Error retrieving country summary for country={}", country, e);
+      }
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body("Error retrieving country summary: " + e.getMessage());
     }
   }
 
