@@ -1,8 +1,8 @@
 [
   {
     "country": "United States",
-    "level": "",
-    "risk_indicators": []
+    "level": "No advisory",
+    "risk_indicators": ["No nationwide travel advisory issued"]
   },
   {
     "country": "Afghanistan",

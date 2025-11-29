@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.coms4156.tars.controller.RouteController;
-import org.coms4156.tars.model.User;
+import org.coms4156.tars.model.UserPreference;
 import org.coms4156.tars.model.WeatherAlert;
 import org.coms4156.tars.model.WeatherAlertModel;
 import org.coms4156.tars.service.ClientService;
@@ -48,7 +48,7 @@ public class AlertTest {
 
   private List<WeatherAlert> mockList;
   private WeatherAlert mockWeatherAlert;
-  private User mockUser;
+  private UserPreference mockUser;
   private List<Map<String, String>> mockAlerts;
   private List<String> mockRecommendations;
   private Map<String, Object> mockCurrentConditions;
@@ -90,12 +90,12 @@ public class AlertTest {
     cityPreferences.add("New York");
     cityPreferences.add("Paris");
 
-    mockUser = new User(2, 2, weatherPreferences, temperaturePreferences, cityPreferences);
+    mockUser = new UserPreference(2L, weatherPreferences, temperaturePreferences, cityPreferences);
   }
 
   @Test
   void testGetUserAlertsWithValidId() throws Exception {
-    Mockito.when(tarsService.getUser(2)).thenReturn(mockUser);
+    Mockito.when(tarsService.getUserPreference(2L)).thenReturn(mockUser);
 
     try (MockedStatic<WeatherAlertModel> mockedModel =
         Mockito.mockStatic(WeatherAlertModel.class)) {
@@ -125,7 +125,7 @@ public class AlertTest {
 
   @Test
   void testGetUserAlertsWithNoSuchId() throws Exception {
-    Mockito.when(tarsService.getUser(0)).thenReturn(null);
+    Mockito.when(tarsService.getUserPreference(0L)).thenReturn(null);
 
     mockMvc.perform(get("/alert/weather/user/0"))
         .andExpect(status().isNotFound())
@@ -141,7 +141,7 @@ public class AlertTest {
 
   @Test
   void testGetUserAlertsWithValidIdButEmptyAlerts() throws Exception {
-    Mockito.when(tarsService.getUser(3)).thenReturn(mockUser);
+    Mockito.when(tarsService.getUserPreference(3L)).thenReturn(mockUser);
 
     try (MockedStatic<WeatherAlertModel> mockedModel =
         Mockito.mockStatic(WeatherAlertModel.class)) {

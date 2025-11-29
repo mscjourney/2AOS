@@ -2,6 +2,7 @@ package org.coms4156.tars.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Travel Advisory object.
@@ -11,7 +12,7 @@ public class TravelAdvisory {
   private String level;
 
   @JsonProperty("risk_indicators")
-  private ArrayList<String> riskIndicators;
+  private List<String> riskIndicators;
 
   /**
    * Default constructor.
@@ -23,7 +24,7 @@ public class TravelAdvisory {
   /**
    * Complete constuctor for the TravelAdvisory object.
    */
-  public TravelAdvisory(String country, String level, ArrayList<String> riskIndicators) {
+  public TravelAdvisory(String country, String level, List<String> riskIndicators) {
     this.country = country;
     this.level = level;
     this.riskIndicators = riskIndicators;
@@ -45,7 +46,7 @@ public class TravelAdvisory {
     this.level = level;
   }
 
-  public ArrayList<String> getRiskIndicators() {
+  public List<String> getRiskIndicators() {
     return riskIndicators;
   }
 

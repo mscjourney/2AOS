@@ -183,21 +183,23 @@ public class WeatherAlertModel {
       double windSpeed = parseValue(currentSection, "wind_speed_10m");
       double precipitation = parseValue(currentSection, "precipitation");
 
-      if (precipitation > 2) {
+      if (!Double.isNaN(precipitation) && precipitation > 2) {
         recommendations.add("Bring an umbrella or raincoat");
         recommendations.add("Plan indoor activities");
-      } else if (temp > 15 && temp < 28 && windSpeed < 20) {
-        recommendations.add("Great weather for outdoor activities");
-        recommendations.add("Good day for sightseeing");
+      } 
+
+      if (!Double.isNaN(temp)) {
+        if (temp > 30) {
+          recommendations.add("Stay hydrated and use sun protection");
+        } else if (temp > 15 && temp < 28) {
+          recommendations.add("Great weather for outdoor activities");
+          recommendations.add("Good day for sightseeing");
+        } else if (temp < 5) {
+          recommendations.add("Dress warmly in layers");
+        }
       }
 
-      if (temp > 30) {
-        recommendations.add("Stay hydrated and use sun protection");
-      } else if (temp < 5) {
-        recommendations.add("Dress warmly in layers");
-      }
-
-      if (windSpeed > 30) {
+      if (!Double.isNaN(windSpeed) && windSpeed > 30) {
         recommendations.add("Secure loose items and avoid exposed areas");
       }
 
@@ -238,13 +240,13 @@ public class WeatherAlertModel {
    *
    * @param json the JSON string section
    * @param key the key to extract
-   * @return the numeric value, or 0 if not found
+   * @return the numeric value, or Double.NaN if not found
    */
   private static double parseValue(String json, String key) {
     try {
       int index = json.indexOf("\"" + key + "\":");
       if (index == -1) {
-        return 0;
+        return Double.NaN;
       }
       String substring = json.substring(index + key.length() + 3);
       int endIndex = substring.indexOf(",");
@@ -253,7 +255,7 @@ public class WeatherAlertModel {
       }
       return Double.parseDouble(substring.substring(0, endIndex).trim());
     } catch (Exception e) {
-      return 0;
+      return Double.NaN;
     }
   }
 
@@ -301,7 +303,7 @@ public class WeatherAlertModel {
    * @return a list of WeatherAlert Objects containing the alerts for the user's city preferences.
    * @throws IllegalArgumentException if an invalid user is specified
    */
-  public static List<WeatherAlert> getUserAlerts(User user) {
+  public static List<WeatherAlert> getUserAlerts(UserPreference user) {
     if (user == null) {
       throw new IllegalArgumentException("User cannot be null");
     }
