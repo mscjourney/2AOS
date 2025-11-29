@@ -725,8 +725,8 @@ public class RouteController {
    * This finds the TarsUser with the matching clientId and returns their preferences.
    *
    * @param clientId the id of the client we want to retrieve user data for
-   * @return a ResponseEntity containing the UserPreference for the user with the specified clientId,
-   *         or empty preferences if not found
+   * @return a ResponseEntity containing the UserPreference for the user
+   *         with the specified clientId, or empty preferences if not found
    */
   @GetMapping("/user/client/{clientId}")
   public ResponseEntity<?> getUserByClientId(@PathVariable Long clientId) {
@@ -815,7 +815,8 @@ public class RouteController {
       }
       
       if (logger.isInfoEnabled()) {
-        logger.info("GET /userList/client/{} success: found {} users", clientId, clientUserList.size());
+        logger.info("GET /userList/client/{} success: found {} users",
+            clientId, clientUserList.size());
       }
       return ResponseEntity.ok(clientUserList);
     } catch (Exception e) {
