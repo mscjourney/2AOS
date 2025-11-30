@@ -93,12 +93,14 @@ jobs:
         with:
           name: surefire-reports-${{ matrix.java-version }}
           path: TeamProject/target/surefire-reports/
+          retention-days: 5
 
       - name: Upload Jacoco HTML
         uses: actions/upload-artifact@v4
         with:
           name: coverage-html-${{ matrix.java-version }}
           path: TeamProject/target/site/jacoco/
+          retention-days: 5
 
       - name: Extract Coverage Percentage
         id: coverage
@@ -126,7 +128,7 @@ jobs:
       - name: Enforce Minimum Branch Coverage
         run: |
           ACT=${{ steps.coverage.outputs.branch_coverage }}
-          MIN=55
+          MIN=64.0
           awk -v a="$ACT" -v m="$MIN" 'BEGIN{ if (a+0 < m+0) exit 1 }' \
             || { echo "❌ Branch coverage ${ACT}% < ${MIN}%"; exit 1; }
           echo "✅ Branch coverage OK (${ACT}% ≥ ${MIN}%)"
@@ -162,6 +164,7 @@ jobs:
         with:
           name: checkstyle-report
           path: TeamProject/target/checkstyle-result.xml
+          retention-days: 5
 
       # Optional: upload full target/checkstyle-cachefile if you want caching
       # - name: Upload Checkstyle Cache
@@ -202,6 +205,7 @@ jobs:
   #       with:
   #         name: production-build
   #         path: TeamProject/target/*SNAPSHOT.jar
+  #         retention-days: 5
 
   #     - name: Record SHA256
   #       run: |
@@ -213,6 +217,7 @@ jobs:
   #       with:
   #         name: build-sha256
   #         path: build-sha256.txt
+  #         retention-days: 5
 
   # deploy:
   #   runs-on: ubuntu-latest
