@@ -537,4 +537,73 @@ public class WeatherAlertModelTest {
     assertNotNull(recommendations2);
     assertEquals(0, recommendations2.size());
   }
+
+  @Test
+  void testGenerateRecommendationsTemperature() throws Exception {
+    Class<?> weatherAlertModelClass = Class.forName("org.coms4156.tars.model.WeatherAlertModel");
+    Method generateRecommendations = 
+          weatherAlertModelClass.getDeclaredMethod("generateRecommendations", String.class);
+    generateRecommendations.setAccessible(true);
+
+    String highTempJson = """
+      {
+        "current": {
+          "temperature_2m": 50
+        }
+      }
+        """;
+
+    List<String> recommendations = 
+          (List<String>) generateRecommendations.invoke(null, highTempJson);
+    assertNotNull(recommendations);
+    assertEquals(1, recommendations.size());
+    assertTrue(recommendations.contains("Stay hydrated and use sun protection"));
+
+    String lowTempJson = """
+      {
+        "current": {
+          "temperature_2m": 0
+        }
+      }
+        """;
+    recommendations = (List<String>) generateRecommendations.invoke(null, lowTempJson);
+    assertNotNull(recommendations);
+    assertEquals(1, recommendations.size());
+    assertTrue(recommendations.contains("Dress warmly in layers"));
+
+    String tempJson1 = """
+      {
+        "current": {
+          "temperature_2m": 10
+        }
+      }
+        """;
+    recommendations = (List<String>) generateRecommendations.invoke(null, tempJson1);
+    assertNotNull(recommendations);
+    assertEquals(0, recommendations.size());
+
+    String tempJson2 = """
+      {
+        "current": {
+          "temperature_2m": 20
+        }
+      }
+        """;
+    recommendations = (List<String>) generateRecommendations.invoke(null, tempJson2);
+    assertNotNull(recommendations);
+    assertEquals(2, recommendations.size());
+    assertTrue(recommendations.contains("Great weather for outdoor activities"));
+    assertTrue(recommendations.contains("Good day for sightseeing"));
+
+    String tempJson3 = """
+      {
+        "current": {
+          "temperature_2m": 29
+        }
+      }
+        """;
+    recommendations = (List<String>) generateRecommendations.invoke(null, tempJson3);
+    assertNotNull(recommendations);
+    assertEquals(0, recommendations.size());
+  }
 }
