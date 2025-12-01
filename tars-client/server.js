@@ -111,33 +111,25 @@ app.post('/api/client/createUser', async (req, res) => {
   }
 });
 
-// Add user preferences (call Java backend)
-app.put('/api/user/:id/add', async (req, res) => {
+// Set user preferences (adds or updates, call Java backend)
+app.put('/api/setPreference/:id', async (req, res) => {
   try {
     const userId = parseInt(req.params.id);
     const user = req.body;
-    console.log(`Adding preferences for userId: ${userId} via Java backend`, user);
-    const result = await apiClient.addUser(userId, user);
-    console.log('Java backend response:', result);
+    console.log(`[server] Setting preferences for userId: ${userId} via Java backend`);
+    console.log(`[server] Request body:`, JSON.stringify(user, null, 2));
+    const result = await apiClient.setUserPreference(userId, user);
+    console.log('[server] Java backend response:', result);
     res.json(result);
   } catch (error) {
-    console.error('Error adding user:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Update user preferences (call Java backend)
-app.put('/api/user/:id/update', async (req, res) => {
-  try {
-    const userId = parseInt(req.params.id);
-    const user = req.body;
-    console.log(`Updating preferences for userId: ${userId} via Java backend`, user);
-    const result = await apiClient.updateUser(userId, user);
-    console.log('Java backend response:', result);
-    res.json(result);
-  } catch (error) {
-    console.error('Error updating user:', error);
-    res.status(500).json({ error: error.message });
+    console.error('[server] Error setting user preference:', error);
+    console.error('[server] Error response:', error.response);
+    console.error('[server] Error message:', error.message);
+    // Preserve status code from Java backend if available
+    const statusCode = error.response?.status || 500;
+    const errorMessage = error.message || 'Failed to set user preference';
+    console.error(`[server] Returning status ${statusCode} with message: ${errorMessage}`);
+    res.status(statusCode).json({ error: errorMessage });
   }
 });
 
@@ -412,5 +404,16 @@ app.get('*', (req, res) => {
 app.listen(PORT, () => {
   console.log(`TARS Client Server running on http://localhost:${PORT}`);
   console.log(`Dashboard available at http://localhost:${PORT}/dashboard`);
+  console.log(`Registered routes:`);
+  console.log(`  PUT /api/setPreference/:id`);
+  console.log(`  PUT /api/user/:id/remove`);
+  console.log(`  GET /api/user/:id`);
+  // Log all registered routes for debugging
+  app._router.stack.forEach((middleware) => {
+    if (middleware.route) {
+      const methods = Object.keys(middleware.route.methods).join(', ').toUpperCase();
+      console.log(`  ${methods} ${middleware.route.path}`);
+    }
+  });
 });
 

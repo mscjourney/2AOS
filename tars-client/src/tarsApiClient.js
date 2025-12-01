@@ -124,36 +124,30 @@ class TarsApiClient {
   }
 
   /**
-   * Add user preferences
+   * Set user preferences (adds or updates)
    */
-  async addUser(userId, user) {
+  async setUserPreference(userId, user) {
     try {
-      const response = await axios.put(`${this.baseUrl}/user/${userId}/add`, user);
+      console.log(`[tarsApiClient] Setting preference for userId: ${userId}`, user);
+      const response = await axios.put(`${this.baseUrl}/setPreference/${userId}`, user);
+      console.log(`[tarsApiClient] Success response:`, response.data);
       return response.data;
     } catch (error) {
-      const errorMsg = error.response?.data 
-        ? (typeof error.response.data === 'object' 
-            ? JSON.stringify(error.response.data) 
-            : error.response.data)
-        : error.message;
-      throw new Error(`Failed to add user: ${errorMsg}`);
-    }
-  }
-
-  /**
-   * Update user preferences
-   */
-  async updateUser(userId, user) {
-    try {
-      const response = await axios.put(`${this.baseUrl}/user/${userId}/update`, user);
-      return response.data;
-    } catch (error) {
-      const errorMsg = error.response?.data 
-        ? (typeof error.response.data === 'object' 
-            ? JSON.stringify(error.response.data) 
-            : error.response.data)
-        : error.message;
-      throw new Error(`Failed to update user: ${errorMsg}`);
+      console.error(`[tarsApiClient] Error setting preference:`, error);
+      console.error(`[tarsApiClient] Error response:`, error.response);
+      // Extract error message from response
+      let errorMsg = error.message;
+      if (error.response?.data) {
+        if (typeof error.response.data === 'string') {
+          errorMsg = error.response.data;
+        } else if (typeof error.response.data === 'object') {
+          errorMsg = error.response.data.error || JSON.stringify(error.response.data);
+        }
+      }
+      // Preserve the original error structure so server.js can access it
+      const enhancedError = error; // Keep the original error
+      enhancedError.message = errorMsg; // Update message
+      throw enhancedError;
     }
   }
 

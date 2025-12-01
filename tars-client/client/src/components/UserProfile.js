@@ -291,29 +291,18 @@ function UserProfile() {
       
       const updatedUser = {
         id: userId,
-        clientId: loggedInUser.clientId,
-        cityPreferences: preferences.cityPreferences,
-        weatherPreferences: preferences.weatherPreferences,
-        temperaturePreferences: preferences.temperaturePreferences
+        cityPreferences: preferences.cityPreferences || [],
+        weatherPreferences: preferences.weatherPreferences || [],
+        temperaturePreferences: preferences.temperaturePreferences || []
       };
 
       console.log('Saving preferences with userId:', userId);
+      console.log('Request body:', JSON.stringify(updatedUser, null, 2));
+      console.log('Request URL:', `${API_BASE}/setPreference/${userId}`);
 
-      // Try to update first (if entry exists)
-      let response;
-      try {
-        response = await axios.put(`${API_BASE}/user/${userId}/update`, updatedUser);
-        console.log('Update successful:', response.data);
-      } catch (updateErr) {
-        // If update fails with "not found", try to add/create the entry
-        if (updateErr.response?.status === 404 || updateErr.response?.data?.error?.includes('not found')) {
-          console.log('Entry not found, creating new entry...');
-          response = await axios.put(`${API_BASE}/user/${userId}/add`, updatedUser);
-          console.log('Add successful:', response.data);
-        } else {
-          throw updateErr;
-        }
-      }
+      // Set preferences (adds or updates)
+      const response = await axios.put(`${API_BASE}/setPreference/${userId}`, updatedUser);
+      console.log('Set preference successful:', response.data);
       
       setUser({
         ...response.data,
@@ -327,7 +316,22 @@ function UserProfile() {
       await loadUserProfile();
     } catch (err) {
       console.error('Error saving preferences:', err);
-      setError(err.response?.data?.error || 'Failed to update preferences');
+      console.error('Error response:', err.response);
+      console.error('Error response data:', err.response?.data);
+      // Handle both JSON error objects and plain string errors
+      let errorMessage = 'Failed to update preferences';
+      if (err.response?.data) {
+        if (typeof err.response.data === 'string') {
+          errorMessage = err.response.data;
+        } else if (err.response.data.error) {
+          errorMessage = err.response.data.error;
+        } else {
+          errorMessage = JSON.stringify(err.response.data);
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      setError(errorMessage);
     } finally {
       setUpdating(false);
     }
