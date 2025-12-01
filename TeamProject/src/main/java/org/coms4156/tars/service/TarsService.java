@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import org.coms4156.tars.model.UserPreference;
 import org.slf4j.Logger;
@@ -95,7 +96,10 @@ public class TarsService {
     if (users == null) {
       users = loadData();
     }
-    return new ArrayList<>(users);  // Return defensive copy
+    List<UserPreference> copy = new ArrayList<>(users);
+    // Sort deterministically by id (null ids last to avoid NPE in comparator)
+    copy.sort(Comparator.comparing(UserPreference::getId, Comparator.nullsLast(Long::compareTo)));
+    return copy;  // Return defensive, sorted copy
   }
 
   /**

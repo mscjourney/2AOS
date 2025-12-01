@@ -37,6 +37,12 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.coms4156.tars.dto.ClientDto;
+import org.coms4156.tars.dto.TarsUserDto;
+import org.coms4156.tars.dto.UserPreferenceDto;
+import org.coms4156.tars.mapper.DtoMapper;
+import org.coms4156.tars.exception.BadRequestException;
+import org.coms4156.tars.exception.NotFoundException;
 
 
 /**
@@ -99,7 +105,7 @@ public class RouteController {
    *         or an error response if the operation fails
    */
   @GetMapping("/clients")
-  public ResponseEntity<?> getClients() {
+  public ResponseEntity<List<ClientDto>> getClients() {
     if (logger.isInfoEnabled()) {
       logger.info("GET /clients invoked");
     }
@@ -108,13 +114,12 @@ public class RouteController {
       if (logger.isInfoEnabled()) {
         logger.info("GET /clients success: returned {} clients", clients.size());
       }
-      return ResponseEntity.ok(clients);
+      return ResponseEntity.ok(DtoMapper.toClientDtos(clients));
     } catch (Exception e) {
       if (logger.isErrorEnabled()) {
         logger.error("GET /clients failed", e);
       }
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body("Failed to retrieve clients: " + e.getMessage());
+      throw e; // handled by GlobalExceptionHandler
     }
   }
 
@@ -125,37 +130,21 @@ public class RouteController {
    * @return 200 with Client if found; 404 if not found; 400 if id invalid; 500 on error
    */
   @GetMapping("/clients/{clientId}")
-  public ResponseEntity<?> getClientById(@PathVariable long clientId) {
+  public ResponseEntity<ClientDto> getClientById(@PathVariable long clientId) {
     if (logger.isInfoEnabled()) {
       logger.info("GET /clients/{} invoked", clientId);
     }
-    try {
-      if (clientId < 0) {
-        if (logger.isWarnEnabled()) {
-          logger.warn("GET /clients/{} failed: negative id", clientId);
-        }
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body("Client Id cannot be negative.");
-      }
-
-      Client client = clientService.getClient(clientId);
-      if (client == null) {
-        if (logger.isWarnEnabled()) {
-          logger.warn("GET /clients/{} not found", clientId);
-        }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Client not found.");
-      }
-      if (logger.isInfoEnabled()) {
-        logger.info("GET /clients/{} success", clientId);
-      }
-      return ResponseEntity.ok(client);
-    } catch (Exception e) {
-      if (logger.isErrorEnabled()) {
-        logger.error("GET /clients/{} failed", clientId, e);
-      }
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body("Failed to retrieve client: " + e.getMessage());
+    if (clientId < 0) {
+      throw new BadRequestException("Client Id cannot be negative.");
     }
+    Client client = clientService.getClient(clientId);
+    if (client == null) {
+      throw new NotFoundException("Client not found.");
+    }
+    if (logger.isInfoEnabled()) {
+      logger.info("GET /clients/{} success", clientId);
+    }
+    return ResponseEntity.ok(DtoMapper.toClientDto(client));
   }
 
   /**
@@ -562,57 +551,32 @@ public class RouteController {
    *         or an error message if the user was not found or invalid.
    */
   @PutMapping({"/user/{userId}/update"})
-  public ResponseEntity<?> updateUserPreference(@PathVariable Long userId,
+  public ResponseEntity<UserPreferenceDto> updateUserPreference(@PathVariable Long userId,
                                               @RequestBody UserPreference userPreference) {
     if (logger.isInfoEnabled()) {
       logger.info("PUT /user/{}/update invoked", userId);
     }
-
     if (userId == null || userId < 0) {
-      if (logger.isWarnEnabled()) {
-        logger.warn("PUT /user/{}/update failed: invalid userId", userId);
-      }
-      return new ResponseEntity<>("User Id cannot be negative.", HttpStatus.BAD_REQUEST);
+      throw new BadRequestException("User Id cannot be negative.");
     }
-
     if (userPreference == null) {
-      if (logger.isWarnEnabled()) {
-        logger.warn("PUT /user/{}/update failed: request body is null", userId);
-      }
-      return new ResponseEntity<>("Request body cannot be null.", HttpStatus.BAD_REQUEST);
+      throw new BadRequestException("Request body cannot be null.");
     }
-
     if (!userId.equals(userPreference.getId())) {
-      if (logger.isWarnEnabled()) {
-        logger.warn("PUT /user/{}/update failed: userId mismatch. Path: {}, Body: {}",
-            userId, userPreference.getId());
-      }
-      return new ResponseEntity<>("Path Variable and RequestBody User Id do not match.",
-          HttpStatus.BAD_REQUEST);
+      throw new BadRequestException("Path Variable and RequestBody User Id do not match.");
     }
-
-    // Check that the TarsUser exists
     TarsUser tarsUser = tarsUserService.findById(userId);
     if (tarsUser == null) {
-      if (logger.isWarnEnabled()) {
-        logger.warn("PUT /user/{}/update failed: TarsUser not found", userId);
-      }
-      return new ResponseEntity<>("TarsUser not found.", HttpStatus.NOT_FOUND);
+      throw new NotFoundException("TarsUser not found.");
     }
-
-    // Update the user preferences
     boolean updated = tarsService.updateUser(userPreference);
-    if (updated) {
-      if (logger.isInfoEnabled()) {
-        logger.info("PUT /user/{}/update success", userId);
-      }
-      return new ResponseEntity<>(userPreference, HttpStatus.OK);
-    } else {
-      if (logger.isWarnEnabled()) {
-        logger.warn("PUT /user/{}/update failed: updateUser returned false", userId);
-      }
-      return new ResponseEntity<>("Failed to update user preferences.", HttpStatus.BAD_REQUEST);
+    if (!updated) {
+      throw new BadRequestException("Failed to update user preferences.");
     }
+    if (logger.isInfoEnabled()) {
+      logger.info("PUT /user/{}/update success", userId);
+    }
+    return ResponseEntity.ok(DtoMapper.toUserPreferenceDto(userPreference));
   }
 
   /**
@@ -625,57 +589,32 @@ public class RouteController {
    *         or an error message if the user was not found or invalid.
    */
   @PutMapping({"/user/{userId}/add"})
-  public ResponseEntity<?> addUserPreference(@PathVariable Long userId,
+  public ResponseEntity<UserPreferenceDto> addUserPreference(@PathVariable Long userId,
                                              @RequestBody UserPreference userPreference) {
     if (logger.isInfoEnabled()) {
       logger.info("PUT /user/{}/add invoked", userId);
     }
-
     if (userId == null || userId < 0) {
-      if (logger.isWarnEnabled()) {
-        logger.warn("PUT /user/{}/add failed: invalid userId", userId);
-      }
-      return new ResponseEntity<>("User Id cannot be negative.", HttpStatus.BAD_REQUEST);
+      throw new BadRequestException("User Id cannot be negative.");
     }
-
     if (userPreference == null) {
-      if (logger.isWarnEnabled()) {
-        logger.warn("PUT /user/{}/add failed: request body is null", userId);
-      }
-      return new ResponseEntity<>("Request body cannot be null.", HttpStatus.BAD_REQUEST);
+      throw new BadRequestException("Request body cannot be null.");
     }
-
     if (!userId.equals(userPreference.getId())) {
-      if (logger.isWarnEnabled()) {
-        logger.warn("PUT /user/{}/add failed: userId mismatch. Path: {}, Body: {}",
-            userId, userPreference.getId());
-      }
-      return new ResponseEntity<>("Path Variable and RequestBody User Id do not match.",
-          HttpStatus.BAD_REQUEST);
+      throw new BadRequestException("Path Variable and RequestBody User Id do not match.");
     }
-
-    // Check that the TarsUser exists
     TarsUser tarsUser = tarsUserService.findById(userId);
     if (tarsUser == null) {
-      if (logger.isWarnEnabled()) {
-        logger.warn("PUT /user/{}/add failed: TarsUser not found", userId);
-      }
-      return new ResponseEntity<>("TarsUser not found.", HttpStatus.NOT_FOUND);
+      throw new NotFoundException("TarsUser not found.");
     }
-
-    // Add or update the user preferences (setUserPreference handles both)
     boolean added = tarsService.setUserPreference(userPreference);
-    if (added) {
-      if (logger.isInfoEnabled()) {
-        logger.info("PUT /user/{}/add success", userId);
-      }
-      return new ResponseEntity<>(userPreference, HttpStatus.OK);
-    } else {
-      if (logger.isWarnEnabled()) {
-        logger.warn("PUT /user/{}/add failed: setUserPreference returned false", userId);
-      }
-      return new ResponseEntity<>("Failed to add user preferences.", HttpStatus.BAD_REQUEST);
+    if (!added) {
+      throw new BadRequestException("Failed to add user preferences.");
     }
+    if (logger.isInfoEnabled()) {
+      logger.info("PUT /user/{}/add success", userId);
+    }
+    return ResponseEntity.ok(DtoMapper.toUserPreferenceDto(userPreference));
   }
 
   // #TODO: /userPreferencesList
@@ -686,20 +625,10 @@ public class RouteController {
    *          if successful. Otherwise, return the status code INTERNAL_SERVER_ERROR. 
    */
   @GetMapping("/userPreferenceList")
-  public ResponseEntity<List<UserPreference>> getUserList() {
+  public ResponseEntity<List<UserPreferenceDto>> getUserList() {
     // #TODO: iterate through all existing TarsUser and get their preference or add user with 
-    try {
-      List<UserPreference> userPreferenceList = tarsService.getUserPreferenceList()
-          .stream()
-          .sorted(java.util.Comparator.comparing(UserPreference::getId))
-          .toList();
-      return new ResponseEntity<>(userPreferenceList, HttpStatus.OK);
-    } catch (Exception e) {
-      if (logger.isErrorEnabled()) {
-        logger.error("GET /userList failed", e);
-      }
-      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+    List<UserPreferenceDto> dto = DtoMapper.toUserPreferenceDtos(tarsService.getUserPreferenceList());
+    return new ResponseEntity<>(dto, HttpStatus.OK);
   }
 
   /**
@@ -709,7 +638,7 @@ public class RouteController {
    *          Otherwise, return the status code INTERNAL_SERVER_ERROR.
    */
   @GetMapping("/tarsUsers")
-  public ResponseEntity<List<TarsUser>> getTarsUsers() {
+  public ResponseEntity<List<TarsUserDto>> getTarsUsers() {
     if (logger.isInfoEnabled()) {
       logger.info("GET /tarsUsers invoked");
     }
@@ -718,12 +647,12 @@ public class RouteController {
       if (logger.isInfoEnabled()) {
         logger.info("GET /tarsUsers success: returned {} users", tarsUsers.size());
       }
-      return new ResponseEntity<>(tarsUsers, HttpStatus.OK);
+      return new ResponseEntity<>(DtoMapper.toTarsUserDtos(tarsUsers), HttpStatus.OK);
     } catch (Exception e) {
       if (logger.isErrorEnabled()) {
         logger.error("GET /tarsUsers failed", e);
       }
-      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+      throw e;
     }
   }
 
@@ -734,37 +663,21 @@ public class RouteController {
    * @return 200 with TarsUser if found; 404 if not found; 400 if id invalid; 500 on error
    */
   @GetMapping("/tarsUsers/{userId}")
-  public ResponseEntity<?> getTarsUserById(@PathVariable long userId) {
+  public ResponseEntity<TarsUserDto> getTarsUserById(@PathVariable long userId) {
     if (logger.isInfoEnabled()) {
       logger.info("GET /tarsUsers/{} invoked", userId);
     }
-    try {
-      if (userId < 0) {
-        if (logger.isWarnEnabled()) {
-          logger.warn("GET /tarsUsers/{} failed: negative id", userId);
-        }
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body("User Id cannot be negative.");
-      }
-
-      TarsUser user = tarsUserService.findById(userId);
-      if (user == null) {
-        if (logger.isWarnEnabled()) {
-          logger.warn("GET /tarsUsers/{} not found", userId);
-        }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("TarsUser not found.");
-      }
-      if (logger.isInfoEnabled()) {
-        logger.info("GET /tarsUsers/{} success", userId);
-      }
-      return ResponseEntity.ok(user);
-    } catch (Exception e) {
-      if (logger.isErrorEnabled()) {
-        logger.error("GET /tarsUsers/{} failed", userId, e);
-      }
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body("Failed to retrieve user: " + e.getMessage());
+    if (userId < 0) {
+      throw new BadRequestException("User Id cannot be negative.");
     }
+    TarsUser user = tarsUserService.findById(userId);
+    if (user == null) {
+      throw new NotFoundException("TarsUser not found.");
+    }
+    if (logger.isInfoEnabled()) {
+      logger.info("GET /tarsUsers/{} success", userId);
+    }
+    return ResponseEntity.ok(DtoMapper.toTarsUserDto(user));
   }
 
   /**

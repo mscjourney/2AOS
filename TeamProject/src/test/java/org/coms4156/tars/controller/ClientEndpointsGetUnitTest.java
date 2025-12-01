@@ -19,24 +19,35 @@ public class ClientEndpointsGetUnitTest {
   private MockMvc mockMvc;
 
   @Test
+  /**
+   * {@code getClientByIdOk} Verifies existing client id returns 200 and DTO fields.
+   */
   @DisplayName("GET /clients/{id} returns 200 when client exists")
-  void getClientById_ok() throws Exception {
+  void getClientByIdOk() throws Exception {
     mockMvc.perform(get("/clients/1"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.clientId").value(1));
   }
 
   @Test
+  /**
+   * {@code getClientByIdNotFound} Confirms missing client id yields 404 and ApiError message.
+   */
   @DisplayName("GET /clients/{id} returns 404 when client missing")
-  void getClientById_notFound() throws Exception {
+  void getClientByIdNotFound() throws Exception {
     mockMvc.perform(get("/clients/999"))
-        .andExpect(status().isNotFound());
+      .andExpect(status().isNotFound())
+      .andExpect(jsonPath("$.message").value("Client not found."));
   }
 
   @Test
+  /**
+   * {@code getClientByIdBadRequest} Validates negative client id produces 400 with message.
+   */
   @DisplayName("GET /clients/{id} returns 400 when id negative")
-  void getClientById_badRequest() throws Exception {
+  void getClientByIdBadRequest() throws Exception {
     mockMvc.perform(get("/clients/-5"))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value("Client Id cannot be negative."));
   }
 }
