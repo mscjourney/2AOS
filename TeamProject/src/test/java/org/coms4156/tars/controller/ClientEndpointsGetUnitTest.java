@@ -11,6 +11,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
+/**
+ * Integration tests for client GET endpoints validating success, not-found and
+ * bad-request scenarios with DTO / ApiError payloads.
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
 public class ClientEndpointsGetUnitTest {
@@ -18,10 +22,10 @@ public class ClientEndpointsGetUnitTest {
   @Autowired
   private MockMvc mockMvc;
 
-  @Test
   /**
    * {@code getClientByIdOk} Verifies existing client id returns 200 and DTO fields.
    */
+  @Test
   @DisplayName("GET /clients/{id} returns 200 when client exists")
   void getClientByIdOk() throws Exception {
     mockMvc.perform(get("/clients/1"))
@@ -29,21 +33,21 @@ public class ClientEndpointsGetUnitTest {
         .andExpect(jsonPath("$.clientId").value(1));
   }
 
-  @Test
   /**
    * {@code getClientByIdNotFound} Confirms missing client id yields 404 and ApiError message.
    */
+  @Test
   @DisplayName("GET /clients/{id} returns 404 when client missing")
   void getClientByIdNotFound() throws Exception {
     mockMvc.perform(get("/clients/999"))
-      .andExpect(status().isNotFound())
-      .andExpect(jsonPath("$.message").value("Client not found."));
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.message").value("Client not found."));
   }
 
-  @Test
   /**
    * {@code getClientByIdBadRequest} Validates negative client id produces 400 with message.
    */
+  @Test
   @DisplayName("GET /clients/{id} returns 400 when id negative")
   void getClientByIdBadRequest() throws Exception {
     mockMvc.perform(get("/clients/-5"))

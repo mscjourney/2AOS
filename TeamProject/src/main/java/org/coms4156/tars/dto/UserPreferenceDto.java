@@ -11,8 +11,25 @@ public class UserPreferenceDto {
   private List<String> temperaturePreferences;
   private List<String> cityPreferences;
 
-  public UserPreferenceDto() { }
+  /**
+   * {@code UserPreferenceDto} Default constructor for JSON deserialization.
+   * <p>
+   * Required by JSON serializers (e.g., Jackson) to instantiate during
+   * deserialization.
+   * </p>
+   */
+  public UserPreferenceDto() {
+    // Default constructor for JSON deserialization
+  }
 
+  /**
+   * {@code UserPreferenceDto} Full-args constructor.
+   *
+   * @param id preference record identifier
+   * @param weatherPreferences list of weather condition preferences
+   * @param temperaturePreferences list of temperature range preferences
+   * @param cityPreferences list of preferred cities
+   */
   public UserPreferenceDto(Long id, List<String> weatherPreferences,
                            List<String> temperaturePreferences, List<String> cityPreferences) {
     this.id = id;
@@ -21,12 +38,35 @@ public class UserPreferenceDto {
     this.cityPreferences = cityPreferences;
   }
 
-  public Long getId() { return id; }
-  public void setId(Long id) { this.id = id; }
-  public List<String> getWeatherPreferences() { return weatherPreferences; }
-  public void setWeatherPreferences(List<String> weatherPreferences) { this.weatherPreferences = weatherPreferences; }
-  public List<String> getTemperaturePreferences() { return temperaturePreferences; }
-  public void setTemperaturePreferences(List<String> temperaturePreferences) { this.temperaturePreferences = temperaturePreferences; }
-  public List<String> getCityPreferences() { return cityPreferences; }
-  public void setCityPreferences(List<String> cityPreferences) { this.cityPreferences = cityPreferences; }
+  public Long getId() {
+    return id;
+  }
+
+  public void setId(Long id) {
+    this.id = id;
+  }
+
+  public List<String> getWeatherPreferences() {
+    return weatherPreferences;
+  }
+
+  public void setWeatherPreferences(List<String> weatherPreferences) {
+    this.weatherPreferences = weatherPreferences;
+  }
+
+  public List<String> getTemperaturePreferences() {
+    return temperaturePreferences;
+  }
+
+  public void setTemperaturePreferences(List<String> temperaturePreferences) {
+    this.temperaturePreferences = temperaturePreferences;
+  }
+
+  public List<String> getCityPreferences() {
+    return cityPreferences;
+  }
+
+  public void setCityPreferences(List<String> cityPreferences) {
+    this.cityPreferences = cityPreferences;
+  }
 }

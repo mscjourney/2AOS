@@ -8,6 +8,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.coms4156.tars.dto.ClientDto;
+import org.coms4156.tars.dto.TarsUserDto;
+import org.coms4156.tars.dto.UserPreferenceDto;
+import org.coms4156.tars.exception.BadRequestException;
+import org.coms4156.tars.exception.NotFoundException;
+import org.coms4156.tars.mapper.DtoMapper;
 import org.coms4156.tars.model.CitySummary;
 import org.coms4156.tars.model.Client;
 import org.coms4156.tars.model.CountryModel;
@@ -37,12 +43,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.coms4156.tars.dto.ClientDto;
-import org.coms4156.tars.dto.TarsUserDto;
-import org.coms4156.tars.dto.UserPreferenceDto;
-import org.coms4156.tars.mapper.DtoMapper;
-import org.coms4156.tars.exception.BadRequestException;
-import org.coms4156.tars.exception.NotFoundException;
 
 
 /**
@@ -627,7 +627,8 @@ public class RouteController {
   @GetMapping("/userPreferenceList")
   public ResponseEntity<List<UserPreferenceDto>> getUserList() {
     // #TODO: iterate through all existing TarsUser and get their preference or add user with 
-    List<UserPreferenceDto> dto = DtoMapper.toUserPreferenceDtos(tarsService.getUserPreferenceList());
+    List<UserPreferenceDto> dto =
+        DtoMapper.toUserPreferenceDtos(tarsService.getUserPreferenceList());
     return new ResponseEntity<>(dto, HttpStatus.OK);
   }
 
@@ -1391,15 +1392,14 @@ public class RouteController {
       String year = null;
       if (isUnitedStates && state != null) {
         try {
-          CrimeModel model = new CrimeModel();
-
           LocalDate today = LocalDate.now();
 
           offense = "V";        // violent crime as default
-          month = String.valueOf(today.getMonthValue());         //current month
-          year = String.valueOf(today.getYear());;        // current year
+          month = String.valueOf(today.getMonthValue());         // current month
+          year = String.valueOf(today.getYear()); // current year
 
-          String result = model.getCrimeSummary(state, offense, month, year);
+          final CrimeModel crimeModel = new CrimeModel();
+          String result = crimeModel.getCrimeSummary(state, offense, month, year);
 
           if (logger.isDebugEnabled()) {
             logger.debug("Crime API result for state={} offense={} month={} year={}: {}",

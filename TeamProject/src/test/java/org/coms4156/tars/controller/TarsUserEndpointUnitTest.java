@@ -11,6 +11,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
+/**
+ * Integration tests for TarsUser related GET endpoints.
+ */
 @SpringBootTest
 @AutoConfigureMockMvc
 public class TarsUserEndpointUnitTest {
@@ -18,11 +21,11 @@ public class TarsUserEndpointUnitTest {
   @Autowired
   private MockMvc mockMvc;
 
-  @Test
   /**
-   * {@code getTarsUserByIdOk} Confirms existing user id returns 200
-   * and the response contains the expected `userId`.
+   * {@code getTarsUserByIdOk} Confirms existing user id returns 200 and
+   * the response contains the expected userId.
    */
+  @Test
   @DisplayName("GET /tarsUsers/{id} returns 200 when user exists")
   void getTarsUserByIdOk() throws Exception {
     mockMvc.perform(get("/tarsUsers/1"))
@@ -30,33 +33,30 @@ public class TarsUserEndpointUnitTest {
         .andExpect(jsonPath("$.userId").value(1));
   }
 
-  @Test
   /**
-   * {@code getTarsUserByIdNotFound} Confirms missing user id returns 404
-   * and no payload assertions are required.
+   * {@code getTarsUserByIdNotFound} Confirms missing user id returns 404.
    */
+  @Test
   @DisplayName("GET /tarsUsers/{id} returns 404 when user missing")
   void getTarsUserByIdNotFound() throws Exception {
     mockMvc.perform(get("/tarsUsers/9999"))
         .andExpect(status().isNotFound());
   }
 
-  @Test
   /**
-   * {@code getTarsUserByIdBadRequest} Confirms negative id is rejected
-   * with 400 Bad Request.
+   * {@code getTarsUserByIdBadRequest} Confirms negative id is rejected with 400.
    */
+  @Test
   @DisplayName("GET /tarsUsers/{id} returns 400 when id negative")
   void getTarsUserByIdBadRequest() throws Exception {
     mockMvc.perform(get("/tarsUsers/-10"))
         .andExpect(status().isBadRequest());
   }
 
-  @Test
   /**
-   * {@code getUserByClientIdCases} Validates client-bound user lookup:
-   * existing client returns 200; unknown client returns 404; negative id returns 400.
+   * {@code getUserByClientIdCases} Validates client-bound user lookup cases.
    */
+  @Test
   @DisplayName("GET /user/client/{clientId} returns 200 with prefs or 404 when no user")
   void getUserByClientIdCases() throws Exception {
     // clientId=1 exists with user alice -> should return 200
@@ -72,11 +72,10 @@ public class TarsUserEndpointUnitTest {
         .andExpect(status().isBadRequest());
   }
 
-  @Test
   /**
-   * {@code getClientUserListCases} Validates user list retrieval by client:
-   * positive id returns 200; negative id returns 400.
+   * {@code getClientUserListCases} Validates user list retrieval by client id.
    */
+  @Test
   @DisplayName("GET /userList/client/{clientId} returns 200 list or 400 invalid id")
   void getClientUserListCases() throws Exception {
     mockMvc.perform(get("/userList/client/1"))

@@ -16,6 +16,13 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+  /**
+   * Handles domain {@link NotFoundException} producing a 404 error payload.
+   *
+   * @param ex      thrown not-found exception
+   * @param request originating HTTP servlet request
+   * @return ApiError wrapped in 404 response
+   */
   @ExceptionHandler(NotFoundException.class)
   public ResponseEntity<ApiError> handleNotFound(NotFoundException ex, HttpServletRequest request) {
     ApiError err = new ApiError(
@@ -28,8 +35,17 @@ public class GlobalExceptionHandler {
     return new ResponseEntity<>(err, HttpStatus.NOT_FOUND);
   }
 
+  /**
+   * Handles domain {@link BadRequestException} producing a 400 error payload.
+   *
+   * @param ex      thrown bad-request exception
+   * @param request originating HTTP servlet request
+   * @return ApiError wrapped in 400 response
+   */
   @ExceptionHandler(BadRequestException.class)
-  public ResponseEntity<ApiError> handleBadRequest(BadRequestException ex, HttpServletRequest request) {
+  public ResponseEntity<ApiError> handleBadRequest(
+      BadRequestException ex,
+      HttpServletRequest request) {
     ApiError err = new ApiError(
         HttpStatus.BAD_REQUEST.value(),
         HttpStatus.BAD_REQUEST.getReasonPhrase(),
@@ -40,9 +56,20 @@ public class GlobalExceptionHandler {
     return new ResponseEntity<>(err, HttpStatus.BAD_REQUEST);
   }
 
+  /**
+   * Handles bean validation failures converting field errors into detail list.
+   *
+   * @param ex      validation exception
+   * @param request originating HTTP servlet request
+   * @return ApiError with detail list and 400 status
+   */
   @ExceptionHandler(MethodArgumentNotValidException.class)
-  public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException ex, HttpServletRequest request) {
-    List<String> details = ex.getBindingResult().getFieldErrors().stream()
+  public ResponseEntity<ApiError> handleValidation(
+      MethodArgumentNotValidException ex,
+      HttpServletRequest request) {
+    List<String> details = ex.getBindingResult()
+        .getFieldErrors()
+        .stream()
         .map(f -> f.getField() + ": " + f.getDefaultMessage())
         .toList();
     ApiError err = new ApiError(
@@ -55,8 +82,17 @@ public class GlobalExceptionHandler {
     return new ResponseEntity<>(err, HttpStatus.BAD_REQUEST);
   }
 
+  /**
+   * Handles missing required request parameters.
+   *
+   * @param ex      missing parameter exception
+   * @param request originating HTTP servlet request
+   * @return ApiError with parameter detail and 400 status
+   */
   @ExceptionHandler(MissingServletRequestParameterException.class)
-  public ResponseEntity<ApiError> handleMissingParam(MissingServletRequestParameterException ex, HttpServletRequest request) {
+  public ResponseEntity<ApiError> handleMissingParam(
+      MissingServletRequestParameterException ex,
+      HttpServletRequest request) {
     String detail = ex.getParameterName() + " parameter is missing";
     ApiError err = new ApiError(
         HttpStatus.BAD_REQUEST.value(),
@@ -68,8 +104,17 @@ public class GlobalExceptionHandler {
     return new ResponseEntity<>(err, HttpStatus.BAD_REQUEST);
   }
 
+  /**
+   * Handles malformed request bodies (e.g., invalid JSON syntax).
+   *
+   * @param ex      unreadable message exception
+   * @param request originating HTTP servlet request
+   * @return ApiError describing malformed body with 400 status
+   */
   @ExceptionHandler(HttpMessageNotReadableException.class)
-  public ResponseEntity<ApiError> handleUnreadable(HttpMessageNotReadableException ex, HttpServletRequest request) {
+  public ResponseEntity<ApiError> handleUnreadable(
+      HttpMessageNotReadableException ex,
+      HttpServletRequest request) {
     ApiError err = new ApiError(
         HttpStatus.BAD_REQUEST.value(),
         HttpStatus.BAD_REQUEST.getReasonPhrase(),
@@ -80,6 +125,13 @@ public class GlobalExceptionHandler {
     return new ResponseEntity<>(err, HttpStatus.BAD_REQUEST);
   }
 
+  /**
+   * Catch-all handler for unanticipated exceptions returning a 500 response.
+   *
+   * @param ex      generic exception
+   * @param request originating HTTP servlet request
+   * @return ApiError with original exception message and 500 status
+   */
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ApiError> handleGeneric(Exception ex, HttpServletRequest request) {
     ApiError err = new ApiError(
