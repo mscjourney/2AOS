@@ -119,6 +119,46 @@ public class RouteController {
   }
 
   /**
+   * Handles GET requests to retrieve a single client by id.
+   *
+   * @param clientId the unique identifier of the client
+   * @return 200 with Client if found; 404 if not found; 400 if id invalid; 500 on error
+   */
+  @GetMapping("/clients/{clientId}")
+  public ResponseEntity<?> getClientById(@PathVariable long clientId) {
+    if (logger.isInfoEnabled()) {
+      logger.info("GET /clients/{} invoked", clientId);
+    }
+    try {
+      if (clientId < 0) {
+        if (logger.isWarnEnabled()) {
+          logger.warn("GET /clients/{} failed: negative id", clientId);
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body("Client Id cannot be negative.");
+      }
+
+      Client client = clientService.getClient(clientId);
+      if (client == null) {
+        if (logger.isWarnEnabled()) {
+          logger.warn("GET /clients/{} not found", clientId);
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Client not found.");
+      }
+      if (logger.isInfoEnabled()) {
+        logger.info("GET /clients/{} success", clientId);
+      }
+      return ResponseEntity.ok(client);
+    } catch (Exception e) {
+      if (logger.isErrorEnabled()) {
+        logger.error("GET /clients/{} failed", clientId, e);
+      }
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body("Failed to retrieve client: " + e.getMessage());
+    }
+  }
+
+  /**
    * An endpoint to create a new client.
    * Request Method: POST
    * Returns a new client resource.
@@ -649,7 +689,10 @@ public class RouteController {
   public ResponseEntity<List<UserPreference>> getUserList() {
     // #TODO: iterate through all existing TarsUser and get their preference or add user with 
     try {
-      List<UserPreference> userPreferenceList = tarsService.getUserPreferenceList();
+      List<UserPreference> userPreferenceList = tarsService.getUserPreferenceList()
+          .stream()
+          .sorted(java.util.Comparator.comparing(UserPreference::getId))
+          .toList();
       return new ResponseEntity<>(userPreferenceList, HttpStatus.OK);
     } catch (Exception e) {
       if (logger.isErrorEnabled()) {
@@ -681,6 +724,46 @@ public class RouteController {
         logger.error("GET /tarsUsers failed", e);
       }
       return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /**
+   * Handles GET requests to retrieve a single TarsUser by id.
+   *
+   * @param userId the unique identifier of the user
+   * @return 200 with TarsUser if found; 404 if not found; 400 if id invalid; 500 on error
+   */
+  @GetMapping("/tarsUsers/{userId}")
+  public ResponseEntity<?> getTarsUserById(@PathVariable long userId) {
+    if (logger.isInfoEnabled()) {
+      logger.info("GET /tarsUsers/{} invoked", userId);
+    }
+    try {
+      if (userId < 0) {
+        if (logger.isWarnEnabled()) {
+          logger.warn("GET /tarsUsers/{} failed: negative id", userId);
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body("User Id cannot be negative.");
+      }
+
+      TarsUser user = tarsUserService.findById(userId);
+      if (user == null) {
+        if (logger.isWarnEnabled()) {
+          logger.warn("GET /tarsUsers/{} not found", userId);
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("TarsUser not found.");
+      }
+      if (logger.isInfoEnabled()) {
+        logger.info("GET /tarsUsers/{} success", userId);
+      }
+      return ResponseEntity.ok(user);
+    } catch (Exception e) {
+      if (logger.isErrorEnabled()) {
+        logger.error("GET /tarsUsers/{} failed", userId, e);
+      }
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body("Failed to retrieve user: " + e.getMessage());
     }
   }
 
@@ -734,23 +817,24 @@ public class RouteController {
       logger.info("GET /user/client/{} invoked", clientId);
     }
     try {
-      // Find TarsUser by clientId
-      List<TarsUser> allUsers = tarsUserService.listUsers();
-      TarsUser foundUser = null;
-      for (TarsUser user : allUsers) {
-        if (user.getClientId() != null && user.getClientId().equals(clientId)) {
-          foundUser = user;
-          break;
+      if (clientId == null || clientId < 0) {
+        if (logger.isWarnEnabled()) {
+          logger.warn("GET /user/client/{} failed: invalid clientId", clientId);
         }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body("Client Id cannot be negative.");
       }
+
+      // Find first TarsUser by clientId using service helper
+      List<TarsUser> clientUsers = tarsUserService.listUsersByClientId(clientId);
+      TarsUser foundUser = clientUsers.isEmpty() ? null : clientUsers.get(0);
       
       if (foundUser == null) {
         if (logger.isWarnEnabled()) {
           logger.warn("No user found for clientId={}", clientId);
         }
-        // Return empty preferences
-        UserPreference emptyPrefs = new UserPreference();
-        return ResponseEntity.ok(emptyPrefs);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body("No user found for clientId.");
       }
       
       // Get preferences for this user
@@ -793,14 +877,16 @@ public class RouteController {
       logger.info("GET /userList/client/{} invoked", clientId);
     }
     try {
-      // Get all TarsUsers for this clientId
-      List<TarsUser> allUsers = tarsUserService.listUsers();
-      List<TarsUser> clientUsers = new ArrayList<>();
-      for (TarsUser user : allUsers) {
-        if (user.getClientId() != null && user.getClientId().equals(clientId)) {
-          clientUsers.add(user);
+      if (clientId == null || clientId < 0) {
+        if (logger.isWarnEnabled()) {
+          logger.warn("GET /userList/client/{} failed: invalid clientId", clientId);
         }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body("Client Id cannot be negative.");
       }
+
+      // Get all TarsUsers for this clientId via service helper
+      List<TarsUser> clientUsers = tarsUserService.listUsersByClientId(clientId);
       
       // Get preferences for each user
       List<UserPreference> clientUserList = new ArrayList<>();
@@ -1294,7 +1380,7 @@ public class RouteController {
         if (country != null && !country.trim().isEmpty()) {
           travelAdvisory = advisoryModel.getTravelAdvisory(country);
         }
-        if (country.equals("United States")) {
+        if ("United States".equals(country)) {
           isUnitedStates = true;
         }
         // If country lookup failed, try using city name as country name (works for some cases)
@@ -1394,33 +1480,28 @@ public class RouteController {
         try {
           CrimeModel model = new CrimeModel();
 
-          if (state == null) {
-            logger.warn("Could not determine state for US city {}", city);
-          } else {
+          LocalDate today = LocalDate.now();
 
-            LocalDate today = LocalDate.now();
+          offense = "V";        // violent crime as default
+          month = String.valueOf(today.getMonthValue());         //current month
+          year = String.valueOf(today.getYear());;        // current year
 
-            offense = "V";        // violent crime as default
-            month = String.valueOf(today.getMonthValue());         //current month
-            year = String.valueOf(today.getYear());;        // current year
+          String result = model.getCrimeSummary(state, offense, month, year);
 
-            String result = model.getCrimeSummary(state, offense, month, year);
+          if (logger.isDebugEnabled()) {
+            logger.debug("Crime API result for state={} offense={} month={} year={}: {}",
+                    state, offense, month, year, result);
+          }
 
-            if (logger.isDebugEnabled()) {
-              logger.debug("Crime API result for state={} offense={} month={} year={}: {}",
-                      state, offense, month, year, result);
-            }
+          crimeSummary = new CrimeSummary(
+                  state,
+                  month,
+                  year,
+                  "Fetched crime data for offense=" + offense + " : " + result
+          );
 
-            crimeSummary = new CrimeSummary(
-                    state,
-                    month,
-                    year,
-                    "Fetched crime data for offense=" + offense + " : " + result
-            );
-
-            if (logger.isInfoEnabled()) {
-              logger.info("Crime summary created for state={} offense={}", state, offense);
-            }
+          if (logger.isInfoEnabled()) {
+            logger.info("Crime summary created for state={} offense={}", state, offense);
           }
 
         } catch (Exception e) {
