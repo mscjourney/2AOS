@@ -40,8 +40,7 @@ public class TarsUserService {
     void move(Path source, Path target, CopyOption... options) throws IOException;
   }
 
-  private static final FileMover DEFAULT_FILE_MOVER =
-      (src, dest, opts) -> Files.move(src, dest, opts);
+  private static final FileMover DEFAULT_FILE_MOVER = Files::move;
 
   /**
    * {@code TarsUserService} constructor.
@@ -210,6 +209,26 @@ public class TarsUserService {
    */
   public synchronized List<TarsUser> listUsers() {
     return Collections.unmodifiableList(new ArrayList<>(users));
+  }
+
+  /**
+   * {@code listUsersByClientId} Returns users filtered by a specific clientId.
+   *
+   * @param clientId the client identifier
+   * @return a new list containing users whose clientId matches
+   */
+  public synchronized List<TarsUser> listUsersByClientId(Long clientId) {
+    List<TarsUser> result = new ArrayList<>();
+    if (clientId == null) {
+      return result;
+    }
+    for (TarsUser user : users) {
+      Long existingClientId = user.getClientId();
+      if (existingClientId != null && existingClientId.equals(clientId)) {
+        result.add(user);
+      }
+    }
+    return result;
   }
 
   /**

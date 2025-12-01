@@ -1259,7 +1259,7 @@ public class ClientEndPointUnitTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(userPreference)))
         .andExpect(status().isBadRequest())
-        .andExpect(content().string("User Id cannot be negative."));
+        .andExpect(jsonPath("$.message").value("User Id cannot be negative."));
   }
 
   /**
@@ -1288,7 +1288,8 @@ public class ClientEndPointUnitTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(userPreference)))
         .andExpect(status().isBadRequest())
-        .andExpect(content().string("Path Variable and RequestBody User Id do not match."));
+        .andExpect(jsonPath("$.message")
+            .value("Path Variable and RequestBody User Id do not match."));
   }
 
   /**
@@ -1306,7 +1307,7 @@ public class ClientEndPointUnitTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(userPreference)))
         .andExpect(status().isNotFound())
-        .andExpect(content().string("TarsUser not found."));
+        .andExpect(jsonPath("$.message").value("TarsUser not found."));
 
     verify(tarsUserService).findById(userId);
   }
@@ -1330,7 +1331,7 @@ public class ClientEndPointUnitTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(userPreference)))
         .andExpect(status().isBadRequest())
-        .andExpect(content().string("Failed to update user preferences."));
+        .andExpect(jsonPath("$.message").value("Failed to update user preferences."));
 
     verify(tarsService).updateUser(userPreference);
   }
@@ -1384,7 +1385,7 @@ public class ClientEndPointUnitTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(userPreference)))
         .andExpect(status().isBadRequest())
-        .andExpect(content().string("User Id cannot be negative."));
+        .andExpect(jsonPath("$.message").value("User Id cannot be negative."));
   }
 
   /**
@@ -1413,7 +1414,8 @@ public class ClientEndPointUnitTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(userPreference)))
         .andExpect(status().isBadRequest())
-        .andExpect(content().string("Path Variable and RequestBody User Id do not match."));
+        .andExpect(jsonPath("$.message")
+            .value("Path Variable and RequestBody User Id do not match."));
   }
 
   /**
@@ -1431,7 +1433,7 @@ public class ClientEndPointUnitTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(userPreference)))
         .andExpect(status().isNotFound())
-        .andExpect(content().string("TarsUser not found."));
+        .andExpect(jsonPath("$.message").value("TarsUser not found."));
 
     verify(tarsUserService).findById(userId);
   }
@@ -1455,7 +1457,8 @@ public class ClientEndPointUnitTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(userPreference)))
         .andExpect(status().isBadRequest())
-        .andExpect(content().string("Failed to add user preferences."));
+        .andExpect(jsonPath("$.message")
+            .value("Failed to add user preferences."));
 
     verify(tarsService).setUserPreference(userPreference);
   }
