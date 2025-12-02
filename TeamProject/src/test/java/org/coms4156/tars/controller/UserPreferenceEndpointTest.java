@@ -552,6 +552,28 @@ public class UserPreferenceEndpointTest {
   }
 
   /**
+   * {@code getClientUserListInfoLoggingDisabledTest}
+   * Covers false branch of isInfoEnabled() (INFO off).
+   */
+  @Test
+  public void getClientUserListInfoLoggingDisabledTest() throws Exception {
+    try (LoggerTestUtil.CapturedLogger cap =
+             LoggerTestUtil.capture(RouteController.class, Level.WARN)) {
+
+      mockMvc.perform(get("/userPreferenceList/client/1"))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$", hasSize(1)))
+          .andExpect(jsonPath("$[0].id").value(1));
+
+
+      assertFalse(
+          cap.hasLevel(Level.INFO),
+          "INFO suppressed at WARN."
+      );
+    }
+  }
+
+  /**
    * {@code setUserPreferenceWarnLoggingDisabledTest}
    * Covers false branch of isWarnEnabled() (WARN off).
    */
@@ -606,6 +628,10 @@ public class UserPreferenceEndpointTest {
           .andExpect(status().isBadRequest())
           .andExpect(content().string("User had no existing preferences."));    
 
+      mockMvc.perform(put("/clearPreference/4"))
+          .andExpect(status().isNotFound())
+          .andExpect(content().string("TarsUser not found."));  
+
       assertFalse(
           cap.hasLevel(Level.WARN),
           "WARN suppressed at ERROR."
@@ -633,6 +659,25 @@ public class UserPreferenceEndpointTest {
       mockMvc.perform(get("/retrievePreference/300"))
           .andExpect(status().isNotFound())
           .andExpect(content().string("TarsUser not found."));    
+
+      assertFalse(
+          cap.hasLevel(Level.WARN),
+          "WARN suppressed at ERROR."
+      );
+    }
+  }
+
+  /**
+   * {@code retrievePreferenceWarnLoggingDisabledTest}
+   * Covers false branch of isWarnEnabled() (WARN off).
+   */
+  @Test
+  public void getClientUserListWarnLoggingDisabledTest() throws Exception {
+    try (LoggerTestUtil.CapturedLogger cap =
+             LoggerTestUtil.capture(RouteController.class, Level.ERROR)) {
+
+      mockMvc.perform(get("/userPreferenceList/client/-1"))
+          .andExpect(status().isBadRequest());  
 
       assertFalse(
           cap.hasLevel(Level.WARN),
