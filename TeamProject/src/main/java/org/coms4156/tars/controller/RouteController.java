@@ -1,7 +1,6 @@
 package org.coms4156.tars.controller;
 
 import java.time.LocalDate;
-import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -949,26 +948,33 @@ public class RouteController {
     try {
       CrimeModel model = new CrimeModel();
       String result = model.getCrimeSummary(state, offense, month, year);
+      // getCrimeSummary only returns null if API returned BAD_REQUEST
+      if (result == null) {
+        if (logger.isWarnEnabled()) {
+          logger.warn("Invalid input or no data found for state={} offense={} month={} year={}", 
+              state, offense, month, year);
+        }
+        return new ResponseEntity<>("Error: Invalid inputs have been passed in.", 
+              HttpStatus.BAD_REQUEST);
+      }
 
       CrimeSummary summary = new CrimeSummary(
           state,
           month,
           year,
-          "Fetched crime data successfully for " + offense + " : " + result
+          "Crime Data for " + offense + " : " + result
       );
 
       if (logger.isInfoEnabled()) {
         logger.info("Crime summary constructed state={} offense={}", state, offense);
       }
       return ResponseEntity.ok(summary);
-
     } catch (Exception e) {
       if (logger.isErrorEnabled()) {
         logger.error("Error fetching crime summary state={} offense={} month={} year={}", 
             state, offense, month, year, e);
       }
-      String errorMessage = e.getMessage() != null ? e.getMessage() : "Unknown error occurred";
-      return new ResponseEntity<>("Error: " + errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+      return new ResponseEntity<>("Unexpected Error Occured", HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -1065,7 +1071,6 @@ public class RouteController {
   @GetMapping("/summary/{city}")
   public ResponseEntity<?> getCitySummary(
       @PathVariable String city,
-      @RequestParam(required = false) String state,
       @RequestParam(required = false) String startDate,
       @RequestParam(required = false) String endDate) {
 
@@ -1152,6 +1157,7 @@ public class RouteController {
       // Get travel advisory for the city's country
       TravelAdvisory travelAdvisory = null;
       boolean isUnitedStates = false;
+      String state = null;
       try {
         TravelAdvisoryModel advisoryModel = new TravelAdvisoryModel();
         String country = CitySummary.getCountryFromCity(city);
@@ -1160,6 +1166,7 @@ public class RouteController {
         }
         if ("United States".equals(country)) {
           isUnitedStates = true;
+          state = CitySummary.getStateFromUsCity(city);
         }
         // If country lookup failed, try using city name as country name (works for some cases)
         if (travelAdvisory == null) {
@@ -1264,11 +1271,6 @@ public class RouteController {
 
           final CrimeModel crimeModel = new CrimeModel();
           String result = crimeModel.getCrimeSummary(state, offense, month, year);
-
-          if (logger.isDebugEnabled()) {
-            logger.debug("Crime API result for state={} offense={} month={} year={}: {}",
-                    state, offense, month, year, result);
-          }
 
           crimeSummary = new CrimeSummary(
                   state,

@@ -9,6 +9,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The {@code CrimeModel} class provides functionality for retrieving and processing
@@ -16,7 +18,7 @@ import java.util.Map;
  *
  * */
 public class CrimeModel {
-
+  private static final Logger logger = LoggerFactory.getLogger(CrimeModel.class);
   private static final String BASE_URL =
           "https://api.usa.gov/crime/fbi/cde/summarized/state";
   private static final String API_KEY =
@@ -40,18 +42,24 @@ public class CrimeModel {
    * returning only the formatted string (e.g. "9.57 cases per 100,000 people").
    * Example call:
    *   getCrimeSummary("NC", "ASS", "10", "2025");
+   * Ensure that state is a valid abbreviation by using getStateAbbreviation prior to this call.
    *
    * @param state   The state abbreviation (e.g., "CA", "NC", "TX").
    * @param offense The offense code (e.g., "ASS", "BUR", "HOM", etc.).
    * @param month   The month as a two-digit string (e.g., "10" for October).
    * @param year    The year as a four-digit string (e.g., "2025").
    * @return A human-readable string like "9.57 cases per 100,000 people",
-   *         or an error message if data cannot be found.
+   *         or an error message if data cannot be found. If state is not a valid 
    */
   public String getCrimeSummary(String state, String offense, String month, String year) {
+    String abbreviation = getStateAbbreviation(state);
+    if (abbreviation == null) {
+      return null;
+    }
+
     String formattedDate = String.format("%s-%s", month, year);
     String url = String.format("%s/%s/%s?from=%s&to=%s&API_KEY=%s",
-            BASE_URL, state, offense, formattedDate, formattedDate, API_KEY);
+            BASE_URL, abbreviation, offense, formattedDate, formattedDate, API_KEY);
 
     try {
       HttpRequest request = HttpRequest.newBuilder()
@@ -62,9 +70,19 @@ public class CrimeModel {
       HttpResponse<String> response = httpClient.send(request,
               HttpResponse.BodyHandlers.ofString());
 
+      // Most likely a Bad Request
       if (response.statusCode() != 200) {
+        if (response.statusCode() == 400) { // If a bad request, return null
+          if (logger.isWarnEnabled()) {
+            logger.warn("Crime API request failed: status={} body={}",
+                response.statusCode(), response.body());
+          }
+          return null;
+        }
+        // Any other status code is unexpected
         throw new RuntimeException("API call failed with status: "
                 + response.statusCode());
+
       }
 
       JsonNode root = objectMapper.readTree(response.body());
@@ -81,7 +99,6 @@ public class CrimeModel {
       }
 
     } catch (IOException | InterruptedException e) {
-      e.printStackTrace();
       return "Error fetching data: " + e.getMessage();
     }
   }
@@ -93,6 +110,33 @@ public class CrimeModel {
   private String getStateName(String stateAbbrev) {
     return stateMap.getOrDefault(stateAbbrev.toUpperCase(), stateAbbrev);
   }
+
+  /**
+   * Converts full state name to the state abbreviation to query the crime API.
+   *
+   * @param stateInput the state input to be converted to abbrevation
+   * @return returns the abbreviation corresponding to the state input if the input is valid.
+   *          returns the abbreviation if the input is also a valid state abbrevation.
+   *          returns null if the stateInput is not a valid US state or any valid abbreviation.
+   */
+  private String getStateAbbreviation(String stateInput) {
+    String state = stateInput.trim();
+
+    if (state.length() == 2) {
+      String upper = state.toUpperCase();
+      if (stateMap.containsKey(upper)) {
+        return upper;
+      }
+    }
+
+    for (Map.Entry<String, String> entry : stateMap.entrySet()) {
+      if (entry.getValue().equalsIgnoreCase(state)) {
+        return entry.getKey();
+      }
+    }
+
+    return null;
+  }    
 
   /**
    * Populates a map of all 50 U.S. states and D.C.
