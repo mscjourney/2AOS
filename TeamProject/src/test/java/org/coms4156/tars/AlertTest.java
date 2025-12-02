@@ -84,8 +84,8 @@ public class AlertTest {
     List<String> weatherPreferences = new ArrayList<>();
     weatherPreferences.add("rainy");
     List<String> temperaturePreferences = new ArrayList<>();
-    temperaturePreferences.add("60F");
-    temperaturePreferences.add("67F");
+    temperaturePreferences.add("7");
+    temperaturePreferences.add("15");
     List<String> cityPreferences = new ArrayList<>();
     cityPreferences.add("New York");
     cityPreferences.add("Paris");

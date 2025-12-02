@@ -12,6 +12,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -93,6 +94,59 @@ public class ClientServiceTest {
         "Should return new list instance each time"
     );
   }
+
+  /**
+   * {@code getClientListReloadClients} Simulates client list in ClientService being null
+   * before an operation. Will reload the client information from database 
+   * before executing getClientList().
+   */
+  @Test
+  public void getClientListReloadClients() throws Exception {
+    Field clientsField = ClientService.class.getDeclaredField("clients");
+    clientsField.setAccessible(true);
+    clientsField.set(clientService, null);
+    assertNull(clientsField.get(clientService));
+
+    // clients should have been reloaded
+    List<Client> clientList = clientService.getClientList();
+    assertNotNull(clientList);
+    assertEquals(4, clientList.size());
+  }
+
+  /**
+   * {@code removeClientIdReloadClients} Simulates client list in ClientService being null 
+   * before an operation. Will reload the client information from database 
+   * before executing removeClient
+   */
+  @Test
+  public void removeClientReloadClients() throws Exception {
+    Field clientsField = ClientService.class.getDeclaredField("clients");
+    clientsField.setAccessible(true);
+    clientsField.set(clientService, null);
+    assertNull(clientsField.get(clientService));
+
+    assertTrue(clientService.removeClient(3));
+    assertNull(clientService.getClient(3));
+    List<Client> clientList = clientService.getClientList();
+    assertEquals(3, clientList.size());
+
+  }
+
+  @Test
+  public void getClientReloadClients() throws Exception {
+    Field clientsField = ClientService.class.getDeclaredField("clients");
+    clientsField.setAccessible(true);
+    clientsField.set(clientService, null);
+    assertNull(clientsField.get(clientService));
+
+    Client client = clientService.getClient(3);
+    assertNotNull(client);
+    assertEquals(3, client.getClientId());
+    assertEquals("test_NewsAlertClient", client.getName());
+
+
+  }
+
 
   /**
    * {@code getClientByIdSuccessTest} Verifies retrieval of existing client

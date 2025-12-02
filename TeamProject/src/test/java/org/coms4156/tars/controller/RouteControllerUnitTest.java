@@ -38,6 +38,44 @@ public class RouteControllerUnitTest {
   @Autowired
   private ObjectMapper objectMapper;
 
+  /**
+   * {@code indexTest} Tests the index endpoint returns the welcome message.
+   *
+   * @throws Exception if the request fails
+   */
+  @Test
+  public void indexTest() throws Exception {
+    mockMvc.perform(get("/"))
+      .andExpect(status().isOk())
+        .andExpect(content().string(containsString("Welcome to the TARS Home Page!")));
+  }
+
+  /**
+   * {@code indexTestWithIndexPath} Tests the /index endpoint returns the welcome message.
+   *
+   * @throws Exception if the request fails
+   */
+  @Test
+  public void indexTestWithIndexPath() throws Exception {
+    mockMvc.perform(get("/index"))
+      .andExpect(status().isOk())
+        .andExpect(content().string(containsString("Welcome to the TARS Home Page!")));
+  }
+
+  /**
+   * {@code indexTestResponseContentType} Tests that the index endpoint returns
+   * the correct content type.
+   *
+   * @throws Exception if the request fails
+   */
+  @Test
+  public void indexTestResponseContentType() throws Exception {
+    mockMvc.perform(get("/"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType("text/plain;charset=UTF-8"))
+        .andExpect(content().string(containsString("Welcome to the TARS Home Page!")));
+  }
+  
   @Test
   public void testGetCountryAdvisory() throws Exception {
     TravelAdvisory mockCanadaAdvisory = 

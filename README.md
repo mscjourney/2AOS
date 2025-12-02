@@ -68,7 +68,7 @@ Directories are created automatically if missing.
 
 ## Data Model Overview
 
-### Legacy Preference User (`User`)
+### User Preference (`UserPreference`)
 ```json
 {
   "id": 1,
@@ -222,13 +222,64 @@ Errors:
 - 409: Username already exists (case-insensitive match within same client)
 - 500: Internal failure creating user
 
-### Legacy Users (Preference Profiles)
+### User Preferences
 
-PUT `/user/{id}/add`  
-GET `/user/{id}`  
-GET `/userList`
+#### 1) PUT `/setPreference/{id}`
 
-(See existing section below for details.)
+Description: Adds/updates the preferences of the TarUser by id.
+
+Path Variable: `id` (long): id of the TarUser to add/update preferences for.
+
+Request: Expects a JSON payload (body) representing the UserPreferences
+```json
+{
+    "id":1,
+    "weatherPreferences":["sunny","clear"],
+    "temperaturePreferences":["70F"],
+    "cityPreferences":["Boston","New York"]
+}
+```
+Response:
+- `200 OK`: Returns the updated preferences.
+- `400 Bad Request`: Error message if `id` was negative or `@PathVariable id` does not match JSON `id`.
+- `404 Not Found`: TarsUser with the specified Id does not exist.
+
+#### 2) GET `/clearPreference/{id}`
+
+Description: Removes the preferences of the TarUser by id.
+
+Path Variable: `id` (long): id of the TarUser to remove preferences for.
+
+Request: None
+
+Response:
+- `200 OK`: Returns a message saying the preferences have been cleared.
+- `400 BAD_REQUEST`: Error message if `id` was negative or TarsUser with `id` did not have any existing preferences.
+- `404 Not Found`: A TarsUser with the specified Id does not exist.
+
+#### 3) GET `/retrievePreference/{id}`
+
+Description: Gets the preferences of the TarUser by id.
+
+Path Variable: `id` (long): id of the TarUser to retrieve preferences for.
+
+Request: None
+
+Response:
+- `200 OK`: Returns the TarsUser Preferences.
+- `400 BAD_REQUEST`: Error message if `id` was negative or TarsUser with `id` did not have any existing preferences.
+- `404 Not Found`: A TarsUser with the specified Id does not exist.
+
+#### 4) GET `/userPreferenceList`
+
+Description: Retrieves a list of all existing preferences for all TarUsers.
+
+Path Variable: None
+
+Request: None
+
+Response:
+- `200 OK`: Returns a list of `UserPreference` objects.
 
 ### Weather Recommendation
 

@@ -42,8 +42,8 @@ public class TarsServiceTest {
     service = new TarsService(testFilePath);
 
     UserPreference user1 
-        = new UserPreference(1L, List.of("sunny"), List.of("70F"), List.of("Boston"));
-    UserPreference user2 = new UserPreference(2L, List.of("rainy"), List.of("60F", "67F"), 
+        = new UserPreference(1L, List.of("sunny"), List.of("12"), List.of("Boston"));
+    UserPreference user2 = new UserPreference(2L, List.of("rainy"), List.of("11", "24"), 
                             List.of("New York", "Paris"));
 
     service.setUserPreference(user1);
@@ -66,7 +66,7 @@ public class TarsServiceTest {
     assertEquals(user.getWeatherPreferences(), weatherPreferences);
     
     List<String> temperaturePreferences = new ArrayList<>();
-    temperaturePreferences.add("70F");
+    temperaturePreferences.add("12");
     assertEquals(user.getTemperaturePreferences(), temperaturePreferences);
 
     List<String> cityPreferences = new ArrayList<>();
@@ -88,8 +88,8 @@ public class TarsServiceTest {
     assertEquals(user.getWeatherPreferences(), weatherPreferences);
     
     List<String> temperaturePreferences = new ArrayList<>();
-    temperaturePreferences.add("60F");
-    temperaturePreferences.add("67F");
+    temperaturePreferences.add("11");
+    temperaturePreferences.add("24");
     assertEquals(user.getTemperaturePreferences(), temperaturePreferences);
 
     List<String> cityPreferences = new ArrayList<>();
@@ -105,7 +105,7 @@ public class TarsServiceTest {
   @Test
   void setUserPreferenceTest() {
     UserPreference user1 
-        = new UserPreference(1L, List.of("sunny"), List.of("70F"), List.of("Boston"));
+        = new UserPreference(1L, List.of("sunny"), List.of("12"), List.of("Boston"));
     assertEquals(service.getUserPreference(1L), user1);
     assertTrue(service.setUserPreference(user1)); // Modify an existing perference
     UserPreference ret1 = service.getUserPreference(1L);
@@ -132,7 +132,7 @@ public class TarsServiceTest {
   @Test
   void testClearPreference() {
     UserPreference user1 
-        = new UserPreference(1L, List.of("sunny"), List.of("70F"), List.of("Boston"));
+        = new UserPreference(1L, List.of("sunny"), List.of("12"), List.of("Boston"));
     assertEquals(service.getUserPreference(1L), user1);
 
     assertTrue(service.clearPreference(1L));
@@ -175,14 +175,14 @@ public class TarsServiceTest {
     assertNotNull(result);
     assertEquals(result.getId(), 1);
     assertEquals(result.getWeatherPreferences(), List.of("sunny"));
-    assertEquals(result.getTemperaturePreferences(), List.of("70F"));
+    assertEquals(result.getTemperaturePreferences(), List.of("12"));
     assertEquals(result.getCityPreferences(), List.of("Boston"));
 
     UserPreference result2 = service.getUserPreference(2L);
     assertNotNull(result2);
     assertEquals(result2.getId(), 2);
     assertEquals(result2.getWeatherPreferences(), List.of("rainy"));
-    assertEquals(result2.getTemperaturePreferences(), List.of("60F", "67F"));
+    assertEquals(result2.getTemperaturePreferences(), List.of("11", "24"));
     assertEquals(result2.getCityPreferences(), List.of("New York", "Paris"));
   }
 
