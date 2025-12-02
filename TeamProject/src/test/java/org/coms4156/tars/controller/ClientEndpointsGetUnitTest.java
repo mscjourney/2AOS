@@ -1,5 +1,6 @@
 package org.coms4156.tars.controller;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -55,5 +56,22 @@ public class ClientEndpointsGetUnitTest {
           .andExpect(status().isBadRequest())
           .andExpect(jsonPath("$.status").value(400))
           .andExpect(jsonPath("$.message").exists());
+  }
+
+  /**
+   * {@code getClientsTest} Returns a list of all clients registered under the service.
+   */
+  @Test
+  @DisplayName("GET /clients returns 200 on success")
+  public void getClientsTest() throws Exception {
+    mockMvc.perform(get("/clients"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(6)))
+        .andExpect(jsonPath("$[0].clientId").value(1))
+        .andExpect(jsonPath("$[1].clientId").value(2))
+        .andExpect(jsonPath("$[2].clientId").value(3))
+        .andExpect(jsonPath("$[3].clientId").value(4))
+        .andExpect(jsonPath("$[4].clientId").value(5))
+        .andExpect(jsonPath("$[5].clientId").value(6));
   }
 }

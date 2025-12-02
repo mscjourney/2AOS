@@ -75,7 +75,7 @@ public class LoggingTest {
     List<String> weatherPreferences = new ArrayList<>();
     weatherPreferences.add("sunny");
     List<String> temperaturePreferences = new ArrayList<>();
-    temperaturePreferences.add("70F");
+    temperaturePreferences.add("20");
     List<String> cityPreferences = new ArrayList<>();
     cityPreferences.add("Boston");
 
@@ -225,32 +225,5 @@ public class LoggingTest {
         .anyMatch(msg -> msg.contains("No advisory found for country=Earth"));
     assertThat("Should log no advisory found", foundErrorLog, org.hamcrest.Matchers.is(true));  
   }
-  /*
-   * {@code testClientEndpointLogging} Tests logging for: Remove this test.
-  @Test
-  public void testClientEndpointLogging() throws Exception {
-    listAppender.list.clear();
-
-    ObjectMapper mapper = new ObjectMapper();
-    User client = new User(1, 1, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
-
-    mockMvc.perform(post("/clients")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(mapper.writeValueAsString(client)))
-        .andExpect(status().isNotImplemented());
-
-    // Verify logging occurred
-    List<ILoggingEvent> logEvents = listAppender.list;
-    assertThat("Should have log events", logEvents.size(), greaterThan(0));
-
-    List<String> logMessages = logEvents.stream()
-        .map(ILoggingEvent::getFormattedMessage)
-        .collect(Collectors.toList());
-
-    boolean foundClientLog = logMessages.stream()
-        .anyMatch(msg -> msg.contains("POST /clients invoked") 
-            && msg.contains("not implemented"));
-    assertThat("Should log POST /clients invoked", foundClientLog, org.hamcrest.Matchers.is(true));
-  }*/
 }
 
