@@ -2,6 +2,7 @@ package org.coms4156.tars;
 
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -275,5 +276,23 @@ public class UserTest {
         .andExpect(jsonPath("$[1].weatherPreferences", contains("rainy")))
         .andExpect(jsonPath("$[1].temperaturePreferences", contains("60F", "67F")))
         .andExpect(jsonPath("$[1].cityPreferences", contains("New York", "Paris")));
+  }
+
+  @Test
+  public void testGetClientUserListWithExistingPreferences() throws Exception {
+    mockMvc.perform(get("/userPreferenceList/client/1"))
+        .andExpect(jsonPath("$[0].id").value(1))
+        .andExpect(jsonPath("$[0].weatherPreferences", contains("sunny")))
+        .andExpect(jsonPath("$[0].temperaturePreferences", contains("70F")))
+        .andExpect(jsonPath("$[0].cityPreferences", contains("Boston")));
+  }
+    
+  @Test
+  public void testGetClientUserListWithNoPreferences() throws Exception {
+    mockMvc.perform(get("/userPreferenceList/client/4"))
+        .andExpect(jsonPath("$[0].id").value(4))
+        .andExpect(jsonPath("$[0].weatherPreferences", empty()))
+        .andExpect(jsonPath("$[0].temperaturePreferences", empty()))
+        .andExpect(jsonPath("$[0].cityPreferences", empty()));
   }
 }

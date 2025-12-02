@@ -147,5 +147,4 @@ public class WeatherRecommendationTest {
             "Should indicate error for invalid city"
     );
   }
-
 }
