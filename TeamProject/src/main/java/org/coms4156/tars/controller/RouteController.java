@@ -638,67 +638,6 @@ public class RouteController {
     }
   }
 
-  // /**
-  //  * Handles GET requests to retrieve userPreference information about all existing users 
-  //  * under a specified client.
-  /**
-   * Handles GET requests to retrieve user preferences for a specific clientId.
-   * This finds the TarsUser with the matching clientId and returns their preferences.
-   *
-   * @param clientId the id of the client we want to retrieve user data for
-   * @return a ResponseEntity containing the UserPreference for the user
-   *         with the specified clientId, or empty preferences if not found
-   */
-  @GetMapping("/user/client/{clientId}")
-  public ResponseEntity<?> getUserByClientId(@PathVariable Long clientId) {
-    if (logger.isInfoEnabled()) {
-      logger.info("GET /user/client/{} invoked", clientId);
-    }
-    try {
-      if (clientId == null || clientId < 0) {
-        if (logger.isWarnEnabled()) {
-          logger.warn("GET /user/client/{} failed: invalid clientId", clientId);
-        }
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body("Client Id cannot be negative.");
-      }
-
-      // Find first TarsUser by clientId using service helper
-      List<TarsUser> clientUsers = tarsUserService.listUsersByClientId(clientId);
-      TarsUser foundUser = clientUsers.isEmpty() ? null : clientUsers.get(0);
-      
-      if (foundUser == null) {
-        if (logger.isWarnEnabled()) {
-          logger.warn("No user found for clientId={}", clientId);
-        }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body("No user found for clientId.");
-      }
-      
-      // Get preferences for this user
-      UserPreference userPrefs = tarsService.getUserPreference(foundUser.getUserId());
-      if (userPrefs == null) {
-        // User exists but has no preferences yet
-        UserPreference emptyPrefs = new UserPreference(foundUser.getUserId());
-        if (logger.isInfoEnabled()) {
-          logger.info("GET /user/client/{} success: user found but no preferences", clientId);
-        }
-        return ResponseEntity.ok(emptyPrefs);
-      }
-      
-      if (logger.isInfoEnabled()) {
-        logger.info("GET /user/client/{} success: found user preferences", clientId);
-      }
-      return ResponseEntity.ok(userPrefs);
-    } catch (Exception e) {
-      if (logger.isErrorEnabled()) {
-        logger.error("GET /user/client/{} failed", clientId, e);
-      }
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body("Failed to retrieve user for client: " + e.getMessage());
-    }
-  }
-
   /**
    * Handles GET requests to retrieve all user preferences
    *          under a client specified by clientId. Returns an empty json if no users are found.

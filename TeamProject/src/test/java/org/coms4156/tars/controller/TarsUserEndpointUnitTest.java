@@ -54,25 +54,6 @@ public class TarsUserEndpointUnitTest {
   }
 
   /**
-   * {@code getUserByClientIdCases} Validates client-bound user lookup cases.
-   */
-  @Test
-  @DisplayName("GET /user/client/{clientId} returns 200 with prefs or 404 when no user")
-  void getUserByClientIdCases() throws Exception {
-    // clientId=1 exists with user alice -> should return 200
-    mockMvc.perform(get("/user/client/1"))
-        .andExpect(status().isOk());
-
-    // large client id likely missing -> 404
-    mockMvc.perform(get("/user/client/9999"))
-        .andExpect(status().isNotFound());
-
-    // negative -> 400
-    mockMvc.perform(get("/user/client/-1"))
-        .andExpect(status().isBadRequest());
-  }
-
-  /**
    * {@code getClientUserListCases} Validates user list retrieval by client id.
    */
   @Test
