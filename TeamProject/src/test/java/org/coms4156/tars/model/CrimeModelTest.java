@@ -72,6 +72,9 @@ class CrimeModelTest {
     }
   }
 
+  /**
+   * Tests response when unexpected state is inputted
+   */
   @Test
   void testGetCrimeSummary_InvalidState() {
     CrimeModel model = new CrimeModel();
@@ -84,6 +87,9 @@ class CrimeModelTest {
     }
   }
 
+  /**
+   * Tests response when unexpected offense is inputted
+   */
   @Test
   void testGetCrimeSummary_InvalidOffense() {
     CrimeModel model = new CrimeModel();
