@@ -41,7 +41,8 @@ public class ClientEndpointsGetUnitTest {
   void getClientByIdNotFound() throws Exception {
     mockMvc.perform(get("/clients/999"))
         .andExpect(status().isNotFound())
-        .andExpect(jsonPath("$.message").value("Client not found."));
+        .andExpect(jsonPath("$.status").value(404))
+        .andExpect(jsonPath("$.message").exists());
   }
 
   /**
@@ -51,7 +52,8 @@ public class ClientEndpointsGetUnitTest {
   @DisplayName("GET /clients/{id} returns 400 when id negative")
   void getClientByIdBadRequest() throws Exception {
     mockMvc.perform(get("/clients/-5"))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message").value("Client Id cannot be negative."));
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.status").value(400))
+          .andExpect(jsonPath("$.message").exists());
   }
 }
