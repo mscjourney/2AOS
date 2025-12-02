@@ -129,6 +129,14 @@ public class RouteControllerUnitTest {
         .andExpect(jsonPath("$").exists());
   }
 
+  @Test
+  public void testGetCitySummaryWithLongerThanFourteenDays() throws Exception {
+    mockMvc.perform(get("/summary/San Francisco")
+            .param("startDate", "2025-08-01")
+            .param("endDate", "2025-10-01"))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$").exists());
+  }
 
   @Test
   public void testLoginWithUsernameIntegration() throws Exception {
