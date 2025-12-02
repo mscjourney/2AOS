@@ -66,6 +66,51 @@ public class TarsUserServiceTest {
   }
 
   /**
+   * {@code persistentFileLoggingIntegrationTest} Verifies Logback writes to a rolling file
+   * when LOG_PATH is provided via system properties. Asserts file creation and content.
+   */
+  @Test
+  public void persistentFileLoggingIntegrationTest() throws Exception {
+    Path logDir = Files.createTempDirectory("tars-log-test");
+    try {
+      System.setProperty("LOG_PATH", logDir.toString());
+      System.setProperty("LOG_LEVEL", "DEBUG");
+
+      // Reload Logback configuration to pick up new properties
+      ch.qos.logback.classic.LoggerContext ctx = (ch.qos.logback.classic.LoggerContext) LoggerFactory.getILoggerFactory();
+      ctx.reset();
+      ch.qos.logback.classic.joran.JoranConfigurator configurator = new ch.qos.logback.classic.joran.JoranConfigurator();
+      configurator.setContext(ctx);
+      java.net.URL cfgUrl = getClass().getClassLoader().getResource("logback-spring.xml");
+      assertNotNull(cfgUrl, "logback-spring.xml should be on test classpath");
+      configurator.doConfigure(cfgUrl);
+
+      // Trigger a few log messages through service operations
+      userService.createUser(5L, "", "test_user@client5.com", "user"); // WARN: blank username
+      userService.updateLastLogin(1L); // INFO
+
+      // Allow appender to flush
+      Thread.sleep(150);
+
+      Path logFile = logDir.resolve("Tars.log");
+      assertTrue(Files.exists(logFile), "Expected persistent log file to be created at LOG_PATH");
+
+      String content = Files.readString(logFile);
+      assertTrue(content.contains("TarsUserService"), "Log file should contain service logger entries");
+      assertTrue(content.contains("Updated lastLogin for user id=1"), "Log file should contain lastLogin update message");
+    } finally {
+      System.clearProperty("LOG_PATH");
+      System.clearProperty("LOG_LEVEL");
+      // Best-effort cleanup
+      Files.walk(logDir)
+          .sorted((a, b) -> b.getNameCount() - a.getNameCount())
+          .forEach(p -> {
+            try { Files.deleteIfExists(p); } catch (IOException ignored) { }
+          });
+    }
+  }
+
+  /**
    * {@code userServiceInitializationTest} Verifies initial load yields first user
    * with expected id and username.
    */
