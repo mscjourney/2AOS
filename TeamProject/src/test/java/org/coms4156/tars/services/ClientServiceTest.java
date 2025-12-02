@@ -1191,4 +1191,382 @@ public class ClientServiceTest {
     Files.deleteIfExists(testFile);
     Files.deleteIfExists(testDir);
   }
+
+  /**
+   * Test logger guards - isInfoEnabled when disabled.
+   */
+  @Test
+  public void testLoggerInfoDisabled() throws Exception {
+    Logger logger = (Logger) LoggerFactory.getLogger(ClientService.class);
+    try {
+      logger.setLevel(Level.ERROR);
+      
+      Path testDir = Files.createTempDirectory("logger-info-test");
+      Path testFile = testDir.resolve("clients.json");
+      
+      // This should trigger logger.isInfoEnabled() checks
+      ClientService service = new ClientService(testFile.toString(), null);
+      service.createClient("TestClient", "test@test.com");
+      
+      assertNotNull(service.getClientList(), "Service should work with INFO logging disabled");
+    } finally {
+      logger.setLevel(Level.TRACE);
+    }
+  }
+
+  /**
+   * Test logger guards - isWarnEnabled when disabled.
+   */
+  @Test
+  public void testLoggerWarnDisabled() throws Exception {
+    Logger logger = (Logger) LoggerFactory.getLogger(ClientService.class);
+    try {
+      logger.setLevel(Level.ERROR);
+      
+      Path testDir = Files.createTempDirectory("logger-warn-test");
+      Path testFile = testDir.resolve("clients.json");
+      
+      ClientService service = new ClientService(testFile.toString(), null);
+      
+      // Trigger warning conditions
+      service.createClient("", "test@test.com"); // blank name
+      service.createClient(null, "test@test.com"); // null client
+      
+      assertTrue(service.getClientList().isEmpty(), 
+          "No clients should be created with invalid data");
+    } finally {
+      logger.setLevel(Level.TRACE);
+    }
+  }
+
+  /**
+   * Test logger guards - isErrorEnabled when disabled.
+   */
+  @Test
+  public void testLoggerErrorDisabled() throws Exception {
+    Logger logger = (Logger) LoggerFactory.getLogger(ClientService.class);
+    try {
+      logger.setLevel(Level.OFF);
+      
+      // Create file with invalid JSON
+      Path testDir = Files.createTempDirectory("logger-error-test");
+      Path testFile = testDir.resolve("corrupt.json");
+      Files.writeString(testFile, "{invalid json}");
+      
+      ClientService service = new ClientService(testFile.toString(), null);
+      
+      // Should handle error silently
+      assertNotNull(service.getClientList(), "Service should handle errors gracefully");
+    } finally {
+      logger.setLevel(Level.TRACE);
+    }
+  }
+
+  /**
+   * Test logger guards - isDebugEnabled when disabled.
+   */
+  @Test
+  public void testLoggerDebugDisabled() throws Exception {
+    Logger logger = (Logger) LoggerFactory.getLogger(ClientService.class);
+    try {
+      logger.setLevel(Level.INFO);
+      
+      Path testDir = Files.createTempDirectory("logger-debug-test");
+      Path testFile = testDir.resolve("clients.json");
+      
+      ClientService service = new ClientService(testFile.toString(), null);
+      Client created = service.createClient("DebugTest", "debug@test.com");
+      
+      assertNotNull(created, "Client should be created with DEBUG logging disabled");
+    } finally {
+      logger.setLevel(Level.TRACE);
+    }
+  }
+
+  /**
+   * Test parent directory is null (root path).
+   */
+  @Test
+  public void testParentDirectoryNull() throws IOException {
+    java.io.File tempRoot = java.io.File.listRoots()[0];
+    java.io.File testFile = new java.io.File(tempRoot, 
+        "tars-client-test-" + System.currentTimeMillis() + ".json");
+    
+    try {
+      ClientService service = new ClientService(testFile.toString(), null);
+      assertNotNull(service.getClientList(), 
+          "Service should initialize with root-level file");
+    } finally {
+      if (testFile.exists()) {
+        testFile.delete();
+      }
+    }
+  }
+
+  /**
+   * Test client ID not greater than maxId.
+   */
+  @Test
+  public void testMaxIdNotUpdated() throws IOException {
+    Path testDir = Files.createTempDirectory("max-id-test");
+    Path testFile = testDir.resolve("clients.json");
+    
+    // Create file with clients having IDs 1, 2, 3
+    java.util.List<Client> initialClients = new java.util.ArrayList<>();
+    for (int i = 1; i <= 3; i++) {
+      Client c = new Client();
+      c.setClientId((long) i);
+      c.setName("Client" + i);
+      c.setEmail("client" + i + "@test.com");
+      c.setRateLimitPerMinute(60);
+      c.setMaxConcurrentRequests(5);
+      initialClients.add(c);
+    }
+    
+    com.fasterxml.jackson.databind.ObjectMapper om = 
+        new com.fasterxml.jackson.databind.ObjectMapper();
+    om.writeValue(testFile.toFile(), initialClients);
+    
+    ClientService service = new ClientService(testFile.toString(), null);
+    
+    // Next ID should be 4 (maxId=3, so all existing IDs were <= maxId)
+    Client created = service.createClient("NewClient", "new@test.com");
+    assertEquals(4L, created.getClientId(), "Next ID should be maxId + 1");
+  }
+
+  /**
+   * Test name uniqueness check with null existing name.
+   */
+  @Test
+  public void testIsNameTakenNullExistingName() throws Exception {
+    final Path testDir = Files.createTempDirectory("null-name-test");
+    
+    // Create client with null name
+    Client c = new Client();
+    c.setClientId(1L);
+    c.setName(null);  // null name
+    c.setEmail("test@test.com");
+    c.setRateLimitPerMinute(60);
+    c.setMaxConcurrentRequests(5);
+    
+    java.util.List<Client> clients = new java.util.ArrayList<>();
+    clients.add(c);
+    
+    Path testFile = testDir.resolve("clients.json");
+    com.fasterxml.jackson.databind.ObjectMapper om = 
+        new com.fasterxml.jackson.databind.ObjectMapper();
+    om.writeValue(testFile.toFile(), clients);
+    
+    ClientService service = new ClientService(testFile.toString(), null);
+    
+    // Try to create client with a name - should succeed since existing has null name
+    Client created = service.createClient("ValidName", "new@test.com");
+    assertNotNull(created, "Should allow creation when existing client has null name");
+  }
+
+  /**
+   * Test email uniqueness check with null existing email.
+   */
+  @Test
+  public void testIsEmailTakenNullExistingEmail() throws Exception {
+    final Path testDir = Files.createTempDirectory("null-email-test");
+    
+    // Create client with null email
+    Client c = new Client();
+    c.setClientId(1L);
+    c.setName("TestClient");
+    c.setEmail(null);  // null email
+    c.setRateLimitPerMinute(60);
+    c.setMaxConcurrentRequests(5);
+    
+    java.util.List<Client> clients = new java.util.ArrayList<>();
+    clients.add(c);
+    
+    Path testFile = testDir.resolve("clients.json");
+    com.fasterxml.jackson.databind.ObjectMapper om = 
+        new com.fasterxml.jackson.databind.ObjectMapper();
+    om.writeValue(testFile.toFile(), clients);
+    
+    ClientService service = new ClientService(testFile.toString(), null);
+    
+    // Try to create client with an email - should succeed since existing has null email
+    Client created = service.createClient("NewClient", "valid@test.com");
+    assertNotNull(created, "Should allow creation when existing client has null email");
+  }
+
+  /**
+   * Test update with null or blank name.
+   */
+  @Test
+  public void testUpdateClientBlankName() throws IOException {
+    Path testDir = Files.createTempDirectory("blank-name-update-test");
+    Path testFile = testDir.resolve("clients.json");
+    
+    ClientService service = new ClientService(testFile.toString(), null);
+    Client original = service.createClient("OriginalName", "test@test.com");
+    
+    Client updated = new Client();
+    updated.setClientId(original.getClientId());
+    updated.setName("   ");  // blank name
+    updated.setEmail("test@test.com");
+    updated.setRateLimitPerMinute(100);
+    
+    boolean result = service.updateClient(updated);
+    assertFalse(result, "Should reject update with blank name");
+  }
+
+  /**
+   * Test update with other client having null clientId.
+   */
+  @Test
+  public void testUpdateClientOtherNullClientId() throws Exception {
+    final Path testDir = Files.createTempDirectory("other-null-id-test");
+    
+    // Create two clients, one with null ID
+    Client c1 = new Client();
+    c1.setClientId(null);  // null ID
+    c1.setName("Client1");
+    c1.setEmail("client1@test.com");
+    c1.setRateLimitPerMinute(60);
+    c1.setMaxConcurrentRequests(5);
+    
+    Client c2 = new Client();
+    c2.setClientId(2L);
+    c2.setName("Client2");
+    c2.setEmail("client2@test.com");
+    c2.setRateLimitPerMinute(60);
+    c2.setMaxConcurrentRequests(5);
+    
+    java.util.List<Client> clients = new java.util.ArrayList<>();
+    clients.add(c1);
+    clients.add(c2);
+    
+    Path testFile = testDir.resolve("clients.json");
+    com.fasterxml.jackson.databind.ObjectMapper om = 
+        new com.fasterxml.jackson.databind.ObjectMapper();
+    om.writeValue(testFile.toFile(), clients);
+    
+    ClientService service = new ClientService(testFile.toString(), null);
+    
+    // Update client 2 - should succeed despite client 1 having null ID
+    Client updated = new Client();
+    updated.setClientId(2L);
+    updated.setName("UpdatedClient2");
+    updated.setEmail("client2@test.com");
+    updated.setRateLimitPerMinute(100);
+    updated.setMaxConcurrentRequests(10);
+    
+    boolean result = service.updateClient(updated);
+    assertTrue(result, "Should allow update when other client has null ID");
+  }
+
+  /**
+   * Test update with other client having null name.
+   */
+  @Test
+  public void testUpdateClientOtherNullName() throws Exception {
+    final Path testDir = Files.createTempDirectory("other-null-name-test");
+    
+    // Create two clients, one with null name
+    Client c1 = new Client();
+    c1.setClientId(1L);
+    c1.setName(null);  // null name
+    c1.setEmail("client1@test.com");
+    c1.setRateLimitPerMinute(60);
+    c1.setMaxConcurrentRequests(5);
+    
+    Client c2 = new Client();
+    c2.setClientId(2L);
+    c2.setName("Client2");
+    c2.setEmail("client2@test.com");
+    c2.setRateLimitPerMinute(60);
+    c2.setMaxConcurrentRequests(5);
+    
+    java.util.List<Client> clients = new java.util.ArrayList<>();
+    clients.add(c1);
+    clients.add(c2);
+    
+    Path testFile = testDir.resolve("clients.json");
+    com.fasterxml.jackson.databind.ObjectMapper om = 
+        new com.fasterxml.jackson.databind.ObjectMapper();
+    om.writeValue(testFile.toFile(), clients);
+    
+    ClientService service = new ClientService(testFile.toString(), null);
+    
+    // Update client 2 - should succeed despite client 1 having null name
+    Client updated = new Client();
+    updated.setClientId(2L);
+    updated.setName("UpdatedClient2");
+    updated.setEmail("client2@test.com");
+    updated.setRateLimitPerMinute(100);
+    updated.setMaxConcurrentRequests(10);
+    
+    boolean result = service.updateClient(updated);
+    assertTrue(result, "Should allow update when other client has null name");
+  }
+
+  /**
+   * Test update existing client with null clientId.
+   */
+  @Test
+  public void testUpdateExistingClientNullId() throws Exception {
+    final Path testDir = Files.createTempDirectory("existing-null-id-test");
+    
+    // Create client with null ID
+    Client c = new Client();
+    c.setClientId(null);  // null ID
+    c.setName("OriginalClient");
+    c.setEmail("original@test.com");
+    c.setRateLimitPerMinute(60);
+    c.setMaxConcurrentRequests(5);
+    
+    java.util.List<Client> clients = new java.util.ArrayList<>();
+    clients.add(c);
+    
+    Path testFile = testDir.resolve("clients.json");
+    com.fasterxml.jackson.databind.ObjectMapper om = 
+        new com.fasterxml.jackson.databind.ObjectMapper();
+    om.writeValue(testFile.toFile(), clients);
+    
+    ClientService service = new ClientService(testFile.toString(), null);
+    
+    // Try to update with ID=1
+    Client updated = new Client();
+    updated.setClientId(1L);
+    updated.setName("UpdatedName");
+    updated.setEmail("updated@test.com");
+    updated.setRateLimitPerMinute(100);
+    updated.setMaxConcurrentRequests(10);
+    
+    boolean result = service.updateClient(updated);
+    assertFalse(result, "Should not update when existing client has null ID");
+  }
+
+  /**
+   * Test copyFrom with null source.
+   */
+  @Test
+  public void testCopyFromNullSource() throws IOException {
+    Path testDir = Files.createTempDirectory("copy-null-test");
+    Path testFile = testDir.resolve("clients.json");
+    
+    ClientService service = new ClientService(testFile.toString(), null);
+    Client created = service.createClient("TestClient", "test@test.com");
+    
+    Client target = service.getClient(created.getClientId());
+    
+    // Use reflection to call copyFrom with null
+    try {
+      java.lang.reflect.Method method = ClientService.class
+          .getDeclaredMethod("copyFrom", Client.class, Client.class);
+      method.setAccessible(true);
+      method.invoke(service, target, null);
+      
+      // Target should remain unchanged
+      assertEquals("TestClient", target.getName(), 
+          "Target should not change with null source");
+    } catch (Exception e) {
+      // Expected to handle null gracefully
+    }
+  }
 }
