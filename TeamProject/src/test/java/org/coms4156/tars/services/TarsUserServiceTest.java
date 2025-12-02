@@ -16,10 +16,12 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.coms4156.tars.model.TarsUser;
 import org.coms4156.tars.service.TarsUserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -743,5 +745,272 @@ public class TarsUserServiceTest {
     );
 
     logger.detachAppender(listAppender);
+  }
+
+  /**
+   * {@code persistAtomicMoveNotSupportedFallsBackTest} Verifies fallback to
+   * non-atomic move when atomic operations are unsupported.
+   */
+  @Test
+  public void persistAtomicMoveNotSupportedFallsBackTest() throws IOException {
+    Path testDir = Files.createTempDirectory("atomic-fallback-test");
+    Path testFile = testDir.resolve("users.json");
+    
+    // Mock FileMover that throws AtomicMoveNotSupportedException on first call
+    final AtomicInteger moveCount = new AtomicInteger(0);
+    final TarsUserService.FileMover mockMover = (source, target, options) -> {
+      int count = moveCount.incrementAndGet();
+      if (count == 1) {
+        // First attempt with atomic flags
+        throw new AtomicMoveNotSupportedException(
+            source.toString(), 
+            target.toString(), 
+            "Atomic move not supported in test"
+        );
+      }
+      // Second attempt succeeds (non-atomic fallback)
+      Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
+    };
+    
+    try (InputStream resourceStream = getClass()
+        .getClassLoader()
+        .getResourceAsStream("test-data/test-data-users.json")) {
+      assertNotNull(resourceStream, "Fixture missing");
+      Files.copy(resourceStream, testFile);
+    }
+    
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+    listAppender.start();
+    logger.addAppender(listAppender);
+    
+    TarsUserService service = new TarsUserService(testFile.toString(), mockMover);
+    TarsUser created = service.createUser(200L, "atomic_test", "atomic@test.com", "user");
+    assertNotNull(created, "User should be created");
+    Long userId = created.getUserId();
+    
+    // Verify both move attempts occurred
+    assertEquals(2, moveCount.get(), "Should attempt move twice");
+    
+    // Verify WARN log for atomic fallback
+    List<ILoggingEvent> logsList = listAppender.list;
+    assertTrue(
+        logsList.stream().anyMatch(event ->
+            event.getLevel() == Level.WARN
+                && event.getFormattedMessage().contains("Atomic move not supported")
+                && event.getFormattedMessage().contains("non-atomic fallback")),
+        "Should log WARN when atomic move fails"
+    );
+    
+    // Verify data persisted successfully
+    TarsUserService reloaded = new TarsUserService(testFile.toString(), null);
+    TarsUser retrieved = reloaded.findById(userId);
+    assertNotNull(retrieved, "User should persist after atomic fallback");
+    assertEquals("atomic@test.com", retrieved.getEmail());
+    
+    // Verify no temp files remain
+    long tmpCount = Files.list(testDir)
+        .filter(p -> p.getFileName().toString().endsWith(".tmp"))
+        .count();
+    assertEquals(0, tmpCount, "Temp files should be cleaned up");
+    
+    logger.detachAppender(listAppender);
+    Files.deleteIfExists(testFile);
+    Files.deleteIfExists(testDir);
+  }
+
+  /**
+   * {@code persistFirstMoveFailsFallsBackTest} Validates recovery when first
+   * move attempt fails with generic IOException.
+   */
+  @Test
+  public void persistFirstMoveFailsFallsBackTest() throws IOException {
+    Path testDir = Files.createTempDirectory("move-fallback-test");
+    Path testFile = testDir.resolve("users.json");
+    
+    // Mock FileMover that fails first attempt, succeeds second
+    final AtomicInteger moveCount = new AtomicInteger(0);
+    final TarsUserService.FileMover mockMover = (source, target, options) -> {
+      int count = moveCount.incrementAndGet();
+      if (count == 1) {
+        throw new IOException("Simulated first move failure");
+      }
+      Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
+    };
+    
+    try (InputStream resourceStream = getClass()
+        .getClassLoader()
+        .getResourceAsStream("test-data/test-data-users.json")) {
+      assertNotNull(resourceStream, "Fixture missing");
+      Files.copy(resourceStream, testFile);
+    }
+    
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+    listAppender.start();
+    logger.addAppender(listAppender);
+    
+    TarsUserService service = new TarsUserService(testFile.toString(), mockMover);
+    TarsUser created = service.createUser(201L, "fallback_test", "fallback@test.com", "user");
+    assertNotNull(created, "User should be created");
+    Long userId = created.getUserId();
+    
+    assertEquals(2, moveCount.get(), "Should attempt move twice");
+    
+    // Verify WARN log for first failure
+    List<ILoggingEvent> logsList = listAppender.list;
+    assertTrue(
+        logsList.stream().anyMatch(event ->
+            event.getLevel() == Level.WARN
+                && event.getFormattedMessage().contains("Atomic move failed")
+                && event.getFormattedMessage().contains("non-atomic fallback succeeded")),
+        "Should log WARN on first move failure"
+    );
+    
+    // Verify successful persistence
+    TarsUserService reloaded = new TarsUserService(testFile.toString(), null);
+    TarsUser retrieved = reloaded.findById(userId);
+    assertNotNull(retrieved, "User should persist after fallback");
+    assertEquals("fallback@test.com", retrieved.getEmail());
+    
+    logger.detachAppender(listAppender);
+    Files.deleteIfExists(testFile);
+    Files.deleteIfExists(testDir);
+  }
+
+  /**
+   * {@code persistBothMovesFailTest} Confirms error logging and temp
+   * cleanup occurs when all move attempts fail.
+   */
+  @Test
+  public void persistBothMovesFailTest() throws IOException {
+    Path testDir = Files.createTempDirectory("both-moves-fail-test");
+    Path testFile = testDir.resolve("users.json");
+    
+    // Mock FileMover that fails both attempts
+    final AtomicInteger moveCount = new AtomicInteger(0);
+    final TarsUserService.FileMover mockMover = (source, target, options) -> {
+      moveCount.incrementAndGet();
+      throw new IOException("Simulated move failure");
+    };
+    
+    try (InputStream resourceStream = getClass()
+        .getClassLoader()
+        .getResourceAsStream("test-data/test-data-users.json")) {
+      assertNotNull(resourceStream, "Fixture missing");
+      Files.copy(resourceStream, testFile);
+    }
+    
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+    listAppender.start();
+    logger.addAppender(listAppender);
+    
+    TarsUserService service = new TarsUserService(testFile.toString(), mockMover);
+    
+    // Persist will fail but won't throw exception - it keeps in-memory state
+    TarsUser created = service.createUser(202L, "fail_test", "fail@test.com", "user");
+    assertNotNull(created, "User should be created in memory even if persist fails");
+    
+    assertEquals(2, moveCount.get(), "Should attempt move twice before giving up");
+    
+    // Verify ERROR log for move failure
+    List<ILoggingEvent> logsList = listAppender.list;
+    assertTrue(
+        logsList.stream().anyMatch(event ->
+            event.getLevel() == Level.ERROR
+                && event.getFormattedMessage().contains("Persist move failed")),
+        "Should log ERROR when both moves fail"
+    );
+    
+    // Verify WARN log for persist not completing
+    assertTrue(
+        logsList.stream().anyMatch(event ->
+            event.getLevel() == Level.WARN
+                && event.getFormattedMessage().contains("Persist did not move new users file")),
+        "Should log WARN when persist doesn't complete"
+    );
+    
+    // Verify temp files cleaned up even on failure
+    long tmpCount = Files.list(testDir)
+        .filter(p -> p.getFileName().toString().endsWith(".tmp"))
+        .count();
+    assertEquals(0, tmpCount, "Temp files should be cleaned up even on failure");
+    
+    logger.detachAppender(listAppender);
+    Files.deleteIfExists(testFile);
+    Files.deleteIfExists(testDir);
+  }
+
+  /**
+   * {@code persistCreatesParentDirectoriesTest} Validates parent directory
+   * creation when persist target path includes non-existent directories.
+   */
+  @Test
+  public void persistCreatesParentDirectoriesTest() throws IOException {
+    final Path testDir = Files.createTempDirectory("parent-dir-test");
+    final Path nestedDir = testDir.resolve("level1").resolve("level2").resolve("level3");
+    final Path testFile = nestedDir.resolve("users.json");
+    
+    // Parent directories don't exist yet
+    assertFalse(Files.exists(nestedDir), "Nested directories should not exist yet");
+    
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+    listAppender.start();
+    logger.addAppender(listAppender);
+    
+    TarsUserService service = new TarsUserService(testFile.toString(), null);
+    TarsUser created = service.createUser(203L, "nested_test", "nested@test.com", "user");
+    assertNotNull(created, "User should be created");
+    final Long userId = created.getUserId();
+    
+    // Verify parent directories were created
+    assertTrue(Files.exists(nestedDir), "Parent directories should be created");
+    assertTrue(Files.isDirectory(nestedDir), "Parent path should be directory");
+    
+    // Verify data persisted
+    assertTrue(Files.exists(testFile), "User file should exist");
+    TarsUserService reloaded = new TarsUserService(testFile.toString(), null);
+    TarsUser retrieved = reloaded.findById(userId);
+    assertNotNull(retrieved, "User should be retrievable after parent creation");
+    
+    logger.detachAppender(listAppender);
+    Files.deleteIfExists(testFile);
+    Files.deleteIfExists(nestedDir);
+    Files.deleteIfExists(nestedDir.getParent());
+    Files.deleteIfExists(nestedDir.getParent().getParent());
+    Files.deleteIfExists(testDir);
+  }
+
+  /**
+   * {@code persistDebugLogsOnSuccessTest} Confirms successful persist operation
+   * completes without errors.
+   */
+  @Test
+  public void persistDebugLogsOnSuccessTest() throws IOException {
+    Path testDir = Files.createTempDirectory("debug-log-test");
+    Path testFile = testDir.resolve("users.json");
+    
+    try (InputStream resourceStream = getClass()
+        .getClassLoader()
+        .getResourceAsStream("test-data/test-data-users.json")) {
+      assertNotNull(resourceStream, "Fixture missing");
+      Files.copy(resourceStream, testFile);
+    }
+    
+    TarsUserService service = new TarsUserService(testFile.toString(), null);
+    TarsUser created = service.createUser(204L, "debug_test", "debug@test.com", "user");
+    assertNotNull(created, "User should be created");
+    Long userId = created.getUserId();
+    
+    // Verify successful persistence by reloading
+    TarsUserService reloaded = new TarsUserService(testFile.toString(), null);
+    TarsUser retrieved = reloaded.findById(userId);
+    assertNotNull(retrieved, "User should persist successfully");
+    assertEquals("debug@test.com", retrieved.getEmail());
+    
+    Files.deleteIfExists(testFile);
+    Files.deleteIfExists(testDir);
   }
 }
