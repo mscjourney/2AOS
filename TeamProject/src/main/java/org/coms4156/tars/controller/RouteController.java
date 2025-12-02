@@ -1070,7 +1070,6 @@ public class RouteController {
   @GetMapping("/summary/{city}")
   public ResponseEntity<?> getCitySummary(
       @PathVariable String city,
-      @RequestParam(required = false) String state,
       @RequestParam(required = false) String startDate,
       @RequestParam(required = false) String endDate) {
 
@@ -1157,6 +1156,7 @@ public class RouteController {
       // Get travel advisory for the city's country
       TravelAdvisory travelAdvisory = null;
       boolean isUnitedStates = false;
+      String state = null;
       try {
         TravelAdvisoryModel advisoryModel = new TravelAdvisoryModel();
         String country = CitySummary.getCountryFromCity(city);
@@ -1165,6 +1165,7 @@ public class RouteController {
         }
         if ("United States".equals(country)) {
           isUnitedStates = true;
+          state = CitySummary.getStateFromUsCity(city);
         }
         // If country lookup failed, try using city name as country name (works for some cases)
         if (travelAdvisory == null) {
