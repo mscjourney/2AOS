@@ -95,10 +95,48 @@ public class CrimeEndpointTest {
                       .param("state", "NC")
                       .param("offense", "V")
                       .param("month", "10")
-                      .param("year", "2025")
-                      .contentType(MediaType.APPLICATION_JSON))
+                      .param("year", "2025"))
               .andExpect(status().isInternalServerError());
     }
+  }
+
+  @Test
+  void testGetCrimeSummaryInvalidParams() throws Exception {
+    // Date is in the future
+    mockMvc.perform(get("/crime/summary")
+                    .param("state", "NJ")
+                    .param("offense", "HOM")
+                    .param("month", "05")
+                    .param("year", "2030"))
+              .andExpect(status().isBadRequest())
+              .andExpect(content().string("Error: Invalid inputs have been passed in."));
+    
+    // Invalid Offense type
+    mockMvc.perform(get("/crime/summary")
+                .param("state", "NJ")
+                .param("offense", "United")
+                .param("month", "05")
+                .param("year", "2022"))
+          .andExpect(status().isBadRequest())
+          .andExpect(content().string("Error: Invalid inputs have been passed in."));
+
+    // Invalid State Abbreviation
+    mockMvc.perform(get("/crime/summary")
+                .param("state", "XP")
+                .param("offense", "ASS")
+                .param("month", "05")
+                .param("year", "2025"))
+          .andExpect(status().isBadRequest())
+          .andExpect(content().string("Error: Invalid inputs have been passed in."));
+    
+    // Invalid State Name
+    mockMvc.perform(get("/crime/summary")
+                .param("state", "Berlin")
+                .param("offense", "V")
+                .param("month", "03")
+                .param("year", "2020"))
+          .andExpect(status().isBadRequest())
+          .andExpect(content().string("Error: Invalid inputs have been passed in."));
   }
 
 }

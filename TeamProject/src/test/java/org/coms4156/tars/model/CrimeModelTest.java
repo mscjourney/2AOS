@@ -1,6 +1,8 @@
 package org.coms4156.tars.model;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -21,7 +23,7 @@ class CrimeModelTest {
   }
 
   /**
-   * Tests successful response with valid paramseters.
+   * Tests successful response with valid parameters.
    */
   @Test
   void testGetCrimeSummary_Success() {
@@ -30,16 +32,14 @@ class CrimeModelTest {
     try {
       String result = model.getCrimeSummary("NC", "V", "10", "2025");
       assertNotNull(result);
-      assertTrue(result.contains("North Carolina") && result.contains("cases per 100,000 people")
-          || result.contains("Error") 
-          || result.contains("API call failed"));
+      assertTrue(result.contains("North Carolina") && result.contains("cases per 100,000 people"));
     } catch (RuntimeException e) {
       assertTrue(e.getMessage().contains("API call failed"));
     }
   }
 
   /**
-   * Tests successful response with valid paramseters.
+   * Tests successful response with valid parameters.
    */
   @Test
   void testGetCrimeSummary_Success_2() {
@@ -48,34 +48,32 @@ class CrimeModelTest {
     try {
       String result = model.getCrimeSummary("CA", "ASS", "10", "2025");
       assertNotNull(result);
-      assertTrue(result.contains("California") && result.contains("cases per 100,000 people")
-          || result.contains("Error") 
-          || result.contains("API call failed"));
+      assertTrue(result.contains("California") && result.contains("cases per 100,000 people"));
     } catch (RuntimeException e) {
       assertTrue(e.getMessage().contains("API call failed"));
     }
   }
 
   /**
-   * Tests response when no data is available for the date.
+   * Tests response when unexpected date is inputted.
    */
   @Test
-  void testGetCrimeSummary_NoDataAvailable() {
+  void testGetCrimeSummary_InvalidDate() {
     CrimeModel model = new CrimeModel();
-
     try {
       String result = model.getCrimeSummary("NC", "V", "01", "1900");
-      assertNotNull(result);
-      assertTrue(result.contains("No rate data available") 
-          || result.contains("Error") 
-          || result.contains("API call failed"));
+      assertNull(result);
+
+      result = model.getCrimeSummary("NY", "HOM", "06", "2040");
+      assertNull(result);
     } catch (RuntimeException e) {
+      assertTrue(false);
       assertTrue(e.getMessage().contains("API call failed"));
     }
   }
 
   /**
-   * Tests error handling when API call fails.
+   * Tests response when unexpected state is inputted.
    */
   @Test
   void testGetCrimeSummary_InvalidState() {
@@ -83,13 +81,55 @@ class CrimeModelTest {
 
     try {
       String result = model.getCrimeSummary("XX", "V", "10", "2025");
-      assertNotNull(result);
-      assertTrue(result.contains("Error") 
-          || result.contains("No rate data available")
-          || result.contains("API call failed"));
+      assertNull(result);
     } catch (RuntimeException e) {
       assertTrue(e.getMessage().contains("API call failed"));
     }
   }
+
+  /**
+   * Tests response when unexpected offense is inputted.
+   */
+  @Test
+  void testGetCrimeSummary_InvalidOffense() {
+    CrimeModel model = new CrimeModel();
+
+    try {
+      String result = model.getCrimeSummary("CA", "COMS", "10", "2025");
+      assertNull(result);
+    } catch (RuntimeException e) {
+      assertTrue(e.getMessage().contains("API call failed"));
+    }
+  }
+
+  @Test
+  void testGetCrimeSummary_FullStateName() {
+    CrimeModel model = new CrimeModel();
+    try {
+      String result = model.getCrimeSummary("Maine", "ASS", "08", "2025");
+      assertNotNull(result);
+      assertTrue(result.contains("Maine") && result.contains("cases per 100,000 people"));
+
+      result = model.getCrimeSummary("District of Columbia", "V", "06", "2025");
+      assertNotNull(result);
+      assertTrue(result.contains("District of Columbia") 
+          && result.contains("cases per 100,000 people"));
+    } catch (Exception e) {
+      assertTrue(e.getMessage().contains("API call failed"));
+    }
+  }
+
+  @Test
+  void testGetCrimeSummary_InvalidStateName() {
+    CrimeModel model = new CrimeModel();
+    try {
+      String result = model.getCrimeSummary("Mars", "ASS", "08", "2025");
+      assertNull(result);
+    } catch (Exception e) {
+      assertTrue(e.getMessage().contains("API call failed"));
+    }
+  }
 }
+
+
 

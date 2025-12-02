@@ -78,23 +78,6 @@ public class RouteControllerUnitTest {
   }
 
   @Test
-  public void testGetCitySummaryWithState() throws Exception {
-    mockMvc.perform(get("/summary/New York")
-            .param("state", "NY"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$").exists());
-  }
-
-  @Test
-  public void testGetCitySummaryWithDates() throws Exception {
-    mockMvc.perform(get("/summary/New York")
-            .param("startDate", "2024-01-01")
-            .param("endDate", "2024-01-14"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$").exists());
-  }
-
-  @Test
   public void testGetCitySummaryWithInvalidStartDate() throws Exception {
     mockMvc.perform(get("/summary/New York")
             .param("startDate", "invalid-date"))
@@ -120,9 +103,8 @@ public class RouteControllerUnitTest {
   }
 
   @Test
-  public void testGetCitySummaryWithAllParameters() throws Exception {
+  public void testGetCitySummaryWithValidParameters() throws Exception {
     mockMvc.perform(get("/summary/Boston")
-            .param("state", "MA")
             .param("startDate", "2024-06-01")
             .param("endDate", "2024-06-14"))
         .andExpect(status().isOk())

@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -267,7 +268,7 @@ public class CitySummaryTest {
     String country = CitySummary.getCountryFromCity("San Francisco");
     
     // Should handle spaces in city names
-    assertTrue(country == null || country.length() > 0);
+    assertEquals("United States", country);
   }
 
   @Test
@@ -350,21 +351,8 @@ public class CitySummaryTest {
     
     for (String city : cities) {
       String country = CitySummary.getCountryFromCity(city);
-      // May return null or country name - we're testing branch coverage
-      assertTrue(country == null || country.length() > 0);
-    }
-  }
-
-  @Test
-  void testGetCountryFromCityWithCitiesThatMayHaveCountryCodeOnly() {
-    // Some cities might return country_code instead of country in API response
-    // This tests the country_code branch path
-    String[] cities = {"Vienna", "Prague", "Warsaw", "Stockholm", "Oslo"};
-    
-    for (String city : cities) {
-      String country = CitySummary.getCountryFromCity(city);
-      // The method may find country_code but still return null (as per implementation)
-      assertTrue(country == null || country.length() > 0);
+      // Should all return valid countries
+      assertNotNull(country);
     }
   }
 
@@ -375,8 +363,8 @@ public class CitySummaryTest {
     
     for (String city : accentedCities) {
       String country = CitySummary.getCountryFromCity(city);
-      // May return null or country name
-      assertTrue(country == null || country.length() > 0);
+      // Should all return valid countries
+      assertNotNull(country);
     }
   }
 
@@ -390,8 +378,8 @@ public class CitySummaryTest {
     
     for (String city : multiWordCities) {
       String country = CitySummary.getCountryFromCity(city);
-      // May return null or country name
-      assertTrue(country == null || country.length() > 0);
+      // Should all return valid countries
+      assertNotNull(country);
     }
   }
 
@@ -402,8 +390,8 @@ public class CitySummaryTest {
     
     for (String city : smallCities) {
       String country = CitySummary.getCountryFromCity(city);
-      // May return null or country name
-      assertTrue(country == null || country.length() > 0);
+      // Should all return valid countries
+      assertNotNull(country);
     }
   }
 
@@ -418,8 +406,8 @@ public class CitySummaryTest {
     
     for (String city : diverseCities) {
       String country = CitySummary.getCountryFromCity(city);
-      // The method may find country or country_code, or return null
-      assertTrue(country == null || country.length() > 0);
+      // Should all return valid countries
+      assertNotNull(country);
     }
   }
 
@@ -463,17 +451,97 @@ public class CitySummaryTest {
   }
 
   @Test
-  void testGetCountryFromCityWithCitiesThatMayTriggerCountryCodePath() {
-    // Test cities that might return country_code in API response instead of country
-    // This helps cover the country_code parsing branch
-    String[] cities = {"Reykjavik", "Helsinki", "Tallinn", "Riga", "Vilnius"};
+  void testExtractValueValidBody() throws Exception {
+    Class<?> citySummaryClass = Class.forName("org.coms4156.tars.model.CitySummary");
+    Class<?>[] params = {String.class, String.class};
+    Method extractValue = citySummaryClass.getDeclaredMethod("extractValue", params);
+    extractValue.setAccessible(true);
+
+    String jsonBody = """ 
+      {
+        "country":"United States",
+        "admin1":"New York"
+      }
+        """;
+
+    String value = (String) extractValue.invoke(null, jsonBody, "\"country\":\"");
+    assertEquals("United States", value);
+
+    value = (String) extractValue.invoke(null, jsonBody, "\"admin1\":\"");
+    assertEquals("New York", value);
+
+    // Non Existing Fields should return null
+    value = (String) extractValue.invoke(null, jsonBody, "\"state\":\"");
+    assertNull(value);
+  }
+
+  @Test
+  void testExtractValueMalformedBody() throws Exception {
+    Class<?> citySummaryClass = Class.forName("org.coms4156.tars.model.CitySummary");
+    Class<?>[] params = {String.class, String.class};
+    Method extractValue = citySummaryClass.getDeclaredMethod("extractValue", params);
+    extractValue.setAccessible(true);
+
+    // Missing ending quotations for country
+    // substring parsed will "United States,\n" which should return null
+    String jsonBody = """ 
+      {
+        "country":"United States, 
+        "admin1":"New York"
+      }
+        """;
+
+    String value = (String) extractValue.invoke(null, jsonBody, "\"country\":\"");
+    assertNull(value);
+
+    value = (String) extractValue.invoke(null, jsonBody, "\"admin1\":\"");
+    assertEquals("New York", value);
+
+    jsonBody = """ 
+      {
+        "country":"Italy
+      }
+        """;
+
+    value = (String) extractValue.invoke(null, jsonBody, "\"country\":\"");
+    assertNull(value); // no ending quotation mark
+  }
+
+  @Test
+  void testGetStateFromUsCityValidCities() {
+    String state = CitySummary.getStateFromUsCity("New York");
+    assertEquals("New York", state);
     
-    for (String city : cities) {
-      String country = CitySummary.getCountryFromCity(city);
-      // The implementation finds country_code but returns null
-      // We're testing that the branch is executed
-      assertTrue(country == null || country.length() > 0);
-    }
+    state = CitySummary.getStateFromUsCity("Austin");
+    assertEquals("Texas", state);
+
+    state = CitySummary.getStateFromUsCity("Berlin");
+    assertNull(state);
+
+    state = CitySummary.getStateFromUsCity("Tokyo");
+    assertNull(state);
+  }
+
+  @Test
+  void testGetStateFromUsCityUsingCountries() {
+    // no admin1 fields when queried with countries
+    String state = CitySummary.getStateFromUsCity("Germany");
+    assertNull(state);
+
+    state = CitySummary.getStateFromUsCity("Japan");
+    assertNull(state);
+
+    state = CitySummary.getStateFromUsCity("United States");
+    assertNull(state); // country matches but still no admin1 field
+  }
+
+  @Test
+  void testGetStateFromUsCityInvalidCities() {
+    String state = CitySummary.getStateFromUsCity("");
+    assertNull(state);
+
+    state = CitySummary.getStateFromUsCity("!$AS");
+    assertNull(state);
   }
 }
 
