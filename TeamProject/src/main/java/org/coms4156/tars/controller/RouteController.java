@@ -549,6 +549,9 @@ public class RouteController {
    */
   @GetMapping("/userPreferenceList")
   public ResponseEntity<List<UserPreferenceDto>> getUserList() {
+    if (logger.isInfoEnabled()) {
+      logger.info("GET /userPreferenceList invoked");
+    }
     List<UserPreferenceDto> dto =
         DtoMapper.toUserPreferenceDtos(tarsService.getUserPreferenceList());
     return new ResponseEntity<>(dto, HttpStatus.OK);
