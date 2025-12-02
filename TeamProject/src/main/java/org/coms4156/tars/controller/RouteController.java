@@ -438,6 +438,13 @@ public class RouteController {
       logger.info("GET /retrievePreference/{} invoked", id);
     }
     
+    if (id < 0) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("PUT /clearPreference/{} failed: User cannot have negative ids", id);
+      }
+      return new ResponseEntity<>("User Id cannot be negative.", HttpStatus.BAD_REQUEST);
+    }
+  
     // Checks that a corresponding TarsUser with specified id already exists.
     TarsUser tarsUser = tarsUserService.findById(id);
     // If id was null, entry point would default to 404.
@@ -548,6 +555,9 @@ public class RouteController {
         }
         return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
       }
+      // Remove their preferences if there is any.
+      tarsService.clearPreference(userId);
+      
       if (logger.isInfoEnabled()) {
         logger.info("DELETE /tarsUsers/{} success: deleted user '{}'", 
             userId, deletedUser.getUsername());
