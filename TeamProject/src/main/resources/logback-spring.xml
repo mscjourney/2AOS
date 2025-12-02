@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="60 seconds">
+
+  <!-- Properties: allow overriding via env or application.properties -->
+  <property name="LOG_PATH" value="${LOG_PATH:-${USER_HOME}/tars-logs}"/>
+  <property name="APP_NAME" value="Tars"/>
+  <property name="LOG_LEVEL" value="${LOG_LEVEL:-INFO}"/>
+
+  <!-- Encoders -->
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} -- %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- Rolling file appender: daily rollover, keep 30 days, gzip archives -->
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${LOG_PATH}/${APP_NAME}.log</file>
+    <append>true</append>
+    <encoder>
+      <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} -- %msg%n</pattern>
+    </encoder>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <!-- Daily rollover -->
+      <fileNamePattern>${LOG_PATH}/archive/${APP_NAME}.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+      <!-- Keep 30 days of history -->
+      <maxHistory>30</maxHistory>
+      <!-- Cap total size to avoid runaway disk usage -->
+      <totalSizeCap>1GB</totalSizeCap>
+    </rollingPolicy>
+  </appender>
+
+  <!-- Root logger -->
+  <root level="${LOG_LEVEL}">
+    <appender-ref ref="CONSOLE"/>
+    <appender-ref ref="FILE"/>
+  </root>
+
+  <!-- Optional: package-specific tuning -->
+  <logger name="org.coms4156.tars" level="${LOG_LEVEL}" additivity="true"/>
+
+</configuration>
