@@ -562,47 +562,6 @@ public class RouteController {
   }
 
   /**
-   * Handles GET requests to retrieve user preferences for a specific clientId.
-   * This finds the TarsUser with the matching clientId and returns their preferences.
-   *
-   * @param clientId the id of the client we want to retrieve user data for
-   * @return a ResponseEntity containing the UserPreference for the user
-   *         with the specified clientId, or empty preferences if not found
-   */
-  @GetMapping("/user/client/{clientId}")
-  public ResponseEntity<UserPreferenceDto> getUserByClientId(@PathVariable Long clientId) {
-    if (logger.isInfoEnabled()) {
-      logger.info("GET /user/client/{} invoked", clientId);
-    }
-    if (clientId == null || clientId < 0) {
-      if (logger.isWarnEnabled()) {
-        logger.warn("GET /user/client/{} failed: negative or null clientId", clientId);
-      }
-      throw new BadRequestException("Client Id cannot be negative.");
-    }
-
-    List<TarsUser> clientUsers = tarsUserService.listUsersByClientId(clientId);
-    TarsUser foundUser = clientUsers.isEmpty() ? null : clientUsers.get(0);
-    if (foundUser == null) {
-      if (logger.isWarnEnabled()) {
-        logger.warn("GET /user/client/{} failed: no user found for clientId", clientId);
-      }
-      throw new NotFoundException("No user found for clientId.");
-    }
-
-    UserPreference userPrefs = tarsService.getUserPreference(foundUser.getUserId());
-    if (userPrefs == null) { // create empty preference for user without prefs
-      userPrefs = new UserPreference(foundUser.getUserId());
-      if (logger.isInfoEnabled()) {
-        logger.info("GET /user/client/{} success: user found but no preferences", clientId);
-      }
-    } else if (logger.isInfoEnabled()) {
-      logger.info("GET /user/client/{} success: found user preferences", clientId);
-    }
-    return ResponseEntity.ok(DtoMapper.toUserPreferenceDto(userPrefs));
-  }
-
-  /**
    * Handles GET requests to retrieve all user preferences
    *          under a client specified by clientId. Returns an empty json if no users are found.
    *          Otherwise, return the status code INTERNAL_SERVER_ERROR.
@@ -612,8 +571,8 @@ public class RouteController {
    *          under a client specified by clientId. Returns an empty json if no users are found.
    *          Otherwise, return the status code INTERNAL_SERVER_ERROR.
    */
-  @GetMapping("/userList/client/{clientId}")
-  public ResponseEntity<List<UserPreferenceDto>> getClientUserList(@PathVariable Long clientId) {
+  @GetMapping("/userPreferenceList/client/{clientId}")
+  public ResponseEntity<?> getClientUserList(@PathVariable Long clientId) {
     if (logger.isInfoEnabled()) {
       logger.info("GET /userList/client/{} invoked", clientId);
     }
