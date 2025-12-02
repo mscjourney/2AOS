@@ -9,6 +9,11 @@ client/.pnp.js
 
 # Client configuration (contains client ID)
 client-config.json
+test-client-config.json
+
+# Test coverage
+coverage/
+.nyc_output/
 
 # Logs
 *.log

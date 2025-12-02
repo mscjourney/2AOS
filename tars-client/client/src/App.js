@@ -37,7 +37,7 @@ function App() {
           <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-          <Route path="/" element={<Navigate to="/dashboard" />} />
+          <Route path="/" element={<Login />} />
         </Routes>
       </div>
     </Router>
