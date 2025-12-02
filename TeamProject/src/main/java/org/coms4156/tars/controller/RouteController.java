@@ -541,7 +541,6 @@ public class RouteController {
     return new ResponseEntity<>("User had no existing preferences.", HttpStatus.BAD_REQUEST);
   }
 
-  // #TODO: /userPreferencesList
   /**
    * Handles GET requests to retrieve preference information about all the existing users.
    *
@@ -550,7 +549,6 @@ public class RouteController {
    */
   @GetMapping("/userPreferenceList")
   public ResponseEntity<List<UserPreferenceDto>> getUserList() {
-    // #TODO: iterate through all existing TarsUser and get their preference or add user with 
     List<UserPreferenceDto> dto =
         DtoMapper.toUserPreferenceDtos(tarsService.getUserPreferenceList());
     return new ResponseEntity<>(dto, HttpStatus.OK);
