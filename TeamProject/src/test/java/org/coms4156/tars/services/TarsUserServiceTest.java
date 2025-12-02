@@ -77,9 +77,11 @@ public class TarsUserServiceTest {
       System.setProperty("LOG_LEVEL", "DEBUG");
 
       // Reload Logback configuration to pick up new properties
-      ch.qos.logback.classic.LoggerContext ctx = (ch.qos.logback.classic.LoggerContext) LoggerFactory.getILoggerFactory();
+      ch.qos.logback.classic.LoggerContext ctx =
+          (ch.qos.logback.classic.LoggerContext) LoggerFactory.getILoggerFactory();
       ctx.reset();
-      ch.qos.logback.classic.joran.JoranConfigurator configurator = new ch.qos.logback.classic.joran.JoranConfigurator();
+      ch.qos.logback.classic.joran.JoranConfigurator configurator =
+          new ch.qos.logback.classic.joran.JoranConfigurator();
       configurator.setContext(ctx);
       java.net.URL cfgUrl = getClass().getClassLoader().getResource("logback-spring.xml");
       assertNotNull(cfgUrl, "logback-spring.xml should be on test classpath");
@@ -93,11 +95,14 @@ public class TarsUserServiceTest {
       Thread.sleep(150);
 
       Path logFile = logDir.resolve("Tars.log");
-      assertTrue(Files.exists(logFile), "Expected persistent log file to be created at LOG_PATH");
+      assertTrue(Files.exists(logFile),
+          "Expected persistent log file to be created at LOG_PATH");
 
       String content = Files.readString(logFile);
-      assertTrue(content.contains("TarsUserService"), "Log file should contain service logger entries");
-      assertTrue(content.contains("Updated lastLogin for user id=1"), "Log file should contain lastLogin update message");
+      assertTrue(content.contains("TarsUserService"),
+          "Log file should contain service logger entries");
+      assertTrue(content.contains("Updated lastLogin for user id=1"),
+          "Log file should contain lastLogin update message");
     } finally {
       System.clearProperty("LOG_PATH");
       System.clearProperty("LOG_LEVEL");
@@ -105,7 +110,11 @@ public class TarsUserServiceTest {
       Files.walk(logDir)
           .sorted((a, b) -> b.getNameCount() - a.getNameCount())
           .forEach(p -> {
-            try { Files.deleteIfExists(p); } catch (IOException ignored) { }
+            try {
+              Files.deleteIfExists(p);
+            } catch (IOException ignored) {
+              // Ignore cleanup errors
+            }
           });
     }
   }
