@@ -560,9 +560,6 @@ public class RouteController {
     }
   }
 
-  // /**
-  //  * Handles GET requests to retrieve userPreference information about all existing users 
-  //  * under a specified client.
   /**
    * Handles GET requests to retrieve user preferences for a specific clientId.
    * This finds the TarsUser with the matching clientId and returns their preferences.
