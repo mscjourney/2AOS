@@ -133,6 +133,9 @@ public class RouteControllerExceptionTest {
         java.util.List.of("sunny"), java.util.List.of("13"), java.util.List.of("Boston"));
     Mockito.when(tarsService.getUserPreference(1L)).thenReturn(mockUser);
 
+    org.coms4156.tars.model.TarsUser tarsUser = new TarsUser(1L, "Denise", "den@gmail.com", "user");
+    Mockito.when(tarsUserService.findById(1L)).thenReturn(tarsUser);
+    
     try (MockedStatic<org.coms4156.tars.model.WeatherAlertModel> mockedModel = 
         Mockito.mockStatic(org.coms4156.tars.model.WeatherAlertModel.class)) {
       mockedModel.when(() -> org.coms4156.tars.model.WeatherAlertModel.getUserAlerts(mockUser))
@@ -148,6 +151,10 @@ public class RouteControllerExceptionTest {
   public void testGetUserWeatherAlertsGeneralException() throws Exception {
     org.coms4156.tars.model.UserPreference mockUser = new org.coms4156.tars.model.UserPreference(1L,
         java.util.List.of("sunny"), java.util.List.of("13"), java.util.List.of("Boston"));
+    
+    org.coms4156.tars.model.TarsUser tarsUser = new TarsUser(1L, "Denise", "den@gmail.com", "user");
+
+    Mockito.when(tarsUserService.findById(1L)).thenReturn(tarsUser);
     Mockito.when(tarsService.getUserPreference(1L)).thenReturn(mockUser);
 
     try (MockedStatic<org.coms4156.tars.model.WeatherAlertModel> mockedModel = 
