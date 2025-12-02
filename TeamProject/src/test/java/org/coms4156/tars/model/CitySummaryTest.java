@@ -524,7 +524,7 @@ public class CitySummaryTest {
 
   @Test
   void testGetStateFromUsCityUsingCountries() {
-     // no admin1 fields when queried with countries
+    // no admin1 fields when queried with countries
     String state = CitySummary.getStateFromUsCity("Germany");
     assertNull(state);
 

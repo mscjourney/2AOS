@@ -23,7 +23,7 @@ class CrimeModelTest {
   }
 
   /**
-   * Tests successful response with valid paramseters.
+   * Tests successful response with valid parameters.
    */
   @Test
   void testGetCrimeSummary_Success() {
@@ -39,7 +39,7 @@ class CrimeModelTest {
   }
 
   /**
-   * Tests successful response with valid paramseters.
+   * Tests successful response with valid parameters.
    */
   @Test
   void testGetCrimeSummary_Success_2() {
@@ -55,7 +55,7 @@ class CrimeModelTest {
   }
 
   /**
-   * Tests response when unexpected date is inputted
+   * Tests response when unexpected date is inputted.
    */
   @Test
   void testGetCrimeSummary_InvalidDate() {
@@ -73,7 +73,7 @@ class CrimeModelTest {
   }
 
   /**
-   * Tests response when unexpected state is inputted
+   * Tests response when unexpected state is inputted.
    */
   @Test
   void testGetCrimeSummary_InvalidState() {
@@ -88,7 +88,7 @@ class CrimeModelTest {
   }
 
   /**
-   * Tests response when unexpected offense is inputted
+   * Tests response when unexpected offense is inputted.
    */
   @Test
   void testGetCrimeSummary_InvalidOffense() {
