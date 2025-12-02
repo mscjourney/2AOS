@@ -128,7 +128,7 @@ jobs:
       - name: Enforce Minimum Branch Coverage
         run: |
           ACT=${{ steps.coverage.outputs.branch_coverage }}
-          MIN=70.00
+          MIN=76.00
           awk -v a="$ACT" -v m="$MIN" 'BEGIN{ if (a+0 < m+0) exit 1 }' \
             || { echo "❌ Branch coverage ${ACT}% < ${MIN}%"; exit 1; }
           echo "✅ Branch coverage OK (${ACT}% ≥ ${MIN}%)"
