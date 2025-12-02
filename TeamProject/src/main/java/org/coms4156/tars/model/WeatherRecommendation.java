@@ -37,7 +37,7 @@ public class WeatherRecommendation {
    * @param recommendedDays a list of dates that have favorable or clear weather
    * @param message a descriptive message summarizing the weather recommendation
    * @param minTemperature for this time period
-   * @param maxTemperature temperature for this time period
+   * @param maxTemperaturegit  temperature for this time period
    */
   public WeatherRecommendation(String city, List<String> recommendedDays, String message,
                                double minTemperature, double maxTemperature) {
