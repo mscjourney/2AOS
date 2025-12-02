@@ -130,7 +130,7 @@ public class RouteControllerExceptionTest {
   @Test
   public void testGetUserWeatherAlertsIllegalArgumentException() throws Exception {
     org.coms4156.tars.model.UserPreference mockUser = new org.coms4156.tars.model.UserPreference(1L,
-        java.util.List.of("sunny"), java.util.List.of("70F"), java.util.List.of("Boston"));
+        java.util.List.of("sunny"), java.util.List.of("13"), java.util.List.of("Boston"));
     Mockito.when(tarsService.getUserPreference(1L)).thenReturn(mockUser);
 
     try (MockedStatic<org.coms4156.tars.model.WeatherAlertModel> mockedModel = 
@@ -147,7 +147,7 @@ public class RouteControllerExceptionTest {
   @Test
   public void testGetUserWeatherAlertsGeneralException() throws Exception {
     org.coms4156.tars.model.UserPreference mockUser = new org.coms4156.tars.model.UserPreference(1L,
-        java.util.List.of("sunny"), java.util.List.of("70F"), java.util.List.of("Boston"));
+        java.util.List.of("sunny"), java.util.List.of("13"), java.util.List.of("Boston"));
     Mockito.when(tarsService.getUserPreference(1L)).thenReturn(mockUser);
 
     try (MockedStatic<org.coms4156.tars.model.WeatherAlertModel> mockedModel = 

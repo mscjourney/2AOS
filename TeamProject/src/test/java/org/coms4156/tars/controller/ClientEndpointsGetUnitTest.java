@@ -59,7 +59,7 @@ public class ClientEndpointsGetUnitTest {
   }
 
   /**
-   * {@code getClientsTest} Returns a list of all clients registered under the service
+   * {@code getClientsTest} Returns a list of all clients registered under the service.
    */
   @Test
   @DisplayName("GET /clients returns 200 on success")
