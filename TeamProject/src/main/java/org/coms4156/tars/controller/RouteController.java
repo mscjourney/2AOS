@@ -557,7 +557,7 @@ public class RouteController {
       }
       // Remove their preferences if there is any.
       tarsService.clearPreference(userId);
-      
+
       if (logger.isInfoEnabled()) {
         logger.info("DELETE /tarsUsers/{} success: deleted user '{}'", 
             userId, deletedUser.getUsername());
@@ -709,9 +709,7 @@ public class RouteController {
       if (logger.isInfoEnabled()) {
         logger.info("Weather recommendation generated for city={} days={}", city, days);
       }
-      // if (logger.isDebugEnabled()) {
-      //   logger.debug("Recommendation detail: {}", recommendation);
-      // }
+
       return ResponseEntity.ok(recommendation);
 
     } catch (Exception e) {
@@ -750,9 +748,7 @@ public class RouteController {
             "Weather alert retrieved for location city={} lat={} lon={}",
             city, lat, lon);
       }
-      // if (logger.isDebugEnabled()) {
-      //   logger.debug("Alert detail: {}", alert);
-      // }
+
       return ResponseEntity.ok(alert);
 
     } catch (IllegalArgumentException e) {
@@ -781,7 +777,6 @@ public class RouteController {
       logger.info("GET /alert/weather/user/{} invoked", userId);
     }
     try {
-      UserPreference user = tarsService.getUserPreference(userId);
       if (userId < 0) {
         if (logger.isWarnEnabled()) {
           logger.warn("Negative userId provided: {}", userId);
@@ -789,14 +784,24 @@ public class RouteController {
         return new ResponseEntity<>("User Id cannot be less than zero.", HttpStatus.BAD_REQUEST);
       }
 
-      if (user == null) {
+      TarsUser tarsUser = tarsUserService.findById(userId);
+      // If id was null, entry point would default to 404.
+      if (tarsUser == null) {
         if (logger.isWarnEnabled()) {
-          logger.warn("No user found for id={}", userId);
+          logger.warn("TarsUser with id={} does not exist.", userId);
         }
-        return new ResponseEntity<>("No such user.", HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>("TarsUser not found.", HttpStatus.NOT_FOUND);
       }
 
-      List<WeatherAlert> alertList = WeatherAlertModel.getUserAlerts(user);
+      UserPreference userPreference = tarsService.getUserPreference(userId);
+      if (userPreference == null) {
+        if (logger.isWarnEnabled()) {
+          logger.warn("UserPreference for id={} has not been set.", userId);
+        }
+        return new ResponseEntity<>("User Preferences not found.", HttpStatus.NOT_FOUND);
+      }
+
+      List<WeatherAlert> alertList = WeatherAlertModel.getUserAlerts(userPreference);
       if (logger.isInfoEnabled()) {
         logger.info("Retrieved {} alerts for userId={}", alertList.size(), userId);
       }
