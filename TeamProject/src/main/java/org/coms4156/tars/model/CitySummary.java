@@ -158,23 +158,82 @@ public class CitySummary {
         return null;
       }
 
-      // Try to extract country from the response
-      int countryIndex = body.indexOf("\"country\":");
-      if (countryIndex != -1) {
-        int start = countryIndex + 11; // Length of "country":"
-        int end = body.indexOf("\"", start);
-        if (end != -1) {
-          return body.substring(start, end);
-        }
-      }
-
-      return null;
+      // Properly returns the extraced country field from body
+      // Returns null if country field could not be found
+      return extractValue(body, "\"country\":\"");
     } catch (IOException | InterruptedException e) {
       if (logger.isDebugEnabled()) {
         logger.debug("Error geocoding city {}: {}", city, e.getMessage());
       }
       return null;
     }
+  }
+
+  /**
+   * Retrieves the state of the US City using the open-meteo API.
+   *
+   * @param city the city to retrieve the state for.
+   * @return returns the corresponding US state if the city is located in the US.
+   *         returns null if the city is not in the United States or the state of the city
+   *         (indicated by the admin1 field) cannot be found.
+   */
+  public static String getStateFromUsCity(String city) {
+    try {
+      String geoUrl = "https://geocoding-api.open-meteo.com/v1/search?name="
+          + city.replace(" ", "%20") + "&count=1&language=en&format=json";
+      
+      HttpRequest request = HttpRequest.newBuilder()
+          .uri(URI.create(geoUrl))
+          .GET()
+          .build();
+
+      HttpResponse<String> response = httpClient.send(request,
+          HttpResponse.BodyHandlers.ofString());
+
+      String body = response.body();
+      
+      if (!body.contains("\"results\"")) {
+        return null;
+      }
+
+      // Try to extract country from the response
+      String country = extractValue(body, "\"country\":\"");
+      if (!"United States".equals(country)) {
+        return null; // Not in the U.S.
+      }
+
+      String state = extractValue(body, "\"admin1\":\"");
+      return state; // Could still be null if not present
+    } catch (IOException | InterruptedException e) {
+      if (logger.isDebugEnabled()) {
+        logger.debug("Error geocoding city {}: {}", city, e.getMessage());
+      }
+      return null;
+    }
+  }
+
+  /**
+   *  Helper method to parse and extract specific fields from the open-meteo API.
+   *
+   *  @param json the json body retrieved from the open-meteo API call
+   *  @param key the field of the json body to extract
+   *  @return the value of the key from the json body or null if the key does not exist in the
+   *          provided json body.
+   */
+  private static String extractValue(String json, String key) {
+    int index = json.indexOf(key);
+    if (index != -1) {
+      int start = index + key.length();
+      int end = json.indexOf("\"", start);
+      if (end != -1) {
+        String value = json.substring(start, end);
+        if (value.contains(",")) { // ending quotation matched is next field
+          return null;
+        }
+        return value;
+      }
+    }
+    return null;
   }
 
   @Override
