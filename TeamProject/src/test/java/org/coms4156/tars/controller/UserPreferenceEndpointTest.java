@@ -434,8 +434,8 @@ public class UserPreferenceEndpointTest {
    */  
   @Test
   public void testGetClientUserListWithNoUsers() throws Exception {
-    // Client 4 does not have users under it
-    mockMvc.perform(get("/userPreferenceList/client/4"))
+    // Client 6 does not have users under it
+    mockMvc.perform(get("/userPreferenceList/client/6"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$", hasSize(0)));
 
@@ -628,7 +628,7 @@ public class UserPreferenceEndpointTest {
           .andExpect(status().isBadRequest())
           .andExpect(content().string("User had no existing preferences."));    
 
-      mockMvc.perform(put("/clearPreference/4"))
+      mockMvc.perform(put("/clearPreference/6"))
           .andExpect(status().isNotFound())
           .andExpect(content().string("TarsUser not found."));  
 
