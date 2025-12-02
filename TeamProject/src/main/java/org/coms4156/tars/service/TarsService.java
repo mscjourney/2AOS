@@ -177,53 +177,6 @@ public class TarsService {
   }
 
   /**
-   * Updates the preferences of an existing user in the json file.
-   *
-   * @param updatedUser the {@code UserPreference} object containing the updated preferences
-   * @return If the user was successfully updated, returns true.
-   *         If the user does not exist or updatedUser is null, returns false.
-   */
-  public synchronized boolean updateUser(UserPreference updatedUser) {
-    if (users == null) {
-      users = loadData();
-    }
-    
-    if (updatedUser == null) {
-      if (logger.isWarnEnabled()) {
-        logger.warn("Attempted to update null user");
-      }
-      return false;
-    }
-    
-    if (updatedUser.getId() < 0) {
-      if (logger.isWarnEnabled()) {
-        logger.warn("Attempted to update user with negative id");
-      }
-      return false;
-    }
-    
-    for (int i = 0; i < users.size(); i++) {
-      UserPreference user = users.get(i);
-      if (user.getId() == updatedUser.getId()) {
-        // Update the user's preferences
-        user.setWeatherPreferences(updatedUser.getWeatherPreferences());
-        user.setTemperaturePreferences(updatedUser.getTemperaturePreferences());
-        user.setCityPreferences(updatedUser.getCityPreferences());
-        saveData();
-        if (logger.isInfoEnabled()) {
-          logger.info("Updated user preferences for userId={}", updatedUser.getId());
-        }
-        return true;
-      }
-    }
-    
-    if (logger.isWarnEnabled()) {
-      logger.warn("Attempted to update non-existing user with id {}", updatedUser.getId());
-    }
-    return false;
-  }
-
-  /**
    * Finds the user from the list based on the user id.
    *
    * @param userId the id of the user

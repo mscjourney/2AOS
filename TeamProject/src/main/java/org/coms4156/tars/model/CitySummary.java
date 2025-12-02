@@ -168,18 +168,6 @@ public class CitySummary {
         }
       }
 
-      // Alternative: try "country_code" and map to country name
-      int countryCodeIndex = body.indexOf("\"country_code\":");
-      if (countryCodeIndex != -1) {
-        int start = countryCodeIndex + 16; // Length of "country_code":"
-        int end = body.indexOf("\"", start);
-        if (end != -1) {
-          String countryCode = body.substring(start, end);
-          // For now, return null and let the lookup try the city name as country
-          // This is a simplified approach - in production you'd want a country code mapping
-        }
-      }
-
       return null;
     } catch (IOException | InterruptedException e) {
       if (logger.isDebugEnabled()) {
