@@ -1013,4 +1013,391 @@ public class TarsUserServiceTest {
     Files.deleteIfExists(testFile);
     Files.deleteIfExists(testDir);
   }
+
+  /**
+   * {@code deleteUserWithNullIdTest} Ensures deleteUser gracefully handles null
+   * userId input, returning null without side effects.
+   */
+  @Test
+  public void deleteUserWithNullIdTest() {
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+    listAppender.start();
+    logger.addAppender(listAppender);
+
+    final int initialSize = userService.listUsers().size();
+    TarsUser result = userService.deleteUser(null);
+
+    assertNull(result, "Deleting with null ID should return null");
+    assertEquals(initialSize, userService.listUsers().size(), "User count should be unchanged");
+
+    List<ILoggingEvent> logsList = listAppender.list;
+    assertTrue(
+        logsList.stream().anyMatch(event ->
+            event.getLevel() == Level.WARN
+                && event.getFormattedMessage().contains("deleteUser rejected: null userId")),
+        "Should log WARN for null userId"
+    );
+
+    logger.detachAppender(listAppender);
+  }
+
+  /**
+   * {@code deleteUserNotFoundTest} Validates deleteUser returns null when
+   * attempting to delete non-existent user.
+   */
+  @Test
+  public void deleteUserNotFoundTest() {
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+    listAppender.start();
+    logger.addAppender(listAppender);
+
+    final int initialSize = userService.listUsers().size();
+    TarsUser result = userService.deleteUser(999L);
+
+    assertNull(result, "Deleting non-existent user should return null");
+    assertEquals(initialSize, userService.listUsers().size(), "User count should be unchanged");
+
+    List<ILoggingEvent> logsList = listAppender.list;
+    assertTrue(
+        logsList.stream().anyMatch(event ->
+            event.getLevel() == Level.WARN
+                && event.getFormattedMessage().contains("deleteUser: user not found")
+                && event.getFormattedMessage().contains("id=999")),
+        "Should log WARN for user not found"
+    );
+
+    logger.detachAppender(listAppender);
+  }
+
+  /**
+   * {@code deleteUserSuccessTest} Confirms successful deletion returns the
+   * deleted user, updates list, and logs appropriately.
+   */
+  @Test
+  public void deleteUserSuccessTest() {
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+    listAppender.start();
+    logger.addAppender(listAppender);
+
+    final int initialSize = userService.listUsers().size();
+    TarsUser userToDelete = userService.findById(1L);
+    assertNotNull(userToDelete, "User should exist before deletion");
+    String expectedUsername = userToDelete.getUsername();
+
+    TarsUser deletedUser = userService.deleteUser(1L);
+
+    assertNotNull(deletedUser, "Deleted user should be returned");
+    assertEquals(1L, deletedUser.getUserId(), "Returned user should have correct ID");
+    assertEquals(expectedUsername, deletedUser.getUsername(), "Returned user should match");
+    assertEquals(
+        initialSize - 1,
+        userService.listUsers().size(),
+        "User count should decrease by 1"
+    );
+    assertNull(userService.findById(1L), "Deleted user should no longer be retrievable");
+
+    List<ILoggingEvent> logsList = listAppender.list;
+    assertTrue(
+        logsList.stream().anyMatch(event ->
+            event.getLevel() == Level.INFO
+                && event.getFormattedMessage().contains("Deleted TarsUser")
+                && event.getFormattedMessage().contains("id=1")),
+        "Should log INFO on successful deletion"
+    );
+
+    logger.detachAppender(listAppender);
+  }
+
+  /**
+   * {@code deleteUserPersistsChangesTest} Verifies deletion is durably written
+   * to storage and survives service reload.
+   */
+  @Test
+  public void deleteUserPersistsChangesTest() throws IOException {
+    Path testDir = Files.createTempDirectory("delete-persist-test");
+    Path testFile = testDir.resolve("users.json");
+
+    try (InputStream resourceStream = getClass()
+        .getClassLoader()
+        .getResourceAsStream("test-data/test-data-users.json")) {
+      assertNotNull(resourceStream, "Fixture missing");
+      Files.copy(resourceStream, testFile);
+    }
+
+    TarsUserService service = new TarsUserService(testFile.toString(), null);
+    final int initialSize = service.listUsers().size();
+
+    TarsUser deleted = service.deleteUser(2L);
+    assertNotNull(deleted, "User should be deleted");
+    assertEquals(initialSize - 1, service.listUsers().size());
+
+    // Reload service from file
+    TarsUserService reloaded = new TarsUserService(testFile.toString(), null);
+    assertNull(reloaded.findById(2L), "Deleted user should not exist after reload");
+    assertEquals(
+        initialSize - 1,
+        reloaded.listUsers().size(),
+        "Reloaded service should reflect deletion"
+    );
+
+    Files.deleteIfExists(testFile);
+    Files.deleteIfExists(testDir);
+  }
+
+  /**
+   * {@code deleteUserFromMiddleOfListTest} Ensures deletion works correctly
+   * for users at any position in the list.
+   */
+  @Test
+  public void deleteUserFromMiddleOfListTest() {
+    // Assuming test data has users with IDs 1, 2, 3, 4
+    TarsUser user1Before = userService.findById(1L);
+    TarsUser user3Before = userService.findById(3L);
+    TarsUser user4Before = userService.findById(4L);
+
+    assertNotNull(user1Before, "User 1 should exist");
+    assertNotNull(user3Before, "User 3 should exist");
+    assertNotNull(user4Before, "User 4 should exist");
+
+    final int initialSize = userService.listUsers().size();
+    TarsUser deletedUser = userService.deleteUser(2L);
+
+    assertNotNull(deletedUser, "User 2 should be deleted successfully");
+    assertEquals(2L, deletedUser.getUserId());
+    assertEquals(initialSize - 1, userService.listUsers().size());
+
+    // Verify other users remain intact
+    assertNotNull(userService.findById(1L), "User 1 should still exist");
+    assertNotNull(userService.findById(3L), "User 3 should still exist");
+    assertNotNull(userService.findById(4L), "User 4 should still exist");
+    assertNull(userService.findById(2L), "User 2 should be gone");
+  }
+
+  /**
+   * {@code deleteMultipleUsersSequentiallyTest} Validates that multiple
+   * sequential deletions work correctly.
+   */
+  @Test
+  public void deleteMultipleUsersSequentiallyTest() {
+    final int initialSize = userService.listUsers().size();
+
+    TarsUser deleted1 = userService.deleteUser(1L);
+    assertNotNull(deleted1, "First deletion should succeed");
+    assertEquals(1L, deleted1.getUserId());
+    assertEquals(initialSize - 1, userService.listUsers().size());
+
+    TarsUser deleted2 = userService.deleteUser(3L);
+    assertNotNull(deleted2, "Second deletion should succeed");
+    assertEquals(3L, deleted2.getUserId());
+    assertEquals(initialSize - 2, userService.listUsers().size());
+
+    // Verify both are gone
+    assertNull(userService.findById(1L), "User 1 should be deleted");
+    assertNull(userService.findById(3L), "User 3 should be deleted");
+
+    // Verify others remain
+    assertNotNull(userService.findById(2L), "User 2 should still exist");
+    assertNotNull(userService.findById(4L), "User 4 should still exist");
+  }
+
+  /**
+   * {@code deleteUserReturnsCorrectUserObjectTest} Confirms the returned
+   * TarsUser object contains all expected attributes.
+   */
+  @Test
+  public void deleteUserReturnsCorrectUserObjectTest() {
+    TarsUser originalUser = userService.findById(1L);
+    assertNotNull(originalUser, "User should exist");
+
+    final String expectedUsername = originalUser.getUsername();
+    final String expectedEmail = originalUser.getEmail();
+    final Long expectedClientId = originalUser.getClientId();
+
+    TarsUser deletedUser = userService.deleteUser(1L);
+
+    assertNotNull(deletedUser, "Should return deleted user");
+    assertEquals(1L, deletedUser.getUserId(), "User ID should match");
+    assertEquals(expectedUsername, deletedUser.getUsername(), "Username should match");
+    assertEquals(expectedEmail, deletedUser.getEmail(), "Email should match");
+    assertEquals(expectedClientId, deletedUser.getClientId(), "Client ID should match");
+  }
+
+  /**
+   * {@code deleteUserWithInfoLoggingDisabledTest} Verifies deleteUser works
+   * correctly when INFO logging is disabled (tests logger.isInfoEnabled branch).
+   */
+  @Test
+  public void deleteUserWithInfoLoggingDisabledTest() {
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    
+    try {
+      // Set level to WARN (disables INFO and DEBUG)
+      logger.setLevel(Level.WARN);
+      
+      final int initialSize = userService.listUsers().size();
+      TarsUser deletedUser = userService.deleteUser(1L);
+      
+      assertNotNull(deletedUser, "Deletion should succeed even with INFO disabled");
+      assertEquals(1L, deletedUser.getUserId());
+      assertEquals(initialSize - 1, userService.listUsers().size());
+      assertNull(userService.findById(1L), "User should be deleted");
+    } finally {
+      // Restore to TRACE to ensure all log levels are enabled
+      logger.setLevel(Level.TRACE);
+    }
+  }
+
+  /**
+   * {@code deleteUserWithWarnLoggingDisabledTest} Verifies deleteUser null
+   * check works when WARN logging is disabled (tests logger.isWarnEnabled branch).
+   */
+  @Test
+  public void deleteUserWithWarnLoggingDisabledTest() {
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    
+    try {
+      // Set level to ERROR (disables WARN, INFO, DEBUG)
+      logger.setLevel(Level.ERROR);
+      
+      final int initialSize = userService.listUsers().size();
+      TarsUser result = userService.deleteUser(null);
+      
+      assertNull(result, "Should return null for null userId even with WARN disabled");
+      assertEquals(initialSize, userService.listUsers().size(), "No users should be deleted");
+    } finally {
+      logger.setLevel(Level.TRACE);
+    }
+  }
+
+  /**
+   * {@code createUserWithInfoLoggingDisabledTest} Tests createUser when INFO
+   * logging is disabled (covers logger.isInfoEnabled branch in createUser).
+   */
+  @Test
+  public void createUserWithInfoLoggingDisabledTest() {
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    
+    try {
+      logger.setLevel(Level.WARN);
+      
+      final int initialSize = userService.listUsers().size();
+      TarsUser created = userService.createUser(10L, "test_user", "test@example.com", "user");
+      
+      assertNotNull(created, "User should be created even with INFO logging disabled");
+      assertEquals(initialSize + 1, userService.listUsers().size());
+    } finally {
+      logger.setLevel(Level.TRACE);
+    }
+  }
+
+  /**
+   * {@code createUserWithWarnLoggingDisabledTest} Tests createUser validation
+   * when WARN logging is disabled (covers logger.isWarnEnabled branches).
+   */
+  @Test
+  public void createUserWithWarnLoggingDisabledTest() {
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    
+    try {
+      logger.setLevel(Level.ERROR);
+      
+      // Test null parameters - should still reject even without WARN logs
+      TarsUser result1 = userService.createUser(null, null, null, null);
+      assertNull(result1, "Should reject null params even with WARN disabled");
+      
+      // Test blank username - should still reject
+      TarsUser result2 = userService.createUser(5L, "  ", "test@test.com", "user");
+      assertNull(result2, "Should reject blank username even with WARN disabled");
+    } finally {
+      logger.setLevel(Level.TRACE);
+    }
+  }
+
+  /**
+   * {@code deactivateUserWithInfoLoggingDisabledTest} Tests deactivateUser
+   * when INFO logging is disabled (covers logger.isInfoEnabled branch).
+   */
+  @Test
+  public void deactivateUserWithInfoLoggingDisabledTest() {
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    
+    try {
+      logger.setLevel(Level.WARN);
+      
+      boolean result = userService.deactivateUser(1L);
+      
+      assertTrue(result, "Deactivation should succeed with INFO disabled");
+      TarsUser user = userService.findById(1L);
+      assertFalse(user.getActive(), "User should be deactivated");
+    } finally {
+      logger.setLevel(Level.TRACE);
+    }
+  }
+
+  /**
+   * {@code deactivateUserWithWarnLoggingDisabledTest} Tests deactivateUser
+   * not found case when WARN logging is disabled.
+   */
+  @Test
+  public void deactivateUserWithWarnLoggingDisabledTest() {
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    
+    try {
+      logger.setLevel(Level.ERROR);
+      
+      boolean result = userService.deactivateUser(999L);
+      
+      assertFalse(result, "Should return false for non-existent user with WARN disabled");
+    } finally {
+      logger.setLevel(Level.TRACE);
+    }
+  }
+
+  /**
+   * {@code updateLastLoginWithWarnLoggingDisabledTest} Tests updateLastLogin
+   * when WARN logging is disabled (covers logger.isWarnEnabled branch).
+   */
+  @Test
+  public void updateLastLoginWithWarnLoggingDisabledTest() {
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    
+    try {
+      logger.setLevel(Level.ERROR);
+      
+      boolean result = userService.updateLastLogin(999L);
+      
+      assertFalse(result, "Should return false for non-existent user with WARN disabled");
+    } finally {
+      logger.setLevel(Level.TRACE);
+    }
+  }
+
+  /**
+   * {@code updateLastLoginWithInfoLoggingDisabledTest} Tests updateLastLogin
+   * success case when INFO logging is disabled.
+   */
+  @Test
+  public void updateLastLoginWithInfoLoggingDisabledTest() throws InterruptedException {
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    
+    try {
+      logger.setLevel(Level.WARN);
+      
+      TarsUser before = userService.findById(1L);
+      String loginBefore = before.getLastLogin();
+      
+      Thread.sleep(2);
+      
+      boolean result = userService.updateLastLogin(1L);
+      
+      assertTrue(result, "Update should succeed with INFO disabled");
+      TarsUser after = userService.findById(1L);
+      assertNotEquals(loginBefore, after.getLastLogin(), "Last login should be updated");
+    } finally {
+      logger.setLevel(Level.TRACE);
+    }
+  }
 }
