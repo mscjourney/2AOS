@@ -40,7 +40,9 @@ public class TarsUserEndpointUnitTest {
   @DisplayName("GET /tarsUsers/{id} returns 404 when user missing")
   void getTarsUserByIdNotFound() throws Exception {
     mockMvc.perform(get("/tarsUsers/9999"))
-        .andExpect(status().isNotFound());
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.status").value(404))
+        .andExpect(jsonPath("$.message").exists());
   }
 
   /**
@@ -50,7 +52,32 @@ public class TarsUserEndpointUnitTest {
   @DisplayName("GET /tarsUsers/{id} returns 400 when id negative")
   void getTarsUserByIdBadRequest() throws Exception {
     mockMvc.perform(get("/tarsUsers/-10"))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.message").exists());
+  }
+
+  /**
+   * {@code getUserByClientIdCases} Validates client-bound user lookup cases.
+   */
+  @Test
+  @DisplayName("GET /user/client/{clientId} returns 200 with prefs or 404 when no user")
+  void getUserByClientIdCases() throws Exception {
+    // clientId=1 exists with user alice -> should return 200
+    mockMvc.perform(get("/user/client/1"))
+        .andExpect(status().isOk());
+
+    // large client id likely missing -> 404
+    mockMvc.perform(get("/user/client/9999"))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.status").value(404))
+        .andExpect(jsonPath("$.message").value("No user found for clientId."));
+
+    // negative -> 400
+    mockMvc.perform(get("/user/client/-1"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.message").value("Client Id cannot be negative."));
   }
 
   /**
@@ -60,9 +87,11 @@ public class TarsUserEndpointUnitTest {
   @DisplayName("GET /userList/client/{clientId} returns 200 list or 400 invalid id")
   void getClientUserListCases() throws Exception {
     mockMvc.perform(get("/userList/client/1"))
-        .andExpect(status().isOk());
+          .andExpect(status().isOk());
 
     mockMvc.perform(get("/userList/client/-2"))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.message").value("Client Id cannot be negative."));
   }
 }

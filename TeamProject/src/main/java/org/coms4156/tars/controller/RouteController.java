@@ -11,6 +11,8 @@ import org.coms4156.tars.dto.ClientDto;
 import org.coms4156.tars.dto.TarsUserDto;
 import org.coms4156.tars.dto.UserPreferenceDto;
 import org.coms4156.tars.exception.BadRequestException;
+import org.coms4156.tars.exception.ConflictException;
+import org.coms4156.tars.exception.ForbiddenException;
 import org.coms4156.tars.exception.NotFoundException;
 import org.coms4156.tars.mapper.DtoMapper;
 import org.coms4156.tars.model.CitySummary;
@@ -156,7 +158,8 @@ public class RouteController {
    * @return A ResponseEntity indicating the result of the operation.
    */
   @PostMapping({"/client/create"})
-  public ResponseEntity<?> createClient(@RequestBody(required = false) Map<String, String> body) {
+  public ResponseEntity<ClientDto> createClient(
+      @RequestBody(required = false) Map<String, String> body) {
     if (logger.isInfoEnabled()) {
       logger.info("POST /client/create invoked");
     }
@@ -166,7 +169,7 @@ public class RouteController {
       if (logger.isWarnEnabled()) {
         logger.warn("POST /client/create failed: request body is null");
       }
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Missing 'name' and 'email'.");
+      throw new BadRequestException("Missing 'name' and 'email'.");
     }
     if (logger.isDebugEnabled()) {
       logger.debug("POST /client/create raw body keys={}", body.keySet());
@@ -177,14 +180,14 @@ public class RouteController {
       if (logger.isWarnEnabled()) {
         logger.warn("POST /client/create failed: 'name' field missing");
       }
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Missing 'name'.");
+      throw new BadRequestException("Missing 'name'.");
     }
     String name = body.get("name") == null ? "" : body.get("name").trim();
     if (name.isEmpty()) {
       if (logger.isWarnEnabled()) {
         logger.warn("POST /client/create failed: blank name provided");
       }
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Client name cannot be blank.");
+      throw new BadRequestException("Client name cannot be blank.");
     }
 
     // Validate email
@@ -192,20 +195,20 @@ public class RouteController {
       if (logger.isWarnEnabled()) {
         logger.warn("POST /client/create failed: 'email' field missing");
       }
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Missing 'email'.");
+      throw new BadRequestException("Missing 'email'.");
     }
     String email = body.get("email") == null ? "" : body.get("email").trim();
     if (email.isEmpty()) {
       if (logger.isWarnEnabled()) {
         logger.warn("POST /client/create failed: blank email provided");
       }
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Client email cannot be blank.");
+      throw new BadRequestException("Client email cannot be blank.");
     }
     if (!isValidEmail(email)) {
       if (logger.isWarnEnabled()) {
         logger.warn("POST /client/create failed: invalid email format '{}'", email);
       }
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid email format.");
+      throw new BadRequestException("Invalid email format.");
     }
 
     // Check name uniqueness
@@ -213,7 +216,7 @@ public class RouteController {
       if (logger.isWarnEnabled()) {
         logger.warn("POST /client/create conflict: name '{}' already exists", name);
       }
-      return ResponseEntity.status(HttpStatus.CONFLICT).body("Client name already exists.");
+      throw new ConflictException("Client name already exists.");
     }
 
     // Check email uniqueness
@@ -221,7 +224,7 @@ public class RouteController {
       if (logger.isWarnEnabled()) {
         logger.warn("POST /client/create conflict: email '{}' already exists", email);
       }
-      return ResponseEntity.status(HttpStatus.CONFLICT).body("Client email already exists.");
+      throw new ConflictException("Client email already exists.");
     }
     
     Client created = clientService.createClient(name, email);
@@ -230,9 +233,7 @@ public class RouteController {
         logger.error("POST /client/create internal error: client creation returned null name='{}'",
             name);
       }
-      return ResponseEntity.status(
-        HttpStatus.INTERNAL_SERVER_ERROR
-        ).body("Failed to create client.");
+      throw new RuntimeException("Failed to create client.");
     }
     
     if (logger.isInfoEnabled()) {
@@ -240,18 +241,7 @@ public class RouteController {
           created.getClientId());
     }
 
-    Map<String, Object> response = Map.of(
-        "clientId", created.getClientId(),
-        "name", created.getName(),
-        "message",
-        "Client created successfully. "
-         + "Log in to the admin portal to retrieve your API key.",
-        "portalUrl",
-          "https://admin.tars.example.com/clients/"
-          + created.getClientId()
-          + "/credentials"
-    );
-    return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    return ResponseEntity.status(HttpStatus.CREATED).body(DtoMapper.toClientDto(created));
   }
 
   /**
@@ -263,142 +253,75 @@ public class RouteController {
    * @return A resource indicating that the user was created.
   */
   @PostMapping({"/client/createUser"})
-  public ResponseEntity<?> createClientUser(
+  public ResponseEntity<TarsUserDto> createClientUser(
       @RequestBody(required = false) TarsUser newUserRequestBody) {
     if (logger.isInfoEnabled()) {
-      logger.info("POST /client/createUser invoked with body keys={}",
-          newUserRequestBody == null
-              ? "null"
-              : newUserRequestBody.getClass().getDeclaredFields());
+      logger.info("POST /client/createUser invoked");
     }
     if (newUserRequestBody == null) {
-      if (logger.isWarnEnabled()) {
-        logger.warn("POST /client/createUser failed: body null");
-      }
-      return ResponseEntity.badRequest().body("Body cannot be null.");
+      throw new BadRequestException("Body cannot be null.");
     }
 
-    // Validate clientId
     Long clientId = newUserRequestBody.getClientId();
     if (clientId == null || clientId < 0) {
-      if (logger.isWarnEnabled()) {
-        logger.warn(
-            "POST /client/createUser failed: invalid clientId={}",
-            clientId);
-      }
-      return ResponseEntity.badRequest().body("Invalid clientId.");
+      throw new BadRequestException("Invalid clientId.");
     }
 
-    // Validate username
     String username = newUserRequestBody.getUsername() == null
         ? ""
         : newUserRequestBody.getUsername().trim();
     if (username.isEmpty()) {
-      if (logger.isWarnEnabled()) {
-        logger.warn(
-            "POST /client/createUser failed: blank username clientId={}",
-            clientId);
-      }
-      return ResponseEntity.badRequest().body("Username cannot be blank.");
+      throw new BadRequestException("Username cannot be blank.");
     }
 
-    // validate user email
     String email = newUserRequestBody.getEmail() == null
         ? ""
         : newUserRequestBody.getEmail().trim();
     if (email.isEmpty()) {
-      if (logger.isWarnEnabled()) {
-        logger.warn(
-            "POST /client/createUser failed: blank email username='{}' clientId={}",
-            username, clientId);
-      }
-      return ResponseEntity.badRequest().body("Email cannot be blank.");
+      throw new BadRequestException("Email cannot be blank.");
     }
     if (!isValidEmail(email)) {
-      if (logger.isWarnEnabled()) {
-        logger.warn(
-            "POST /client/createUser failed: invalid email format '{}' clientId={}",
-            email, clientId);
-      }
-      return ResponseEntity.badRequest().body("Invalid email format.");
+      throw new BadRequestException("Invalid email format.");
     }
 
-    // Validate role
     String role = newUserRequestBody.getRole() == null ? "" : newUserRequestBody.getRole().trim();
     if (role.isEmpty()) {
-      if (logger.isWarnEnabled()) {
-        logger.warn(
-            "POST /client/createUser failed: blank role username='{}' clientId={}",
-            username, clientId);
-      }
-      return ResponseEntity.badRequest().body("Role cannot be blank.");
+      throw new BadRequestException("Role cannot be blank.");
     }
 
-    // Log validation success
     if (logger.isDebugEnabled()) {
       logger.debug(
           "POST /client/createUser validation passed clientId={} username='{}' role='{}'",
           clientId, username, role);
     }
-    
-    // Check if client exists
+
     Client client = clientService.getClient(clientId.intValue());
     if (client == null) {
-      if (logger.isWarnEnabled()) {
-        logger.warn("POST /client/createUser failed: client not found clientId={}", clientId);
-      }
-      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Client not found.");
+      throw new NotFoundException("Client not found.");
     }
 
-    // Check username uniqueness
     if (tarsUserService.existsByClientIdAndUsername(clientId, username)) {
-      if (logger.isWarnEnabled()) {
-        logger.warn(
-            "POST /client/createUser conflict: a user "
-            + "with username='{}' exists for clientId={}",
-            username, clientId);
-      }
-      return ResponseEntity.status(
-        HttpStatus.CONFLICT).body(
-          "Username already exists for this client."
-          );
+      throw new ConflictException("Username already exists for this client.");
     }
-
-    // Check email uniqueness
     if (tarsUserService.existsByClientIdAndUserEmail(clientId, email)) {
-      if (logger.isWarnEnabled()) {
-        logger.warn(
-            "POST /client/createUser conflict: email='{}' exists for clientId={}",
-            email, clientId);
-      }
-      return ResponseEntity.status(
-        HttpStatus.CONFLICT).body(
-          "A user with the email already exists for this client."
-          );
+      throw new ConflictException("A user with the email already exists for this client.");
     }
 
     TarsUser created = tarsUserService.createUser(clientId, username, email, role);
     if (created == null) {
-      if (logger.isErrorEnabled()) {
-        logger.error(
-            "POST /client/createUser internal error after create "
-            + "clientId={} username='{}' userEmail='{}' role='{}'",
-            clientId, username);
-      }
-      return ResponseEntity.status(
-        HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to create user.");
-    }
-    if (logger.isInfoEnabled()) {
-      logger.info(
-          "POST /client/createUser success: newUserId={} clientId={} username='{}'",
-          created.getUserId(), clientId, username);
+      throw new RuntimeException("Failed to create user.");
     }
     if (logger.isDebugEnabled()) {
       logger.debug(
-          "POST /client/createUser created user detail active={} role='{}'",
-          created.getActive(), created.getRole());
+          "POST /client/createUser created user detail userId={} clientId={} "
+          + "username='{}' email='{}' role='{}'",
+          created.getUserId(), created.getClientId(), created.getUsername(),
+          created.getEmail(), created.getRole());
     }
-    return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    if (logger.isInfoEnabled()) {
+      logger.info("POST /client/createUser success newUserId={}", created.getUserId());
+    }
+    return ResponseEntity.status(HttpStatus.CREATED).body(DtoMapper.toTarsUserDto(created));
   }
 
   /**
@@ -639,6 +562,47 @@ public class RouteController {
   }
 
   /**
+   * Handles GET requests to retrieve user preferences for a specific clientId.
+   * This finds the TarsUser with the matching clientId and returns their preferences.
+   *
+   * @param clientId the id of the client we want to retrieve user data for
+   * @return a ResponseEntity containing the UserPreference for the user
+   *         with the specified clientId, or empty preferences if not found
+   */
+  @GetMapping("/user/client/{clientId}")
+  public ResponseEntity<UserPreferenceDto> getUserByClientId(@PathVariable Long clientId) {
+    if (logger.isInfoEnabled()) {
+      logger.info("GET /user/client/{} invoked", clientId);
+    }
+    if (clientId == null || clientId < 0) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("GET /user/client/{} failed: negative or null clientId", clientId);
+      }
+      throw new BadRequestException("Client Id cannot be negative.");
+    }
+
+    List<TarsUser> clientUsers = tarsUserService.listUsersByClientId(clientId);
+    TarsUser foundUser = clientUsers.isEmpty() ? null : clientUsers.get(0);
+    if (foundUser == null) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("GET /user/client/{} failed: no user found for clientId", clientId);
+      }
+      throw new NotFoundException("No user found for clientId.");
+    }
+
+    UserPreference userPrefs = tarsService.getUserPreference(foundUser.getUserId());
+    if (userPrefs == null) { // create empty preference for user without prefs
+      userPrefs = new UserPreference(foundUser.getUserId());
+      if (logger.isInfoEnabled()) {
+        logger.info("GET /user/client/{} success: user found but no preferences", clientId);
+      }
+    } else if (logger.isInfoEnabled()) {
+      logger.info("GET /user/client/{} success: found user preferences", clientId);
+    }
+    return ResponseEntity.ok(DtoMapper.toUserPreferenceDto(userPrefs));
+  }
+
+  /**
    * Handles GET requests to retrieve all user preferences
    *          under a client specified by clientId. Returns an empty json if no users are found.
    *          Otherwise, return the status code INTERNAL_SERVER_ERROR.
@@ -649,46 +613,28 @@ public class RouteController {
    *          Otherwise, return the status code INTERNAL_SERVER_ERROR.
    */
   @GetMapping("/userList/client/{clientId}")
-  public ResponseEntity<?> getClientUserList(@PathVariable Long clientId) {
+  public ResponseEntity<List<UserPreferenceDto>> getClientUserList(@PathVariable Long clientId) {
     if (logger.isInfoEnabled()) {
       logger.info("GET /userList/client/{} invoked", clientId);
     }
-    try {
-      if (clientId == null || clientId < 0) {
-        if (logger.isWarnEnabled()) {
-          logger.warn("GET /userList/client/{} failed: invalid clientId", clientId);
-        }
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body("Client Id cannot be negative.");
+    if (clientId == null || clientId < 0) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("GET /userList/client/{} failed: negative or null clientId", clientId);
       }
-
-      // Get all TarsUsers for this clientId via service helper
-      List<TarsUser> clientUsers = tarsUserService.listUsersByClientId(clientId);
-      
-      // Get preferences for each user
-      List<UserPreference> clientUserList = new ArrayList<>();
-      for (TarsUser user : clientUsers) {
-        UserPreference prefs = tarsService.getUserPreference(user.getUserId());
-        if (prefs != null) {
-          clientUserList.add(prefs);
-        } else {
-          // Create empty preferences for users without preferences
-          clientUserList.add(new UserPreference(user.getUserId()));
-        }
-      }
-      
-      if (logger.isInfoEnabled()) {
-        logger.info("GET /userList/client/{} success: found {} users",
-            clientId, clientUserList.size());
-      }
-      return ResponseEntity.ok(clientUserList);
-    } catch (Exception e) {
-      if (logger.isErrorEnabled()) {
-        logger.error("GET /userList/client/{} failed", clientId, e);
-      }
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body("Failed to retrieve users for client: " + e.getMessage());
+      throw new BadRequestException("Client Id cannot be negative.");
     }
+
+    List<TarsUser> clientUsers = tarsUserService.listUsersByClientId(clientId);
+    List<UserPreference> clientUserList = new ArrayList<>();
+    for (TarsUser user : clientUsers) {
+      UserPreference prefs = tarsService.getUserPreference(user.getUserId());
+      clientUserList.add(prefs != null ? prefs : new UserPreference(user.getUserId()));
+    }
+    if (logger.isInfoEnabled()) {
+      logger.info("GET /userList/client/{} success: found {} users",
+          clientId, clientUserList.size());
+    }
+    return ResponseEntity.ok(DtoMapper.toUserPreferenceDtos(clientUserList));
   }
 
   /**
@@ -704,100 +650,70 @@ public class RouteController {
     if (logger.isInfoEnabled()) {
       logger.info("POST /login invoked");
     }
-    
-    try {
-      String username = body != null ? body.get("username") : null;
-      String email = body != null ? body.get("email") : null;
-      String userIdStr = body != null ? body.get("userId") : null;
-      
-      if (username == null && email == null && userIdStr == null) {
-        return ResponseEntity.badRequest()
-            .body("Username, email, or userId is required");
-      }
-      
-      // Find user by userId, username, or email
-      TarsUser foundUser = null;
-      List<TarsUser> allUsers = tarsUserService.listUsers();
-      
-      if (userIdStr != null) {
-        try {
-          Long userId = Long.parseLong(userIdStr);
-          foundUser = tarsUserService.findById(userId);
-        } catch (NumberFormatException e) {
-          if (logger.isWarnEnabled()) {
-            logger.warn("Invalid userId format: {}", userIdStr);
-          }
-        }
-      } else if (username != null) {
-        String searchUsername = username.toLowerCase().trim();
-        for (TarsUser user : allUsers) {
-          if (user.getUsername() != null 
-              && user.getUsername().toLowerCase().equals(searchUsername)) {
-            foundUser = user;
-            break;
-          }
-        }
-      } else if (email != null) {
-        String searchEmail = email.toLowerCase().trim();
-        for (TarsUser user : allUsers) {
-          if (user.getEmail() != null 
-              && user.getEmail().toLowerCase().equals(searchEmail)) {
-            foundUser = user;
-            break;
-          }
-        }
-      }
-      
-      if (foundUser == null) {
-        if (logger.isWarnEnabled()) {
-          logger.warn("Login failed: user not found");
-        }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body("User not found. Please check your credentials.");
-      }
-      
-      // Check if user is active
-      if (!foundUser.getActive()) {
-        if (logger.isWarnEnabled()) {
-          logger.warn("Login failed: user account inactive userId={}", foundUser.getUserId());
-        }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-            .body("User account is inactive.");
-      }
-      
-      // Get user preferences
-      UserPreference userPrefs = tarsService.getUserPreference(foundUser.getUserId());
-      if (userPrefs == null) {
-        // User exists but has no preferences yet - create empty preferences
-        userPrefs = new UserPreference(foundUser.getUserId());
-      }
-      
-      // Build response
-      Map<String, Object> response = new java.util.HashMap<>();
-      response.put("userId", foundUser.getUserId());
-      response.put("clientId", foundUser.getClientId());
-      response.put("username", foundUser.getUsername());
-      response.put("email", foundUser.getEmail());
-      response.put("role", foundUser.getRole());
-      
-      Map<String, Object> preferences = new java.util.HashMap<>();
-      preferences.put("cityPreferences", userPrefs.getCityPreferences());
-      preferences.put("weatherPreferences", userPrefs.getWeatherPreferences());
-      preferences.put("temperaturePreferences", userPrefs.getTemperaturePreferences());
-      response.put("preferences", preferences);
-      
-      if (logger.isInfoEnabled()) {
-        logger.info("Login successful for user: userId={}", foundUser.getUserId());
-      }
-      return ResponseEntity.ok(response);
-      
-    } catch (Exception e) {
-      if (logger.isErrorEnabled()) {
-        logger.error("POST /login failed", e);
-      }
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-          .body("Login failed: " + e.getMessage());
+    String username = body != null ? body.get("username") : null;
+    String email = body != null ? body.get("email") : null;
+    String userIdStr = body != null ? body.get("userId") : null;
+
+    if (username == null && email == null && userIdStr == null) {
+      throw new BadRequestException("Username, email, or userId is required");
     }
+
+    TarsUser foundUser = null;
+    List<TarsUser> allUsers = tarsUserService.listUsers();
+    if (userIdStr != null) {
+      try {
+        Long userId = Long.parseLong(userIdStr);
+        foundUser = tarsUserService.findById(userId);
+      } catch (NumberFormatException e) {
+        throw new BadRequestException("Invalid userId format.");
+      }
+    } else if (username != null) {
+      String searchUsername = username.toLowerCase().trim();
+      for (TarsUser user : allUsers) {
+        if (user.getUsername() != null && user.getUsername().toLowerCase().equals(searchUsername)) {
+          foundUser = user;
+          break;
+        }
+      }
+    } else if (email != null) {
+      String searchEmail = email.toLowerCase().trim();
+      for (TarsUser user : allUsers) {
+        if (user.getEmail() != null && user.getEmail().toLowerCase().equals(searchEmail)) {
+          foundUser = user;
+          break;
+        }
+      }
+    }
+
+    if (foundUser == null) {
+      throw new NotFoundException("User not found. Please check your credentials.");
+    }
+    if (!foundUser.getActive()) {
+      throw new ForbiddenException("User account is inactive.");
+    }
+
+    UserPreference userPrefs = tarsService.getUserPreference(foundUser.getUserId());
+    if (userPrefs == null) {
+      userPrefs = new UserPreference(foundUser.getUserId());
+    }
+
+    Map<String, Object> response = new java.util.HashMap<>();
+    response.put("userId", foundUser.getUserId());
+    response.put("clientId", foundUser.getClientId());
+    response.put("username", foundUser.getUsername());
+    response.put("email", foundUser.getEmail());
+    response.put("role", foundUser.getRole());
+
+    Map<String, Object> preferences = new java.util.HashMap<>();
+    preferences.put("cityPreferences", userPrefs.getCityPreferences());
+    preferences.put("weatherPreferences", userPrefs.getWeatherPreferences());
+    preferences.put("temperaturePreferences", userPrefs.getTemperaturePreferences());
+    response.put("preferences", preferences);
+
+    if (logger.isInfoEnabled()) {
+      logger.info("Login successful for user userId={}", foundUser.getUserId());
+    }
+    return ResponseEntity.ok(response);
   }
 
   /**

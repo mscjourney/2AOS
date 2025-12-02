@@ -57,6 +57,48 @@ public class GlobalExceptionHandler {
   }
 
   /**
+   * Handles domain {@link ConflictException} producing a 409 error payload.
+   *
+   * @param ex      thrown conflict exception
+   * @param request originating HTTP servlet request
+   * @return ApiError wrapped in 409 response
+   */
+  @ExceptionHandler(ConflictException.class)
+  public ResponseEntity<ApiError> handleConflict(
+      ConflictException ex,
+      HttpServletRequest request) {
+    ApiError err = new ApiError(
+        HttpStatus.CONFLICT.value(),
+        HttpStatus.CONFLICT.getReasonPhrase(),
+        ex.getMessage(),
+        request.getRequestURI(),
+        null
+    );
+    return new ResponseEntity<>(err, HttpStatus.CONFLICT);
+  }
+
+  /**
+   * Handles domain {@link ForbiddenException} producing a 403 error payload.
+   *
+   * @param ex      thrown forbidden exception
+   * @param request originating HTTP servlet request
+   * @return ApiError wrapped in 403 response
+   */
+  @ExceptionHandler(ForbiddenException.class)
+  public ResponseEntity<ApiError> handleForbidden(
+      ForbiddenException ex,
+      HttpServletRequest request) {
+    ApiError err = new ApiError(
+        HttpStatus.FORBIDDEN.value(),
+        HttpStatus.FORBIDDEN.getReasonPhrase(),
+        ex.getMessage(),
+        request.getRequestURI(),
+        null
+    );
+    return new ResponseEntity<>(err, HttpStatus.FORBIDDEN);
+  }
+
+  /**
    * Handles bean validation failures converting field errors into detail list.
    *
    * @param ex      validation exception
