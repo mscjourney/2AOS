@@ -29,9 +29,9 @@ import org.springframework.test.web.servlet.MockMvc;
  * {@code UserPreferenceEndpointTest} 
  * Contains Equivalence Partitions for UserPreference related endpoints.
  * Covers:
- *    GET /retrievePreference/{userId}
- *    PUT /setPreference/{userId}
- *    PUT /clearPreference/{userId}
+ *    GET /retrievePreference/{id}
+ *    PUT /setPreference/{id}
+ *    PUT /clearPreference/{id}
  *    GET /userPreferenceList
  *    GET /userPreferenceList/client/{clientId}
  */
@@ -87,7 +87,7 @@ public class UserPreferenceEndpointTest {
         });
   }
 
-  /* ======= /retrievePreference/{userId} Equivalence Partitions ======= */
+  /* ======= /retrievePreference/{id} Equivalence Partitions ======= */
 
   /**
    * {@code getUserPreferenceTestValidId}
@@ -161,7 +161,7 @@ public class UserPreferenceEndpointTest {
         .andExpect(content().string(containsString("User Id cannot be negative.")));
   }
 
-  /* ======= /setPreference/{userId} Equivalence Partitions ======= */
+  /* ======= /setPreference/{id} Equivalence Partitions ======= */
 
   /**
    * {@code setUserPreferenceTestValidId} 
@@ -276,7 +276,7 @@ public class UserPreferenceEndpointTest {
   }
 
 
-  /* ======= /clearPreference/{userId} Equivalence Partitions ======= */
+  /* ======= /clearPreference/{id} Equivalence Partitions ======= */
 
   /**
    * {@code clearPreferenceValidId} 
