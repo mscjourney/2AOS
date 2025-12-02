@@ -25,16 +25,19 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
-// import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
- * This class contains the unit tests for the User related functionalities.
+ * {@code UserPreferenceEndpointTest} 
+ * Contains Equivalence Partitions for UserPreference related endpoints.
+ * Covers:
+ *    GET /retrievePreference/{id}
+ *    PUT /setPreference/{id}
+ *    PUT /clearPreference/{id}
+ *    GET /userPreferenceList
+ *    GET /userPreferenceList/client/{clientId}
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-public class UserPreferenceEndpointTest { 
-  // Currnently directly modifies the data/userPreferences.json
-  // Need to create a dummy version for testing so that we don't have to revert each time.
+public class UserPreferenceEndpointTest {
     
   @Autowired
   private MockMvc mockMvc;
@@ -84,7 +87,7 @@ public class UserPreferenceEndpointTest {
         });
   }
 
-  /* ======= /retrievePreference/{userId} Equivalence Partitions ======= */
+  /* ======= /retrievePreference/{id} Equivalence Partitions ======= */
 
   /**
    * {@code getUserPreferenceTestValidId}
@@ -128,8 +131,9 @@ public class UserPreferenceEndpointTest {
   }
 
   /**
-   * {@code getUserPreferenceTestWithNoTarsUser}
-   * Equivalence Partition 3: id is non-negative but there is no TarsUser associated with the id.
+   * {@code getUserPreferenceTestWithNoTarsUse}
+   * Equivalence Partition 3: id is non-negative, but there is no TarsUser
+   *    associated with that id.
    */
   @Test
   public void getUserPreferenceTestWithNoTarsUser() throws Exception {
@@ -157,7 +161,7 @@ public class UserPreferenceEndpointTest {
         .andExpect(content().string(containsString("User Id cannot be negative.")));
   }
 
-  /* ======= /setPreference/{userId} Equivalence Partitions ======= */
+  /* ======= /setPreference/{id} Equivalence Partitions ======= */
 
   /**
    * {@code setUserPreferenceTestValidId} 
@@ -272,7 +276,7 @@ public class UserPreferenceEndpointTest {
   }
 
 
-  /* ======= /clearPreference/{userId} Equivalence Partitions ======= */
+  /* ======= /clearPreference/{id} Equivalence Partitions ======= */
 
   /**
    * {@code clearPreferenceValidId} 
@@ -291,7 +295,7 @@ public class UserPreferenceEndpointTest {
   }
 
   /**
-   * {@code clearPreferenceValidId}
+   * {@code clearPreferenceNoPreferences}
    *  Equivalence Partition 2: id is non-negative, there is a TarsUser 
    *    associated with that id, but there is no existing preferences for the user.
    */
@@ -326,7 +330,8 @@ public class UserPreferenceEndpointTest {
   }
 
   /**
-   * {@code clearPreferenceNegativeId} Equivalence Partition 4: id is negative.
+   * {@code clearPreferenceNegativeId} 
+   * Equivalence Partition 4: id is negative.
    */
   @Test
   public void clearPreferenceNegativeId() throws Exception {
@@ -377,7 +382,7 @@ public class UserPreferenceEndpointTest {
   }
 
   /**
-   * {@code testGetUserPreferenceList}
+   * {@code testGetUserPreferenceListEmpty}
    * Equivalence Partition 3: No preferences have been set for any TarsUser.
    */
   @Test
@@ -449,7 +454,7 @@ public class UserPreferenceEndpointTest {
   }
 
   /**
-   * {@code testGetClientUserListWithNoUsers}
+   * {@code testGetClientUserListNegativeId}
    * Equivalence Partition 4: clientId is negative.
    */  
   @Test
@@ -668,7 +673,7 @@ public class UserPreferenceEndpointTest {
   }
 
   /**
-   * {@code retrievePreferenceWarnLoggingDisabledTest}
+   * {@code getClientUserListWarnLoggingDisabledTest}
    * Covers false branch of isWarnEnabled() (WARN off).
    */
   @Test
