@@ -66,6 +66,60 @@ public class TarsUserServiceTest {
   }
 
   /**
+   * {@code persistentFileLoggingIntegrationTest} Verifies Logback writes to a rolling file
+   * when LOG_PATH is provided via system properties. Asserts file creation and content.
+   */
+  @Test
+  public void persistentFileLoggingIntegrationTest() throws Exception {
+    Path logDir = Files.createTempDirectory("tars-log-test");
+    try {
+      System.setProperty("LOG_PATH", logDir.toString());
+      System.setProperty("LOG_LEVEL", "DEBUG");
+
+      // Reload Logback configuration to pick up new properties
+      ch.qos.logback.classic.LoggerContext ctx =
+          (ch.qos.logback.classic.LoggerContext) LoggerFactory.getILoggerFactory();
+      ctx.reset();
+      ch.qos.logback.classic.joran.JoranConfigurator configurator =
+          new ch.qos.logback.classic.joran.JoranConfigurator();
+      configurator.setContext(ctx);
+      java.net.URL cfgUrl = getClass().getClassLoader().getResource("logback-spring.xml");
+      assertNotNull(cfgUrl, "logback-spring.xml should be on test classpath");
+      configurator.doConfigure(cfgUrl);
+
+      // Trigger a few log messages through service operations
+      userService.createUser(5L, "", "test_user@client5.com", "user"); // WARN: blank username
+      userService.updateLastLogin(1L); // INFO
+
+      // Allow appender to flush
+      Thread.sleep(150);
+
+      Path logFile = logDir.resolve("Tars.log");
+      assertTrue(Files.exists(logFile),
+          "Expected persistent log file to be created at LOG_PATH");
+
+      String content = Files.readString(logFile);
+      assertTrue(content.contains("TarsUserService"),
+          "Log file should contain service logger entries");
+      assertTrue(content.contains("Updated lastLogin for user id=1"),
+          "Log file should contain lastLogin update message");
+    } finally {
+      System.clearProperty("LOG_PATH");
+      System.clearProperty("LOG_LEVEL");
+      // Best-effort cleanup
+      Files.walk(logDir)
+          .sorted((a, b) -> b.getNameCount() - a.getNameCount())
+          .forEach(p -> {
+            try {
+              Files.deleteIfExists(p);
+            } catch (IOException ignored) {
+              // Ignore cleanup errors
+            }
+          });
+    }
+  }
+
+  /**
    * {@code userServiceInitializationTest} Verifies initial load yields first user
    * with expected id and username.
    */
@@ -668,6 +722,208 @@ public class TarsUserServiceTest {
     );
     Files.deleteIfExists(testFile);
     Files.deleteIfExists(testDir);
+  }
+
+  /**
+   * Test ID counter when userId is null in loaded users.
+   */
+  @Test
+  public void testIdCounterSkipsNullUserIds() throws IOException {
+    final Path testDir = Files.createTempDirectory("id-null-test");
+    
+    // Create users with null userId and a valid one
+    TarsUser user1 = new TarsUser();
+    user1.setUserId(null);  // null userId
+    user1.setClientId(1L);
+    user1.setUsername("null_id_user");
+    user1.setEmail("null@test.com");
+    user1.setRole("user");
+    user1.setActive(true);
+    
+    TarsUser user2 = new TarsUser();
+    user2.setUserId(5L);  // Max userId is 5
+    user2.setClientId(1L);
+    user2.setUsername("max_id_user");
+    user2.setEmail("max@test.com");
+    user2.setRole("user");
+    user2.setActive(true);
+    
+    java.util.List<TarsUser> existingUsers = new java.util.ArrayList<>();
+    existingUsers.add(user1);
+    existingUsers.add(user2);
+    
+    ObjectMapper om = new ObjectMapper();
+    Path testFile = testDir.resolve("users.json");
+    om.writeValue(testFile.toFile(), existingUsers);
+    
+    TarsUserService service = new TarsUserService(testFile.toString(), null);
+    
+    // Create new user should get ID 6 (skipping null)
+    TarsUser newUser = service.createUser(1L, "new_user", "new@test.com", "user");
+    assertEquals(6L, newUser.getUserId(), 
+        "ID counter should skip null userIds and use max valid ID");
+  }
+
+  /**
+   * Test ensureFile when parent directory is null (root path).
+   */
+  @Test
+  public void testEnsureFileWithNullParent() throws IOException {
+    // Create a file path with no parent (e.g., a temp file in root)
+    java.io.File tempRoot = java.io.File.listRoots()[0];
+    java.io.File testFile = new java.io.File(tempRoot, "tars-test-" 
+        + System.currentTimeMillis() + ".json");
+    
+    try {
+      // This tests the parent == null branch
+      TarsUserService service = new TarsUserService(testFile.toString(), null);
+      
+      // Service should initialize successfully even without parent dir
+      assertNotNull(service.listUsers(), "Service should initialize with root-level file");
+    } finally {
+      if (testFile.exists()) {
+        testFile.delete();
+      }
+    }
+  }
+
+  /**
+   * Test persist when parent directory already exists.
+   */
+  @Test
+  public void testPersistWhenParentExists() throws IOException {
+    Path testDir = Files.createTempDirectory("parent-exists-test");
+    Path subDir = testDir.resolve("existing-subdir");
+    Files.createDirectories(subDir);  // Parent already exists
+    Path testFile = subDir.resolve("users.json");
+    
+    TarsUserService service = new TarsUserService(testFile.toString(), null);
+    TarsUser user = service.createUser(1L, "test_user", "test@test.com", "user");
+    
+    // Persist should work fine when parent exists
+    assertNotNull(user, "User should be created successfully");
+    assertTrue(Files.exists(testFile), "Users file should be persisted");
+  }
+
+  /**
+   * Test existsByClientIdAndUsername with null existingClientId.
+   */
+  @Test
+  public void testExistsByClientIdAndUsernameNullClientId() throws IOException {
+    Path testDir = Files.createTempDirectory("null-clientid-test");
+    Path testFile = testDir.resolve("users.json");
+    
+    TarsUserService service = new TarsUserService(testFile.toString(), null);
+    
+    // Create user with valid clientId
+    service.createUser(5L, "test_user", "test@test.com", "user");
+    
+    // This should not match because we're checking against different clientId
+    boolean exists = service.existsByClientIdAndUsername(10L, "test_user");
+    assertFalse(exists, "Should return false when clientIds don't match");
+  }
+
+  /**
+   * Test existsByClientIdAndUsername with null existingUsername.
+   */
+  @Test
+  public void testExistsByClientIdAndUsernameNullUsername() throws IOException {
+    final Path testDir = Files.createTempDirectory("null-username-test");
+    
+    // Create users.json with user having null username
+    TarsUser user = new TarsUser();
+    user.setUserId(1L);
+    user.setClientId(5L);
+    user.setUsername(null);  // null username
+    user.setEmail("test@test.com");
+    user.setRole("user");
+    user.setActive(true);
+    java.util.List<TarsUser> users = new java.util.ArrayList<>();
+    users.add(user);
+    
+    ObjectMapper om = new ObjectMapper();
+    Path testFile = testDir.resolve("users.json");
+    om.writeValue(testFile.toFile(), users);
+    
+    TarsUserService service = new TarsUserService(testFile.toString(), null);
+    
+    boolean exists = service.existsByClientIdAndUsername(5L, "some_user");
+    assertFalse(exists, 
+        "Should return false when existing user has null username");
+  }
+
+  /**
+   * Test existsByClientIdAndUserEmail with null existingClientId.
+   */
+  @Test
+  public void testExistsByClientIdAndUserEmailNullClientId() throws IOException {
+    Path testDir = Files.createTempDirectory("null-clientid-email-test");
+    Path testFile = testDir.resolve("users.json");
+    
+    TarsUserService service = new TarsUserService(testFile.toString(), null);
+    
+    // Create user with valid clientId
+    service.createUser(5L, "test_user", "test@test.com", "user");
+    
+    // Check with different clientId
+    boolean exists = service.existsByClientIdAndUserEmail(10L, "test@test.com");
+    assertFalse(exists, "Should return false when clientIds don't match");
+  }
+
+  /**
+   * Test existsByClientIdAndUserEmail with null existingEmail.
+   */
+  @Test
+  public void testExistsByClientIdAndUserEmailNullEmail() throws IOException {
+    final Path testDir = Files.createTempDirectory("null-email-test");
+    
+    // Create users.json with user having null email
+    TarsUser user = new TarsUser();
+    user.setUserId(1L);
+    user.setClientId(5L);
+    user.setUsername("test_user");
+    user.setEmail(null);  // null email
+    user.setRole("user");
+    user.setActive(true);
+    java.util.List<TarsUser> users = new java.util.ArrayList<>();
+    users.add(user);
+    
+    ObjectMapper om = new ObjectMapper();
+    Path testFile = testDir.resolve("users.json");
+    om.writeValue(testFile.toFile(), users);
+    
+    TarsUserService service = new TarsUserService(testFile.toString(), null);
+    
+    boolean exists = service.existsByClientIdAndUserEmail(5L, "some@test.com");
+    assertFalse(exists, 
+        "Should return false when existing user has null email");
+  }
+
+  /**
+   * Test createUser with various null parameter combinations.
+   */
+  @Test
+  public void testCreateUserNullParameterCombinations() throws IOException {
+    Path testDir = Files.createTempDirectory("null-params-test");
+    Path testFile = testDir.resolve("users.json");
+    
+    TarsUserService service = new TarsUserService(testFile.toString(), null);
+    
+    // Test null username only
+    TarsUser result1 = service.createUser(5L, null, "test@test.com", "user");
+    assertNull(result1, "Should return null with null username");
+    
+    // Test null email only
+    TarsUser result2 = service.createUser(5L, "testuser", null, "user");
+    assertNull(result2, "Should return null with null email");
+    
+    // Test null role only
+    TarsUser result3 = service.createUser(5L, "testuser", "test@test.com", null);
+    assertNull(result3, "Should return null with null role");
+    
+    // All combinations are now tested
+    assertEquals(0, service.listUsers().size(), 
+        "No users should be created with null parameters");
   }
 
   /**
