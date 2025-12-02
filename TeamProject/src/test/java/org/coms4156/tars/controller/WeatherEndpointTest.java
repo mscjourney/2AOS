@@ -1,16 +1,17 @@
 package org.coms4156.tars.controller;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import ch.qos.logback.classic.Level;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.coms4156.tars.model.TarsUser;
 import org.coms4156.tars.model.UserPreference;
 import org.coms4156.tars.model.WeatherAlert;
@@ -21,7 +22,6 @@ import org.coms4156.tars.service.ClientService;
 import org.coms4156.tars.service.TarsService;
 import org.coms4156.tars.service.TarsUserService;
 import org.coms4156.tars.util.LoggerTestUtil;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
@@ -31,8 +31,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
-import ch.qos.logback.classic.Level;
 
 /**
  * {@code WeatherEndpointTest} 
@@ -459,16 +457,13 @@ public class WeatherEndpointTest {
    */
   public void testGetUserWeatherAlertsNoPreferences() throws Exception {
     Mockito.when(tarsService.getUserPreference(4L)).thenReturn(null);
+    
+    TarsUser tarsUser = new TarsUser(4L, "Denise", "den@gmail.com", "user");
+    Mockito.when(tarsUserService.findById(4L)).thenReturn(tarsUser);
 
-    try (MockedStatic<WeatherAlertModel> mockedModel =
-        Mockito.mockStatic(WeatherAlertModel.class)) {
-      mockedModel.when(() -> WeatherAlertModel.getUserAlerts(mockUser))
-          .thenReturn(mockList);
-
-      mockMvc.perform(get("/alert/weather/user/4"))
-          .andExpect(status().isNotFound())
-          .andExpect(content().string("User Preferences not found."));
-    }
+    mockMvc.perform(get("/alert/weather/user/4"))
+        .andExpect(status().isNotFound())
+        .andExpect(content().string("User Preferences not found."));
   }
 
   /**
@@ -533,14 +528,11 @@ public class WeatherEndpointTest {
     try (LoggerTestUtil.CapturedLogger cap =
              LoggerTestUtil.capture(RouteController.class, Level.WARN)) {
               
-        mockMvc.perform(get("/alert/weather")
-          .param("city","Los Angeles"))
+      mockMvc.perform(get("/alert/weather")
+        .param("city", "Los Angeles"))
           .andExpect(status().isOk());
-        
-        assertFalse(
-            cap.hasLevel(Level.INFO),
-            "INFO suppressed at WARN."
-        );
+      
+      assertFalse(cap.hasLevel(Level.INFO), "INFO suppressed at WARN.");
     }
   }
   
@@ -560,11 +552,11 @@ public class WeatherEndpointTest {
       try (MockedStatic<WeatherAlertModel> mockedModel =
           Mockito.mockStatic(WeatherAlertModel.class)) {
         mockedModel.when(() -> WeatherAlertModel.getUserAlerts(mockUser))
-          .thenReturn(mockList);    
+            .thenReturn(mockList);    
           
         mockMvc.perform(get("/alert/weather/user/2")
-          .param("city","Los Angeles"))
-          .andExpect(status().isOk());
+          .param("city", "Los Angeles"))
+            .andExpect(status().isOk());
         
         assertFalse(
             cap.hasLevel(Level.INFO),
