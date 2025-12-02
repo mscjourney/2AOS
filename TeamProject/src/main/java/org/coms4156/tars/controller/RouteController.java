@@ -11,9 +11,9 @@ import org.coms4156.tars.dto.ClientDto;
 import org.coms4156.tars.dto.TarsUserDto;
 import org.coms4156.tars.dto.UserPreferenceDto;
 import org.coms4156.tars.exception.BadRequestException;
-import org.coms4156.tars.exception.NotFoundException;
 import org.coms4156.tars.exception.ConflictException;
 import org.coms4156.tars.exception.ForbiddenException;
+import org.coms4156.tars.exception.NotFoundException;
 import org.coms4156.tars.mapper.DtoMapper;
 import org.coms4156.tars.model.CitySummary;
 import org.coms4156.tars.model.Client;
@@ -158,7 +158,8 @@ public class RouteController {
    * @return A ResponseEntity indicating the result of the operation.
    */
   @PostMapping({"/client/create"})
-  public ResponseEntity<ClientDto> createClient(@RequestBody(required = false) Map<String, String> body) {
+  public ResponseEntity<ClientDto> createClient(
+      @RequestBody(required = false) Map<String, String> body) {
     if (logger.isInfoEnabled()) {
       logger.info("POST /client/create invoked");
     }
@@ -312,8 +313,10 @@ public class RouteController {
     }
     if (logger.isDebugEnabled()) {
       logger.debug(
-          "POST /client/createUser created user detail userId={} clientId={} username='{}' email='{}' role='{}'",
-          created.getUserId(), created.getClientId(), created.getUsername(), created.getEmail(), created.getRole());
+          "POST /client/createUser created user detail userId={} clientId={} "
+          + "username='{}' email='{}' role='{}'",
+          created.getUserId(), created.getClientId(), created.getUsername(),
+          created.getEmail(), created.getRole());
     }
     if (logger.isInfoEnabled()) {
       logger.info("POST /client/createUser success newUserId={}", created.getUserId());
@@ -706,7 +709,8 @@ public class RouteController {
       clientUserList.add(prefs != null ? prefs : new UserPreference(user.getUserId()));
     }
     if (logger.isInfoEnabled()) {
-      logger.info("GET /userList/client/{} success: found {} users", clientId, clientUserList.size());
+      logger.info("GET /userList/client/{} success: found {} users",
+          clientId, clientUserList.size());
     }
     return ResponseEntity.ok(DtoMapper.toUserPreferenceDtos(clientUserList));
   }

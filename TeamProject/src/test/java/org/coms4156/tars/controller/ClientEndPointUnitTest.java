@@ -386,8 +386,8 @@ public class ClientEndPointUnitTest {
     mockMvc.perform(post("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content("null"))
-      .andExpect(status().isBadRequest())
-      .andExpect(jsonPath("$.message").value("Body cannot be null."));
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value("Body cannot be null."));
   }
 
   /**
@@ -405,8 +405,8 @@ public class ClientEndPointUnitTest {
     mockMvc.perform(post("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestUser)))
-      .andExpect(status().isBadRequest())
-      .andExpect(jsonPath("$.message").value("Invalid clientId."));
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value("Invalid clientId."));
   }
 
   /**
@@ -424,8 +424,8 @@ public class ClientEndPointUnitTest {
     mockMvc.perform(post("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestUser)))
-      .andExpect(status().isBadRequest())
-      .andExpect(jsonPath("$.message").value("Invalid clientId."));
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value("Invalid clientId."));
   }
 
   /**
@@ -443,8 +443,8 @@ public class ClientEndPointUnitTest {
     mockMvc.perform(post("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestUser)))
-      .andExpect(status().isBadRequest())
-      .andExpect(jsonPath("$.message").value("Username cannot be blank."));
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value("Username cannot be blank."));
   }
 
   /**
@@ -462,8 +462,8 @@ public class ClientEndPointUnitTest {
     mockMvc.perform(post("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestUser)))
-      .andExpect(status().isBadRequest())
-      .andExpect(jsonPath("$.message").value("Username cannot be blank."));
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value("Username cannot be blank."));
   }
 
   /**
@@ -481,8 +481,8 @@ public class ClientEndPointUnitTest {
     mockMvc.perform(post("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestUser)))
-      .andExpect(status().isBadRequest())
-      .andExpect(jsonPath("$.message").value("Email cannot be blank."));
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value("Email cannot be blank."));
   }
 
   /**
@@ -500,8 +500,8 @@ public class ClientEndPointUnitTest {
     mockMvc.perform(post("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestUser)))
-      .andExpect(status().isBadRequest())
-      .andExpect(jsonPath("$.message").value("Email cannot be blank."));
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value("Email cannot be blank."));
   }
 
   /**
@@ -519,8 +519,8 @@ public class ClientEndPointUnitTest {
     mockMvc.perform(post("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestUser)))
-      .andExpect(status().isBadRequest())
-      .andExpect(jsonPath("$.message").value("Invalid email format."));
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value("Invalid email format."));
   }
 
   /**
@@ -538,8 +538,8 @@ public class ClientEndPointUnitTest {
     mockMvc.perform(post("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestUser)))
-      .andExpect(status().isBadRequest())
-      .andExpect(jsonPath("$.message").value("Role cannot be blank."));
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value("Role cannot be blank."));
   }
 
   /**
@@ -557,8 +557,8 @@ public class ClientEndPointUnitTest {
     mockMvc.perform(post("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestUser)))
-      .andExpect(status().isBadRequest())
-      .andExpect(jsonPath("$.message").value("Role cannot be blank."));
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value("Role cannot be blank."));
   }
 
   /**
@@ -578,8 +578,8 @@ public class ClientEndPointUnitTest {
     mockMvc.perform(post("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestUser)))
-      .andExpect(status().isNotFound())
-      .andExpect(jsonPath("$.message").value("Client not found."));
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.message").value("Client not found."));
 
     verify(clientService).getClient(999);
   }
@@ -606,8 +606,9 @@ public class ClientEndPointUnitTest {
     mockMvc.perform(post("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestUser)))
-      .andExpect(status().isConflict())
-      .andExpect(jsonPath("$.message").value("Username already exists for this client."));
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.message")
+            .value("Username already exists for this client."));
 
     verify(tarsUserService).existsByClientIdAndUsername(1L, "existinguser");
   }
@@ -636,8 +637,9 @@ public class ClientEndPointUnitTest {
     mockMvc.perform(post("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestUser)))
-      .andExpect(status().isConflict())
-      .andExpect(jsonPath("$.message").value("A user with the email already exists for this client."));
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.message")
+            .value("A user with the email already exists for this client."));
 
     verify(tarsUserService).existsByClientIdAndUserEmail(1L, "existing@example.com");
   }
@@ -668,8 +670,8 @@ public class ClientEndPointUnitTest {
     mockMvc.perform(post("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestUser)))
-      .andExpect(status().isInternalServerError())
-      .andExpect(jsonPath("$.message").value("Failed to create user."));
+        .andExpect(status().isInternalServerError())
+        .andExpect(jsonPath("$.message").value("Failed to create user."));
 
     verify(tarsUserService).createUser(1L, "testuser", "user@example.com", "admin");
   }
@@ -889,12 +891,14 @@ public class ClientEndPointUnitTest {
     mockClient.setClientId(1L);
     when(clientService.getClient(1)).thenReturn(mockClient);
     when(tarsUserService.existsByClientIdAndUsername(1L, "newuser2")).thenReturn(false);
-    when(tarsUserService.existsByClientIdAndUserEmail(1L, "EXISTING@EXAMPLE.COM")).thenReturn(true);
+    when(tarsUserService.existsByClientIdAndUserEmail(1L, "EXISTING@EXAMPLE.COM"))
+        .thenReturn(true);
     mockMvc.perform(post("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(req)))
         .andExpect(status().isConflict())
-        .andExpect(jsonPath("$.message").value("A user with the email already exists for this client."));
+        .andExpect(jsonPath("$.message")
+            .value("A user with the email already exists for this client."));
     verify(tarsUserService).existsByClientIdAndUserEmail(1L, "EXISTING@EXAMPLE.COM");
   }
 
@@ -918,7 +922,8 @@ public class ClientEndPointUnitTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(req)))
         .andExpect(status().isConflict())
-      .andExpect(jsonPath("$.message").value("Username already exists for this client."));
+        .andExpect(jsonPath("$.message")
+            .value("Username already exists for this client."));
     verify(tarsUserService).existsByClientIdAndUsername(1L, "dupuser");
     // Optional ordering assertion (email check should not run):
     // verify(tarsUserService, never()).existsByClientIdAndUserEmail(1L, "dup@example.com");
@@ -1594,8 +1599,8 @@ public class ClientEndPointUnitTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(loginBody)))
         .andExpect(status().isBadRequest())
-      .andExpect(jsonPath("$.message").value("Username, email, or userId is required"))
-      .andExpect(jsonPath("$.status").value(400));
+        .andExpect(jsonPath("$.message").value("Username, email, or userId is required"))
+        .andExpect(jsonPath("$.status").value(400));
   }
 
   /**
@@ -1616,8 +1621,9 @@ public class ClientEndPointUnitTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(loginBody)))
         .andExpect(status().isNotFound())
-      .andExpect(jsonPath("$.message").value("User not found. Please check your credentials."))
-      .andExpect(jsonPath("$.status").value(404));
+        .andExpect(jsonPath("$.message")
+            .value("User not found. Please check your credentials."))
+        .andExpect(jsonPath("$.status").value(404));
 
     verify(tarsUserService).listUsers();
   }
@@ -1645,8 +1651,8 @@ public class ClientEndPointUnitTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(loginBody)))
         .andExpect(status().isForbidden())
-      .andExpect(jsonPath("$.message").value("User account is inactive."))
-      .andExpect(jsonPath("$.status").value(403));
+        .andExpect(jsonPath("$.message").value("User account is inactive."))
+        .andExpect(jsonPath("$.status").value(403));
 
     verify(tarsUserService).listUsers();
   }

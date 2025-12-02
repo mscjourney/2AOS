@@ -69,15 +69,15 @@ public class TarsUserEndpointUnitTest {
 
     // large client id likely missing -> 404
     mockMvc.perform(get("/user/client/9999"))
-      .andExpect(status().isNotFound())
-      .andExpect(jsonPath("$.status").value(404))
-      .andExpect(jsonPath("$.message").value("No user found for clientId."));
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.status").value(404))
+        .andExpect(jsonPath("$.message").value("No user found for clientId."));
 
     // negative -> 400
     mockMvc.perform(get("/user/client/-1"))
-      .andExpect(status().isBadRequest())
-      .andExpect(jsonPath("$.status").value(400))
-      .andExpect(jsonPath("$.message").value("Client Id cannot be negative."));
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.message").value("Client Id cannot be negative."));
   }
 
   /**
