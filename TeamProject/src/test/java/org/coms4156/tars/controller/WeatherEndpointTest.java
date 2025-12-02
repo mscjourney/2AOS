@@ -8,10 +8,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import ch.qos.logback.classic.Level;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.coms4156.tars.model.TarsUser;
 import org.coms4156.tars.model.UserPreference;
 import org.coms4156.tars.model.WeatherAlert;
@@ -27,7 +29,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -40,7 +44,8 @@ import org.springframework.test.web.servlet.MockMvc;
  *    - GET /alert/weather?city={city}&lat={lat}&lon={lon}
  *    - GET /alert/weather/user/{userId}
  */
-@WebMvcTest(RouteController.class)
+@SpringBootTest
+@AutoConfigureMockMvc
 public class WeatherEndpointTest {
 
   @Autowired
@@ -405,11 +410,20 @@ public class WeatherEndpointTest {
 
   /**
    * {@code testGetWeatherAlertNoParam}
-   * Equivalence Partition 4: city, lat, lon are ALL NOT passed in.
+   * Equivalence Partition 4: city, lat, lon are ALL NOT passed in OR just lat or just lon is 
+   * passed in. If no city and only lat or lon (not both) are passed in, also returns a BAD_REQUEST.
    */
   @Test
   public void testGetWeatherAlertNoParam() throws Exception {
     mockMvc.perform(get("/alert/weather"))
+        .andExpect(status().isBadRequest());
+
+    mockMvc.perform(get("/alert/weather")
+      .param("lat", "42.1345"))
+        .andExpect(status().isBadRequest());
+    
+    mockMvc.perform(get("/alert/weather")
+      .param("lon", "-32.15"))
         .andExpect(status().isBadRequest());
   }
 
@@ -455,6 +469,7 @@ public class WeatherEndpointTest {
    * Equivalence Partition 2: id is non-negative, there is a TarsUser 
    *    associated with that id, but no userPreference has been previously set.
    */
+  @Test
   public void testGetUserWeatherAlertsNoPreferences() throws Exception {
     Mockito.when(tarsService.getUserPreference(4L)).thenReturn(null);
     
@@ -471,6 +486,7 @@ public class WeatherEndpointTest {
    * Equivalence Partition 3: id is non-negative, but there is no TarsUser
    *    associated with the id.
    */
+  @Test
   public void testGetUserWeatherAlertsNoTarsUser() throws Exception {
     mockMvc.perform(get("/alert/weather/user/0"))
         .andExpect(status().isNotFound())
@@ -566,6 +582,10 @@ public class WeatherEndpointTest {
     }
   }
 
+  /**
+   * {@code getWeatherRecommendationWarnLoggingDisabledTest}
+   * Covers false branch of isWarnEnabled() (WARN off).
+   */
   @Test
   public void getWeatherRecommendationWarnLoggingDisabledTest() throws Exception {
     try (LoggerTestUtil.CapturedLogger cap =
@@ -576,6 +596,58 @@ public class WeatherEndpointTest {
         .param("days", "20"))
           .andExpect(status().isBadRequest());
       
+      assertFalse(
+          cap.hasLevel(Level.WARN),
+          "WARN suppressed at ERROR."
+      );
+    }
+  }
+
+  /**
+   * {@code getWeatherAlertWarnLoggingDisabledTest}
+   * Covers false branch of isWarnEnabled() (WARN off).
+   */
+  @Test
+  public void getWeatherAlertWarnLoggingDisabledTest() throws Exception {
+    try (LoggerTestUtil.CapturedLogger cap =
+             LoggerTestUtil.capture(RouteController.class, Level.ERROR)) {
+      
+      mockMvc.perform(get("/alert/weather")
+        .param("lat", "20.9104"))
+          .andExpect(status().isBadRequest());
+      
+      mockMvc.perform(get("/alert/weather")
+        .param("city", "!!!"))
+          .andExpect(status().isBadRequest());
+
+      assertFalse(
+          cap.hasLevel(Level.WARN),
+          "WARN suppressed at ERROR."
+      );
+    }
+  }
+  
+  /**
+   * {@code getUserWeatherAlertWarnLoggingDisabledTest}
+   * Covers false branch of isWarnEnabled() (WARN off).
+   */
+  @Test
+  public void getUserWeatherAlertWarnLoggingDisabledTest() throws Exception {
+    try (LoggerTestUtil.CapturedLogger cap =
+             LoggerTestUtil.capture(RouteController.class, Level.ERROR)) {
+      
+      mockMvc.perform(get("/alert/weather/user/-1"))
+          .andExpect(status().isBadRequest());
+      
+      mockMvc.perform(get("/alert/weather/user/1"))
+          .andExpect(status().isNotFound());
+
+      TarsUser tarsUser = new TarsUser(2L, "Denise", "den@gmail.com", "user");
+      Mockito.when(tarsUserService.findById(2L)).thenReturn(tarsUser);
+
+      mockMvc.perform(get("/alert/weather/user/2"))
+          .andExpect(status().isNotFound());
+
       assertFalse(
           cap.hasLevel(Level.WARN),
           "WARN suppressed at ERROR."
