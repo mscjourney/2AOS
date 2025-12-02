@@ -73,11 +73,11 @@ public class CrimeModel {
       // Most likely a Bad Request
       if (response.statusCode() != 200) {
         if (response.statusCode() == 400) { // If a bad request, return null
-            if (logger.isWarnEnabled()) {
-              logger.warn("Crime API request failed: status={} body={}",
-                  response.statusCode(), response.body());
-            }
-            return null;
+          if (logger.isWarnEnabled()) {
+            logger.warn("Crime API request failed: status={} body={}",
+                response.statusCode(), response.body());
+          }
+          return null;
         }
         // Any other status code is unexpected
         throw new RuntimeException("API call failed with status: "
