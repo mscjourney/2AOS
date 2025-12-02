@@ -5,7 +5,7 @@ const fs = require('fs-extra');
 const TarsApiClient = require('./src/tarsApiClient');
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 // Initialize API client
 const apiClient = new TarsApiClient('http://localhost:8080');
@@ -171,8 +171,8 @@ app.get('/api/user/client/:clientId', async (req, res) => {
 
 // Get user preferences by userId - proxy to Java backend
 app.get('/api/preferences/user/:userId', async (req, res) => {
+  const userId = parseInt(req.params.userId);
   try {
-    const userId = parseInt(req.params.userId);
     const userPrefs = await apiClient.getUserPreference(userId);
     // Add userId field for frontend compatibility
     res.json({
@@ -400,20 +400,25 @@ app.get('*', (req, res) => {
   }
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`TARS Client Server running on http://localhost:${PORT}`);
-  console.log(`Dashboard available at http://localhost:${PORT}/dashboard`);
-  console.log(`Registered routes:`);
-  console.log(`  PUT /api/setPreference/:id`);
-  console.log(`  PUT /api/user/:id/remove`);
-  console.log(`  GET /api/user/:id`);
-  // Log all registered routes for debugging
-  app._router.stack.forEach((middleware) => {
-    if (middleware.route) {
-      const methods = Object.keys(middleware.route.methods).join(', ').toUpperCase();
-      console.log(`  ${methods} ${middleware.route.path}`);
-    }
+// Export app for testing
+module.exports = app;
+
+// Start server only if this file is run directly (not when required for tests)
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`TARS Client Server running on http://localhost:${PORT}`);
+    console.log(`Dashboard available at http://localhost:${PORT}/dashboard`);
+    console.log(`Registered routes:`);
+    console.log(`  PUT /api/setPreference/:id`);
+    console.log(`  PUT /api/user/:id/remove`);
+    console.log(`  GET /api/user/:id`);
+    // Log all registered routes for debugging
+    app._router.stack.forEach((middleware) => {
+      if (middleware.route) {
+        const methods = Object.keys(middleware.route.methods).join(', ').toUpperCase();
+        console.log(`  ${methods} ${middleware.route.path}`);
+      }
+    });
   });
-});
+}
 

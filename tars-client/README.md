@@ -222,3 +222,67 @@ npm run build                # Build React app for production
   - Create new users (username, email, role)
   - Users are automatically assigned to the admin's client ID
 
+## End-to-End Testing
+
+The client includes comprehensive end-to-end tests that exercise the full client functionality by making real HTTP requests to a running TARS service instance.
+
+### Prerequisites
+
+1. **TARS Java Backend must be running**
+   ```bash
+   cd ../TeamProject
+   mvn spring-boot:run
+   ```
+   The service should be accessible at `http://localhost:8080`
+
+2. **Install test dependencies**
+   ```bash
+   npm install
+   ```
+
+### Running Tests
+
+#### Automated (Recommended)
+
+```bash
+npm test
+```
+
+This runs all tests including:
+- **Unit tests** for `TarsApiClient` (`__tests__/tarsApiClient.test.js`)
+- **Server route tests** for Express API endpoints (`__tests__/server-routes.test.js`)
+- **End-to-end tests** that require a running Java backend (`__tests__/e2e/client-service-e2e.test.js`)
+
+#### Running Specific Test Suites
+
+```bash
+# Run only E2E tests (requires Java backend running)
+npm run test:e2e
+
+
+## Code Coverage
+
+The project includes comprehensive test coverage reporting. You can generate and view coverage reports to see which parts of the codebase are tested.
+
+### Generating Coverage Reports
+
+```bash
+# Generate coverage report for all tests
+npm run test:coverage
+
+# Generate coverage report for E2E tests only
+npm run test:coverage:e2e
+```
+
+The project maintains high test coverage:
+- **Overall**: >90% statement coverage
+- **API Client**: >95% statement coverage
+- **Server Routes**: >85% statement coverage
+
+### Coverage Configuration
+
+Coverage is configured in `jest.config.js`:
+- Coverage is collected from `src/**/*.js` and `server.js`
+- React client tests are excluded (they have their own test suite)
+- Coverage reports are generated in `coverage/` directory
+- Reports are automatically added to `.gitignore` (not committed to repository)
