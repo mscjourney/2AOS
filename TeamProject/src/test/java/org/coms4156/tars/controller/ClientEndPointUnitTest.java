@@ -5,13 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -36,9 +33,90 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 /**
- * {@code ClientEndPointUnitTest} Unit tests for client-related endpoints
- * in {@link RouteController}. Tests cover all branches and validation paths.
- */
+* {@code ClientEndPointUnitTest} Unit tests for client-related endpoints
+* in {@link RouteController}. Tests cover all branches and validation paths.
+*
+* <p>Equivalence Partition Testing for Client Endpoints
+* =========== POST /client/create ===========
+* 1) Equivalence Partition 1: Name and Email are both non-null and unique to each client.
+*     No two clients can have same name or email. Check is case-insensitive -> alice == Alice.
+*     Name and Email can contain leading/trailing whitespace.
+*
+* <p>Test Cases: createClientSuccessTest, createClientTrimsWhitespaceTest,
+*     createClientWithValidEmailFormatsTest
+*
+* <p>2) Equivalence Partition 2: Name and/or Email are null OR Name or Email is non-unique and
+*        there already exists a client with the specified name or email.
+*
+* <p>Test Cases: createClientWithNullBodyTest, createClientMissingNameFieldTest,
+*     createClientWithNullNameValueTest, createClientWithBlankNameTest,
+*     createClientMissingEmailFieldTest, createClientWithNullEmailValueTest,
+*     createClientWithBlankEmailTest, createClientWithInvalidEmailFormatTest,
+*     createClientWithDuplicateNameTest, createClientWithDuplicateEmailTest,
+*     createClientCaseInsensitiveDuplicateNameTest, createClientCaseInsensitiveDuplicateEmailTest,
+*     createClientBothNameAndEmailDuplicateTest
+*
+* <p>Other Tests: createClientServiceReturnsNullTest (service failure : INTERNAL ERROR)
+*
+* <p>=========== POST /client/createUser ===========
+* 1) Equivalence Partition 1: Valid TarsUser body is passed in.
+*     A valid TarsUser body contains non-negative clientId, non-empty username,
+*     non-empty email, non-empty role.
+*     There must exist a client specified by clientId and there must be not exist a TarsUser
+*     with the same username or email as in the Request Body under the same client.
+*     Fields can contain leading/trailing whitespace.
+*
+* <p>Test Cases: createClientUserSuccessTest, createClientUserTrimsWhitespaceTest,
+*     createClientUserWithValidEmailFormatsTest
+*
+* <p>2) Equivalence Partition 2: Invalid TarsUser body.
+*     A TarsUser body is invalid if clientid is negative, username/email/role is empty.
+*     Another TarsUser already exists with the provided email or username under the same client.
+*     The body as well as any of mentioned the fields mentioned is null.
+*
+* <p>Test Cases: createClientUserWithNullBodyTest, createClientUserWithNullClientIdTest,
+*     createClientUserWithNegativeClientIdTest, createClientUserWithNullUsernameTest,
+*     createClientUserWithBlankUsernameTest, createClientUserWithNullEmailTest,
+*     createClientUserWithBlankEmailTest, createClientUserWithInvalidEmailFormatTest,
+*     createClientUserWithNullRoleTest, createClientUserWithBlankRoleTest,
+*     createClientUserClientNotFoundTest, createClientUserDuplicateUsernameTest,
+*     createClientUserDuplicateEmailTest, createClientUserCaseInsensitiveDuplicateUsernameTest,
+*     createClientUserCaseInsensitiveDuplicateEmailTest,
+*     createClientUserBothUsernameAndEmailDuplicateTest
+*
+* <p>Other Tests: createClientUserServiceReturnsNullTest (service failure : INTERNAL ERROR)
+* 
+* <p>========= POST /login Equivalence Partitions ===========
+* 1) Equivalence Partition 1: At least one of the following fields: 1) email, 2) username, or 
+*     3) userId of the TarsUser is specified and the field match the corresponding field of 
+*     an existing TarsUser. Login is successful
+*
+* <p>Test Cases: loginWithUserIdSuccessTest, loginWithEmailSuccessTest, loginWithUserIdSuccessTest, 
+*
+* <p>2) Equivalence Partition 2: At least one of the fields is passed in and there is an existing
+*     TarsUser with a matching field but the TarsUser is set to inactive.
+*     Cannot login as an inactive TarsUser.
+*
+* <p>Test Cases: loginInactiveUserTest
+*
+* <p>3) Equivalence Partition 3: At least one of the fields is passed in, but there is no 
+*     existing TarsUserwith the matching field.
+*
+* <p>Test Cases: loginUserNotFoundTest
+*
+* <p>4) Equivalence Partition 4: None of the fields are passed in.
+*
+* <p>Test Cases: loginMissingCredentialsTest
+*
+* <p>=========== GET /clients ===========
+* 1) Equivalence Partition 1: There is one or more clients that exists.
+*
+* <p>Test Cases: getClientsNonEmpty
+*
+* <p>3) Equivalence Partition 2: There are no clients that exist.
+*
+* <p>Test Cases: getClientsTestEmpty
+*/
 @WebMvcTest(RouteController.class)
 public class ClientEndPointUnitTest {
 
@@ -1405,5 +1483,35 @@ public class ClientEndPointUnitTest {
         .andExpect(jsonPath("$.status").value(403));
 
     verify(tarsUserService).listUsers();
+  }
+
+  /**
+   * {@code getClientsExactlyOne} There is one or more existing clients.
+   */
+  @Test
+  public void getClientsNonEmpty() throws Exception {
+    Client client = new Client(2L, "Test", "test@gmail.com", "testingAPI");
+    Client client2 = new Client(4L, "Test2", "mock@gmail.com", "mockingAPI");
+    List<Client> clientList = List.of(client, client2);
+    when(clientService.getClientList()).thenReturn(clientList);
+
+    mockMvc.perform(get("/clients"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(2)))
+        .andExpect(jsonPath("$[0].clientId").value(2))
+        .andExpect(jsonPath("$[1].clientId").value(4));
+  }
+
+  /**
+   * {@code getClientsTestEmpty} Returns an empty client list upon performing /clients.
+   */
+  @Test
+  public void getClientsTestEmpty() throws Exception {
+    List<Client> clientList = new ArrayList<>();
+    when(clientService.getClientList()).thenReturn(clientList);
+
+    mockMvc.perform(get("/clients"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(0)));
   }
 }

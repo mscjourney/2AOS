@@ -1,4 +1,4 @@
-package org.coms4156.tars;
+package org.coms4156.tars.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -24,6 +24,38 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 /**
  * This class contains the tests for the TarsService class.
+ *
+ * <p>Equivalence Partitions for TarsService Methods
+ * ======== {@code List<UserPreference> getUserPreferenceList()} ========
+ * Equivalence Partition 1: There are one or more User Preferences that have been set
+ *    - Test Cases: getUserListTest
+ * Equivalence Partition 2: No preferences have been set.
+ *    - Test Cases: getUserListWithNoPreferencesAdded
+ * ======== {@code boolean setUserPreference(UserPreference newUserPreference)} =========
+ * Equivalence Partition 1: newUserPreference and id contained in newUserPreference is not null.
+ *    There does NOT exist a preference associated with id
+ * Equivalence Partition 2: newUserPreference and id contained in newUserPreference is not null.
+ *    There does already exists a preference associated with id
+ * Equivalence Partition 3: newUserPreference is not null. id contained in newUserPreference
+ *    is null.
+ * Equivalence Partiton 4: newUserPreference is null.
+ *    - Test Cases for all setUserPreference partitions: setUserPreferenceTest
+ * ======== {@code boolean clearPreference(Long userId)} ===========
+ * Equivalence Partition 1: userId is non-null and non-negative.
+ *    There exists a TarsUsers associated with id in newUserPreference
+ * Equivalence Partition 2: userId is non-null and non-negative.
+ *    There does NOT exist a TarsUsers associated with id in newUserPreference
+ * Equivalence Partition 3: userId is non-null but is negative.
+ * Equivalence Partition 4: userId is null.
+ *    - Test Cases for all clearPreference partitions: testClearPreference
+ * ======== {@code UserPreference getUserPreference(Long userId)} =========
+* Equivalence Partition 1: userId is non-null and non-negative.
+ *    There exists a TarsUsers associated with id in newUserPreference
+ * Equivalence Partition 2: userId is non-null and non-negative.
+ *    There does NOT exist a TarsUsers associated with id in newUserPreference
+ * Equivalence Partition 3: userId is non-null but is negative.
+ * Equivalence Partition 4: userId is null.
+ *    - Test Cases For all getUserPreference partitions: getUserPreferenceTest
  */
 @SpringBootTest
 public class TarsServiceTest {
@@ -76,11 +108,8 @@ public class TarsServiceTest {
 
   @Test
   void getUserPreferenceTest() {
-    UserPreference user = service.getUserPreference(0L);
-    assertEquals(user, null);
-
-    user = service.getUserPreference(2L);
-
+    // Equivalence Partition 1
+    UserPreference  user = service.getUserPreference(2L);
     assertEquals(user.getId(), 2);
 
     List<String> weatherPreferences = new ArrayList<>();
@@ -96,7 +125,15 @@ public class TarsServiceTest {
     cityPreferences.add("New York");
     cityPreferences.add("Paris");
     assertEquals(user.getCityPreferences(), cityPreferences);
+    
+    // Equivalence Partition 2
+    user = service.getUserPreference(0L);
+    assertEquals(user, null);
 
+    user = service.getUserPreference(10L);
+    assertEquals(user, null);
+
+    // Equivalence Partion 3 & 4
     // User Id cannot be negative or null
     assertNull(service.getUserPreference(-1L));
     assertNull(service.getUserPreference(null));
@@ -104,6 +141,7 @@ public class TarsServiceTest {
 
   @Test
   void setUserPreferenceTest() {
+    // Equivalence Partition 1
     UserPreference user1 
         = new UserPreference(1L, List.of("sunny"), List.of("12"), List.of("Boston"));
     assertEquals(service.getUserPreference(1L), user1);
@@ -111,11 +149,13 @@ public class TarsServiceTest {
     UserPreference ret1 = service.getUserPreference(1L);
     assertEquals(ret1.getCityPreferences(), List.of("Boston"));
 
+    // Equivalence Partition 2
     user1.setCityPreferences(List.of("New York"));
     assertTrue(service.setUserPreference(user1));
     UserPreference ret2 = service.getUserPreference(1L);
     assertEquals(ret2.getCityPreferences(), List.of("New York"));
 
+    // Equivalence Partition 3 & 4.
     UserPreference user0 = new UserPreference();
     assertFalse(service.setUserPreference(user0)); // Cannot add userPreference with id null.
     assertFalse(service.setUserPreference(null));
@@ -131,17 +171,19 @@ public class TarsServiceTest {
 
   @Test
   void testClearPreference() {
+    // Equivalence Partition 1
     UserPreference user1 
         = new UserPreference(1L, List.of("sunny"), List.of("12"), List.of("Boston"));
     assertEquals(service.getUserPreference(1L), user1);
-
     assertTrue(service.clearPreference(1L));
 
+    // Equivalence Partition 2
     UserPreference nullPreference = service.getUserPreference(1L);
     assertNull(nullPreference);
     
     assertFalse(service.clearPreference(1L));
 
+    // Equivalence Partition 3 & 4
     // User Id cannot be negative or null
     assertFalse(service.clearPreference(-1L)); 
     assertFalse(service.clearPreference(null));

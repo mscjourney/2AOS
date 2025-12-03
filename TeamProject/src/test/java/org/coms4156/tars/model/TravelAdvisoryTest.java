@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for the TravelAdvisory model class.
+ * 
  */
 public class TravelAdvisoryTest {
 

@@ -44,23 +44,6 @@ public class CountryModel {
     }
   }
 
-
-  /**
-   * Returns the advisory JSON node for a given country.
-   */
-  public JsonNode getCountryInfo(String country) {
-    if (country == null || country.trim().isEmpty()) {
-      throw new IllegalArgumentException("Country cannot be empty.");
-    }
-
-    for (JsonNode node : advisoryArray) {
-      if (node.get("country").asText().equalsIgnoreCase(country)) {
-        return node;
-      }
-    }
-    return null;
-  }
-
   /**
    * Returns a TravelAdvisory object for a given country.
    */
@@ -72,7 +55,7 @@ public class CountryModel {
     for (JsonNode node : advisoryArray) {
       String nodeCountry = node.path("country").asText(null);
 
-      if (nodeCountry != null && nodeCountry.equalsIgnoreCase(country)) {
+      if (nodeCountry != null && nodeCountry.equalsIgnoreCase(country.trim())) {
 
         String matchedCountry = nodeCountry;
         String capital = node.path("capital").asText("");

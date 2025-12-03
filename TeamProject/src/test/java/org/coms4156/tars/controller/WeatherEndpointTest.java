@@ -35,11 +35,11 @@ import org.springframework.test.web.servlet.MockMvc;
 
 /**
  * {@code WeatherEndpointTest} 
- * Contains Equivalence Partitions for Weather related endpoints.
+ * Contains Equivalence Partitions testing for Weather related endpoints.
  * Covers:
- *    - GET /recommendation/weather?city={city}&days={days}
- *    - GET /alert/weather?city={city}&lat={lat}&lon={lon}
- *    - GET /alert/weather/user/{userId}
+ *    GET /recommendation/weather?city={city}&days={days}
+ *    GET /alert/weather?city={city}&lat={lat}&lon={lon}
+ *    GET /alert/weather/user/{userId}
  */
 @SpringBootTest
 @AutoConfigureMockMvc
