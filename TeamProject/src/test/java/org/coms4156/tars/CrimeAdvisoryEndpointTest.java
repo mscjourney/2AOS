@@ -1,7 +1,7 @@
 package org.coms4156.tars;
 
 import static org.hamcrest.Matchers.containsString;
-import static org.mockito.Mockito.mockConstruction;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -9,27 +9,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import ch.qos.logback.classic.Level;
-
 import org.coms4156.tars.controller.RouteController;
 import org.coms4156.tars.model.CrimeModel;
-import org.coms4156.tars.model.CrimeSummary;
-import org.coms4156.tars.service.ClientService;
-import org.coms4156.tars.service.TarsService;
-import org.coms4156.tars.service.TarsUserService;
 import org.coms4156.tars.util.LoggerTestUtil;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 /**
  * {@code CrimeAdvisoryEndpointTest}
@@ -59,27 +48,27 @@ public class CrimeAdvisoryEndpointTest {
    */
   @Test
   void testGetCrimeSummaryWithValidParams() throws Exception {
-      mockMvc.perform(get("/crime/summary")
-                      .param("state", "NC")
-                      .param("offense", "V")
-                      .param("month", "10")
-                      .param("year", "2025"))
-              .andExpect(status().isOk())
-              .andExpect(jsonPath("$.state").value("NC"))
-              .andExpect(jsonPath("$.month").value("10"))
-              .andExpect(jsonPath("$.year").value("2025"))
-              .andExpect(jsonPath("$.message")
-                      .value(containsString("cases per 100,000 people")));
+    mockMvc.perform(get("/crime/summary")
+                .param("state", "NC")
+                .param("offense", "V")
+                .param("month", "10")
+                .param("year", "2025"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.state").value("NC"))
+        .andExpect(jsonPath("$.month").value("10"))
+        .andExpect(jsonPath("$.year").value("2025"))
+        .andExpect(jsonPath("$.message")
+                .value(containsString("cases per 100,000 people")));
       
-      mockMvc.perform(get("/crime/summary")
-                        .param("state", "ny")// works with lowercase
-                        .param("offense", "V")
-                        .param("month", "10")
-                        .param("year", "2025"))
-              .andExpect(status().isOk())
-              .andExpect(jsonPath("$.state").value("ny"))
-              .andExpect(jsonPath("$.month").value("10"))
-              .andExpect(jsonPath("$.year").value("2025"));
+    mockMvc.perform(get("/crime/summary")
+                  .param("state", "ny")// works with lowercase
+                  .param("offense", "V")
+                  .param("month", "10")
+                  .param("year", "2025"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.state").value("ny"))
+        .andExpect(jsonPath("$.month").value("10"))
+        .andExpect(jsonPath("$.year").value("2025"));
   }
 
   /**
@@ -224,7 +213,7 @@ public class CrimeAdvisoryEndpointTest {
 
   /* ======= Logging Branch Coverage Tests for Crime and Advisory Endpoints ======= */
 
-    /**
+  /**
    * {@code getCrimeSummaryInfoLoggingDisabledTest}
    * Covers false branch of isInfoEnabled() (INFO off).
    */
@@ -257,12 +246,12 @@ public class CrimeAdvisoryEndpointTest {
     try (LoggerTestUtil.CapturedLogger cap =
              LoggerTestUtil.capture(RouteController.class, Level.ERROR)) {
       
-    mockMvc.perform(get("/crime/summary")
-                .param("state", "Berlin")
-                .param("offense", "V")
-                .param("month", "03")
-                .param("year", "2020"))
-          .andExpect(status().isBadRequest());
+      mockMvc.perform(get("/crime/summary")
+                  .param("state", "Berlin")
+                  .param("offense", "V")
+                  .param("month", "03")
+                  .param("year", "2020"))
+            .andExpect(status().isBadRequest());
 
       assertFalse(
           cap.hasLevel(Level.WARN),
