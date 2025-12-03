@@ -347,28 +347,11 @@ public class UserPreferenceEndpointTest {
   /* ======= /userPreferenceList Equivalence Partitions ======= */
 
   /**
-   * {@code testGetUserPreferenceListExactlyOne}
-   * Equivalence Partition 1: There is exactly one TarsUser whose preference has been set.
+   * {@code testGetUserPreferenceList}
+   * Equivalence Partition 1: There is one or more TarsUsers whose preference has been set.
    */
   @Test
-  public void testGetUserPreferenceListExactlyOne() throws Exception {
-    mockMvc.perform(put("/clearPreference/2"))
-        .andExpect(status().isOk());
-
-    mockMvc.perform(get("/userPreferenceList"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$[0].id").value(1))
-        .andExpect(jsonPath("$[0].weatherPreferences", contains("sunny")))
-        .andExpect(jsonPath("$[0].temperaturePreferences", contains("22")))
-        .andExpect(jsonPath("$[0].cityPreferences", contains("Boston")));
-  }
-
-  /**
-   * {@code testGetUserPreferenceListMultiple}
-   * Equivalence Partition 2: There is more than one TarsUser whose preference has been set.
-   */
-  @Test
-  public void testGetUserPreferenceListMultiple() throws Exception {
+  public void testGetUserPreferenceList() throws Exception {
     mockMvc.perform(get("/userPreferenceList"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].id").value(1))
@@ -383,7 +366,7 @@ public class UserPreferenceEndpointTest {
 
   /**
    * {@code testGetUserPreferenceListEmpty}
-   * Equivalence Partition 3: No preferences have been set for any TarsUser.
+   * Equivalence Partition 2: No preferences have been set for any TarsUser.
    */
   @Test
   public void testGetUserPreferenceListEmpty() throws Exception {

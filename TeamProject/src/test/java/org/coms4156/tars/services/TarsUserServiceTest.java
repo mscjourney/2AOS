@@ -34,56 +34,85 @@ import org.slf4j.LoggerFactory;
  * 
  * <p>Equivalence Partition Testing for TarsUserService Methods.
  * =========== {@code List<TarsUser> listUsers()} ================
- * Equivalence Partiton is the same as entrypoint GET /tarsUsers
+ * Equivalence Partiton 1: There is one or more TarsUsers that exist.
+ *    - Test Cases: listUsersReturnsCorrectCountTest
+ * Equivalence Partition 2: There are no TarsUsers that exist.
+ *    - Test Cases: testCreateUserNullParameterCombinations
  * 
  * <p>=========== {@code List<TarsUser> listUsersByClientId(Long clientId)} ============
  * Equivalence Partition 1: clientId is not null.
+ *    - Test Cases: #TODO
  * Equivalence Partition 2: clientId is null.
+ *    - Test Cases: #TODO
  * 
  * <p>=========== {@code TarsUser findById(Long userId)} ============
  * Equivalence Partiton 1: userId is not null. TarsUser associated with userId exists.
  * Equivalence Partition 2: userId is not null. TarsUser associated with userId does NOT exist.
  * Equivalence Partition 3: userId is null.
+ *    - Test Cases: getUserByIdTest (tests all partitions)
  * 
  * <p>== {@code TarsUser createUser(Long clientId, String username, String email, String role)} ===
- * Equivalence Partition 1: All params are not null. Client associated with clientId exists.
+ * Equivalence Partition 1: All params are valid. Client associated with clientId exists.
  *    username and email must maintain uniqueness per client. (case-insensitive)
- * Equivalence Partition 2: All params are not null. Client associated with clientId exists.
+ *    - Test Cases: createValidUserTest, createUserWithWhitespaceTrimmingTest
+ * Equivalence Partition 2: All params are valid. Client associated with clientId exists.
  *    username and/or email do not maintain uniqueness under the specified client.
- * Equivalence Partition 3: All params are not null. Client associated with clientId does NOT exist.
- * Equivalence Partition 4: Any of the params passed in are null.
+ *    - Test Cases: #TODO
+ * Equivalence Partition 3: All params are valid. Client associated with clientId does NOT exist.
+ *    - Test Cases: #TODO
+ * Equivalence Partition 4: Any of the params passed is invalid. An invalid param is null,
+ *    or just whitespace.
+ *    - Test Cases: createNullUserTest, createUserWithLimitedDataTest, 
+ *        createUserWithBlankUsernameTest, createUserWithBlankEmailTest, 
+ *        createUserWithBlankRoleTest
  * 
  * <p>=========== {@code boolean deactivateUser(Long userId)} ===========
  * Equivalence Partition 1: userId is not null. There exists a TarsUser specified by userId.
+ *    - Test Cases:  deactivateUserSuccessTest
  * Equivalence Partition 2: userId is not null, There does NOT exist a TarsUser specified by userId.
+ *    - Test Cases: deactivateNonExistentUserTest
  * Equivalence Partition 3: userId is null.
+ *    - Test Cases: deactivateUserWithNullIdTest
  * 
  * <p>=========== {@code boolean updateLastLogin(Long userId)} ==========
  * Equivalence Partition 1: userId is not null. There exists a TarsUser specified by userId.
+ *    - Test Cases: updateLastLoginSuccessTest
  * Equivalence Partition 2: userId is not null, There does NOT exist a TarsUser specified by userId.
+ *    - Test Cases: updateLastLoginNonExistentUserTest
  * Equivalence Partition 3: userId is null.
+ *    - Test Cases: updateLastLoginNullIdTest
  * 
  * <p>====== {@code boolean existsByClientIdAndUsername(Long clientId, String username)} ========
  * Equivalence Partition 1: clientId and username are not null. There does NOT exist a TarsUser with
- *    the specified username under the specified client. We do not check if the client exists 
- *    because the caller of this function will have guaranteed that.
+ *    the specified username under the specified client.
+ *    - Test Cases: existsByClientIdAndUsernameNotFoundTest,
+ *        existsByClientIdAndUsernameDifferentClientTest
  * Equivalence Partition 2: clientId and username are not null. There DOES exist a TarsUser with
  *    the specified username under the specified client.
+ *    - Test Cases: existsByClientIdAndUsernameFoundTest, 
+ *          existsByClientIdAndUsernameCaseInsensitiveTest
  * Equivalence Partition 3: clientId and/or username are null.
+ *    - Test Cases: existsByClientIdAndUsernameNullParamsTest
  * 
  * <p>======= {@code boolean existsByClientIdAndUserEmail(Long clientId, String email)} =========
  * Equivalence Partition 1: clientId and email are not null. There does NOT exist a TarsUser with
  *    the specified email under the specified client. We do not check if the client exists because
  *    the caller of this function will have guaranteed that.
+ *    - Test Cases: 
  * Equivalence Partition 2: clientId and email are not null. There DOES exist a TarsUser with
  *    the specified email under the specified client.
+ *    - Test Cases: 
  * Equivalence Partition 3: clientId and/or email are null.
+ *    - Test Cases: 
  * 
  * <p>=========== {@code TarsUser deleteUser(Long userId)} ===========
  * Equivalence Partition 1: userId is not null and there exists a TarsUser associated with userId.
- * Equivalence Partition 2: userId is not null and there does not exist a TarsUser associated with
+ *    - Test Cases: deleteUserSuccessTest
+ * Equivalence Partition 2: userId is not null but there does NOT exist a TarsUser associated with
  *    userId.
+ *    - Test Cases: deleteUserNotFoundTest
  * Equivalence Partition 3: userId is null.
+ *    - Test Cases: deleteUserWithNullIdTest
  */
 public class TarsUserServiceTest {
 

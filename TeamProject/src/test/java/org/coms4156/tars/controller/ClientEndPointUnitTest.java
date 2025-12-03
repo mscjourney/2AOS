@@ -109,15 +109,11 @@ import org.springframework.test.web.servlet.MockMvc;
 * <p>Test Cases: loginMissingCredentialsTest
 *
 * <p>=========== GET /clients ===========
-* 1) Equivalence Partition 1: There is exactly one client that exists.
+* 1) Equivalence Partition 1: There is one or more clients that exists.
 *
-* <p>Test Cases: getClientsExactlyOne
+* <p>Test Cases: getClientsNonEmpty
 *
-* <p>2) Equivalence Partition 2: There is more than one clients that exists.
-*
-* <p>Test Cases: getClientsTestMultiple (located in ClientEndpointsGetUnitTest.java)
-*
-* <p>3) Equivalence Partition 3: There are no clients that exist.
+* <p>3) Equivalence Partition 2: There are no clients that exist.
 *
 * <p>Test Cases: getClientsTestEmpty
 */
@@ -1490,18 +1486,20 @@ public class ClientEndPointUnitTest {
   }
 
   /**
-   * {@code getClientsExactlyOne} Returns exactly one client upon performing /clients.
+   * {@code getClientsExactlyOne} There is one or more existing clients.
    */
   @Test
-  public void getClientsExactlyOne() throws Exception {
+  public void getClientsNonEmpty() throws Exception {
     Client client = new Client(2L, "Test", "test@gmail.com", "testingAPI");
-    List<Client> clientList = List.of(client);
+    Client client2 = new Client (4L, "Test2", "mock@gmail.com", "mockingAPI");
+    List<Client> clientList = List.of(client, client2);
     when(clientService.getClientList()).thenReturn(clientList);
 
     mockMvc.perform(get("/clients"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].clientId").value(2));
+        .andExpect(jsonPath("$", hasSize(2)))
+        .andExpect(jsonPath("$[0].clientId").value(2))
+        .andExpect(jsonPath("$[1].clientId").value(4));
   }
 
   /**

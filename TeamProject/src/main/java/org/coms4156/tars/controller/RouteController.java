@@ -1,12 +1,8 @@
 package org.coms4156.tars.controller;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.coms4156.tars.dto.ClientDto;
 import org.coms4156.tars.dto.TarsUserDto;
 import org.coms4156.tars.dto.UserPreferenceDto;
@@ -15,7 +11,6 @@ import org.coms4156.tars.exception.ConflictException;
 import org.coms4156.tars.exception.ForbiddenException;
 import org.coms4156.tars.exception.NotFoundException;
 import org.coms4156.tars.mapper.DtoMapper;
-import org.coms4156.tars.model.CitySummary;
 import org.coms4156.tars.model.Client;
 import org.coms4156.tars.model.CountryModel;
 import org.coms4156.tars.model.CountrySummary;
@@ -631,7 +626,7 @@ public class RouteController {
     List<TarsUser> allUsers = tarsUserService.listUsers();
     if (userIdStr != null) {
       try {
-        Long userId = Long.parseLong(userIdStr);
+        Long userId = Long.valueOf(userIdStr);
         foundUser = tarsUserService.findById(userId);
       } catch (NumberFormatException e) {
         throw new BadRequestException("Invalid userId format.");
