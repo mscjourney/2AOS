@@ -224,7 +224,7 @@ Errors:
 
 ### User Preferences
 
-#### 1) PUT `/setPreference/{id}`
+PUT `/setPreference/{id}`
 
 Description: Adds/updates the preferences of the TarUser by id.
 
@@ -244,7 +244,7 @@ Response:
 - `400 Bad Request`: Error message if `id` was negative or `@PathVariable id` does not match JSON `id`.
 - `404 Not Found`: TarsUser with the specified Id does not exist.
 
-#### 2) GET `/clearPreference/{id}`
+GET `/clearPreference/{id}`
 
 Description: Removes the preferences of the TarUser by id.
 
@@ -257,7 +257,7 @@ Response:
 - `400 BAD_REQUEST`: Error message if `id` was negative or TarsUser with `id` did not have any existing preferences.
 - `404 Not Found`: A TarsUser with the specified Id does not exist.
 
-#### 3) GET `/retrievePreference/{id}`
+GET `/retrievePreference/{id}`
 
 Description: Gets the preferences of the TarUser by id.
 
@@ -270,7 +270,7 @@ Response:
 - `400 BAD_REQUEST`: Error message if `id` was negative or TarsUser with `id` did not have any existing preferences.
 - `404 Not Found`: A TarsUser with the specified Id does not exist.
 
-#### 4) GET `/userPreferenceList`
+GET `/userPreferenceList`
 
 Description: Retrieves a list of all existing preferences for all TarUsers.
 
@@ -343,6 +343,26 @@ Example:
 ```
 GET /crime/summary?state=NC&offense=ASS&month=10&year=2025
 ```
+
+### Country Alerts
+GET `/country/{country}`
+
+Generates a Travel Advisory Message for the provided country
+
+Responses:
+- `200 OK` - travel advisory message
+- `404 NOT FOUND` - no such country
+- `500 INTERNAL SERVER ERROR` = unexpected failure
+
+GET `/countrySummary/{country}`
+
+Generates a summary for the country including the travel advisory as well as country info.
+
+Responses:
+- `200 OK` - summary of alerts for the country
+- `400 BAD REQUEST` - illegal argument (null / empty/whitespace string)
+- `404 NOT FOUND` - no such country
+- `500 INTERNAL SERVER ERROR` - failure
 
 ---
 
@@ -447,6 +467,39 @@ mvn test
 ```
 Surefire + Jacoco reports under `TeamProject/target/`.  
 Coverage enforcement configured in GitHub Actions (see CI pipeline).
+
+Equivalence Partitions:
+- Contained in javadocs in Test Files which include Equivalence Partition for entrypoints and class methods.
+- Equivalence Partitions for different entrypoints/methods are formatted as such:
+    ```
+    =========  <EntryPoint/Methods> ===========
+    Equivalence Partition 1: <>
+    Equivalence Partition 2: <>
+    ...
+    ```
+- The individual partitions may be grouped together in the javadoc located at the beginning of the file 
+or listed above specific test cases that test the equivalence partitions.
+- Test Files that contain Equivalence Partition Listing
+    - Entry Points
+        - `ClientEndpointsGetUnitTest.java`
+        - `ClientEdnpointUnitTest.java`
+        - `CountryEndpointTest.java`
+        - `CrimeEndpointTest.java`
+        - `RouteControllerUnitTest.java`
+        - `TarsUserEndpointUnitTest.java`
+        - `WeatherEndpointTest.java`
+    - Models
+        - `CitySummaryTest.java` - TO BE DELETED
+        - `ClientTest.java`
+        - `CountryModelTest.java` 
+        - `CrimeModelTest.java` 
+        - `TravelAdvisoryModelTest.java`
+        - `WeatherAlertModelTest.java`
+        - `WeatherModelTest.java`
+    - Services
+        - `ClientServiceTest.java` 
+        - `TarsServiceTest.java` 
+        - `TarsUserServiceTest.java` 
 
 ---
 
