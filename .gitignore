@@ -34,3 +34,7 @@ replay_pid*
 
 # Ignore Maven target directory
 */target/
+
+# Ignore the following
+USER_*
+BRANCH_*
