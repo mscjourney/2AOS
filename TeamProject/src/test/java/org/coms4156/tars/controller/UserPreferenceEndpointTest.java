@@ -27,7 +27,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 /**
  * {@code UserPreferenceEndpointTest} 
- * Contains Equivalence Partitions for UserPreference related endpoints.
+ * Contains Equivalence Partitions testing for UserPreference related endpoints.
  * Covers:
  *    GET /retrievePreference/{id}
  *    PUT /setPreference/{id}
