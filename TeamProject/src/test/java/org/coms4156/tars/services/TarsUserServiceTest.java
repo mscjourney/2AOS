@@ -98,12 +98,14 @@ import org.slf4j.LoggerFactory;
  * Equivalence Partition 1: clientId and email are not null. There does NOT exist a TarsUser with
  *    the specified email under the specified client. We do not check if the client exists because
  *    the caller of this function will have guaranteed that.
- *    - Test Cases: 
+ *    - Test Cases: existsByClientIdAndUserEmailNotFoundTest,
+ *        existsByClientIdAndUserEmailDifferentClientTest
  * Equivalence Partition 2: clientId and email are not null. There DOES exist a TarsUser with
  *    the specified email under the specified client.
- *    - Test Cases: 
+ *    - Test Cases: existsByClientIdAndUserEmailFoundTest, 
+ *        existsByClientIdAndUserEmailCaseInsensitiveTest
  * Equivalence Partition 3: clientId and/or email are null.
- *    - Test Cases: 
+ *    - Test Cases: existsByClientIdAndUserEmailNullParamsTest
  * 
  * <p>=========== {@code TarsUser deleteUser(Long userId)} ===========
  * Equivalence Partition 1: userId is not null and there exists a TarsUser associated with userId.

@@ -9,6 +9,13 @@ import org.junit.jupiter.api.Test;
 
 /**
  * {@code WeatherModelTest} Unit tests for WeatherModel class.
+ * 
+ * Equivalence Partitions for WeatherModel Methods
+ * ======== {@code String getWeatherForCity(String city, int days)} =============
+ * ======== {@code WeatherRecommendation getRecommendedDays(String city, int days)} ========
+ * == {@code WeatherRecommendation getUserRecDays(String city, int days, UserPreference user)} ==
+ * 
+ * 
  */
 public class WeatherModelTest {
 
