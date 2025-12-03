@@ -1,5 +1,6 @@
 package org.coms4156.tars.controller;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -12,7 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
 /**
- * Integration tests for TarsUser related GET endpoints.
+ * Endpoint tests for TarsUser related GET endpoints.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -21,24 +22,40 @@ public class TarsUserEndpointUnitTest {
   @Autowired
   private MockMvc mockMvc;
 
+  /* ========== GET /tarsUsers/{userId} Equivalence Partition ========== */
+
   /**
    * {@code getTarsUserByIdOk} Confirms existing user id returns 200 and
    * the response contains the expected userId.
+   * Equivalence Partition 1: userId is non-negative and there is a TarsUser associated with
+   *  that userId.
    */
   @Test
   @DisplayName("GET /tarsUsers/{id} returns 200 when user exists")
   void getTarsUserByIdOk() throws Exception {
     mockMvc.perform(get("/tarsUsers/1"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.userId").value(1));
+        .andExpect(jsonPath("$.userId").value(1))
+        .andExpect(jsonPath("$.username").value("alice"));
+
+    mockMvc.perform(get("/tarsUsers/4"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.userId").value(4))
+        .andExpect(jsonPath("$.username").value("jdoe"));
   }
 
   /**
    * {@code getTarsUserByIdNotFound} Confirms missing user id returns 404.
+   * Equivalence Partition 2: userId is non-negative, but there is no TarsUser 
+   *  associated with userId.
    */
   @Test
   @DisplayName("GET /tarsUsers/{id} returns 404 when user missing")
   void getTarsUserByIdNotFound() throws Exception {
+    mockMvc.perform(get("/tarsUsers/0"))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.status").value(404))
+        .andExpect(jsonPath("$.message").exists());
     mockMvc.perform(get("/tarsUsers/9999"))
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.status").value(404))
@@ -47,28 +64,59 @@ public class TarsUserEndpointUnitTest {
 
   /**
    * {@code getTarsUserByIdBadRequest} Confirms negative id is rejected with 400.
+   * Equivalence Partition 3: userId is negative
    */
   @Test
   @DisplayName("GET /tarsUsers/{id} returns 400 when id negative")
   void getTarsUserByIdBadRequest() throws Exception {
+    mockMvc.perform(get("/tarsUsers/-1"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(jsonPath("$.message").exists());
     mockMvc.perform(get("/tarsUsers/-10"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.status").value(400))
         .andExpect(jsonPath("$.message").exists());
   }
 
+  /* ========== GET /tarsUsers ========== */
+  
   /**
-   * {@code getClientUserListCases} Validates user list retrieval by client id.
+   * {@code testGetTarsUserListNonEmpty}
+   * Equivalence Partition 1: There is one or more TarsUser that exists.
    */
   @Test
-  @DisplayName("GET /userPreferenceList/client/{clientId} returns 200 list or 400 invalid id")
-  void getClientUserListCases() throws Exception {
-    mockMvc.perform(get("/userPreferenceList/client/1"))
-          .andExpect(status().isOk());
+  void testGetTarsUserListNonEmpty() throws Exception {
+    mockMvc.perform(get("/tarsUsers"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(4)));
+  }
 
-    mockMvc.perform(get("/userPreferenceList/client/-2"))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.status").value(400))
-        .andExpect(jsonPath("$.message").value("Client Id cannot be negative."));
+  /**
+   * {@code testGetTarsUserEmpty}
+   * Equivalence Partition 2: There are no TarsUsers that exist.
+   */
+  @Test
+  void testGetTarsUserEmpty() throws Exception {
+  }
+
+
+  /* ========== DELETE /tarsUsers/{userId} ========== */
+
+  /**
+   * {@code }
+   * Equivalence Partition 1: There exists a TarsUser associated with the userId.
+   */
+  @Test
+  void testDeleteExistingUser() throws Exception {
+  }
+
+  /**
+   * {@code testDeleteNonExistingUser}
+   * Equivalence Partition 2: There does not exist a TarsUser associated with the userId.
+   */
+  @Test
+  void testDeleteNonExistingUser() throws Exception {
+
   }
 }

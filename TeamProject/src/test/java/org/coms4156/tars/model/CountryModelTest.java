@@ -11,13 +11,24 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 /**
- * Unit tests for the Client model class.
+ * Unit tests for the Country model class.
+ * Equivalence Partition Testing for CountryModel.getCountrySummary(String country)
+ * 1) Equivalence Partition 1: country is a valid country that exists.
+ *      Ignores leading/trailing whitespace
+ *    Test Cases: testCountrySummaryValidCountry, testCountrySummaryIgnoreWhiteSpace
+ * 2) Equivalence Partition 2: country is a non-valid country that doesn't exist.
+ *      null, empty, or just whitespace strings are all invalid.
+ *    Test Cases: testCountrySummaryInvalidParameter, testCountrySummaryInvalidCountry
  */
 @SpringBootTest
 public class CountryModelTest {
 
   private final CountryModel countryModel = new CountryModel();
 
+  /**
+   * {@code testCountrySummaryInvalidParameter}
+   * null string, empty strings, and only whitespace strings are not valid countries.
+   */
   @Test
   void testCountrySummaryInvalidParameter() throws Exception {
     IllegalArgumentException ex1 = assertThrows(
@@ -49,6 +60,22 @@ public class CountryModelTest {
     assertEquals(lebanonSummary.getCountry(), "Lebanon");
     assertEquals(lebanonSummary.getCapital(), "Beirut");
     assertTrue(lebanonSummary.getMessage().contains("ancient ruins, Mediterranean cuisine,"));
+  }
+
+  @Test
+  void testCountrySummaryIgnoreWhiteSpace() throws Exception {
+    CountrySummary russiaSummary = countryModel.getCountrySummary("Russia      ");
+    assertNotNull(russiaSummary);
+    assertEquals(russiaSummary.getCountry(), "Russia");
+
+    russiaSummary = countryModel.getCountrySummary("      Russia      ");
+    assertNotNull(russiaSummary);
+    assertEquals(russiaSummary.getCountry(), "Russia");
+    
+    russiaSummary = countryModel.getCountrySummary("      Russia");
+    assertNotNull(russiaSummary);
+    assertEquals(russiaSummary.getCountry(), "Russia");
+
   }
 
   @Test

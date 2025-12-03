@@ -53,7 +53,7 @@ public class TravelAdvisoryModel {
     }
 
     for (JsonNode node : advisoryArray) {
-      if (node.get("country").asText().equalsIgnoreCase(country)) {
+      if (node.get("country").asText().equalsIgnoreCase(country.trim())) {
 
         String matchedCountry = node.get("country").asText();
         String level = node.get("level").asText();
