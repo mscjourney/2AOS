@@ -885,7 +885,7 @@ public class RouteController {
 
       if (advisory == null) {
         logger.warn("No advisory found for country={}", country);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        return new ResponseEntity<>("No such country found.", HttpStatus.NOT_FOUND);
       }
 
       return ResponseEntity.ok(advisory.toString());
