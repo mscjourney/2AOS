@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Unit tests for CrimeModel.
  * 
- * Equivalence Partition for CrimeModel Methods
+ * <p>Equivalence Partition for CrimeModel Methods
  * ==== {@code String getCrimeSummary(String state, String offense, String month, String year) ====
  * ==== {@code String getStateAbbreviation(String stateInput)} ====
  * ==== {@code String getStateName(String stateAbbrev)} =====
