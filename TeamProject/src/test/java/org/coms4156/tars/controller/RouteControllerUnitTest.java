@@ -43,7 +43,7 @@ public class RouteControllerUnitTest {
   /**
    * {@code indexTest} Tests the index endpoint returns the welcome message.
    * Equivalence Partition 1: No input. Both / and /index always result in OK.
-   * 
+   *
    * @throws Exception if the request fails
    */
   @Test
