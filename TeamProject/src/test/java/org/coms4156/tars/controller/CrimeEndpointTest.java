@@ -21,15 +21,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
 /**
- * {@code CrimeAdvisoryEndpointTest}
- * Contains Equivalence Partitions testing for Crime and TravelAdvisory Endpoints.
+ * {@code CrimeEndpointTest}
+ * Contains Equivalence Partitions testing for Crime Endpoint.
  * Covers:
- *    - GET /crime/summary?state={state}&offense={offense}&month={month}&year={year}
- *    - GET /country/{country}
+ *    GET /crime/summary?state={state}&offense={offense}&month={month}&year={year}
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-public class CrimeAdvisoryEndpointTest {
+public class CrimeEndpointTest {
 
   @Autowired
   private MockMvc mockMvc;
@@ -153,62 +152,6 @@ public class CrimeAdvisoryEndpointTest {
                       .param("year", "2025"))
               .andExpect(status().isInternalServerError());
     }
-  }
-
-  /* ======== /country/{country} ======== */
-
-  /**
-   * {@code testGetCountryAdvisoryValidCountry}
-   * Equivalence Partition 1: country is an valid existing country.
-   * Case Sensitivity of the country does not matter.
-   */
-  @Test
-  void testGetCountryAdvisoryValidCountry() throws Exception {
-    mockMvc.perform(get("/country/United States"))
-        .andExpect(status().isOk())
-        .andExpect(content().string(containsString("country = United States")))
-        .andExpect(content().string(containsString("level = No advisory")))
-        .andExpect(content().string(
-          containsString("riskIndicators = [No nationwide travel advisory issued]")));
-    // case insensitive
-    mockMvc.perform(get("/country/uniTeD statEs"))
-        .andExpect(status().isOk())
-        .andExpect(content().string(containsString("country = United States")))
-        .andExpect(content().string(containsString("level = No advisory")))
-        .andExpect(content().string(
-          containsString("riskIndicators = [No nationwide travel advisory issued]")));
-    // case insensitive
-    mockMvc.perform(get("/country/united states"))
-        .andExpect(status().isOk())
-        .andExpect(content().string(containsString("country = United States")))
-        .andExpect(content().string(containsString("level = No advisory")))
-        .andExpect(content().string(
-          containsString("riskIndicators = [No nationwide travel advisory issued]")));
-    
-    mockMvc.perform(get("/country/Germany"))
-        .andExpect(status().isOk())
-        .andExpect(content().string(containsString("country = Germany")))
-        .andExpect(content().string(containsString("level = Level 2: Exercise increased caution")));
-  }
-
-  /** 
-   * {@code }
-   * Equivalence Partition 2: country is invalid and does not exist in the world.
-   */
-  @Test
-  void testGetCountryAdvisoryInvalidCountry() throws Exception {
-    // Cities are not countries
-    mockMvc.perform(get("/country/Berlin"))
-        .andExpect(status().isNotFound())
-        .andExpect(content().string("No such country found."));
-    
-    mockMvc.perform(get("/country/Earth"))
-        .andExpect(status().isNotFound())
-        .andExpect(content().string("No such country found."));
-    
-    mockMvc.perform(get("/country/!s(A)"))
-        .andExpect(status().isNotFound())
-        .andExpect(content().string("No such country found."));
   }
 
   /* ======= Logging Branch Coverage Tests for Crime and Advisory Endpoints ======= */
