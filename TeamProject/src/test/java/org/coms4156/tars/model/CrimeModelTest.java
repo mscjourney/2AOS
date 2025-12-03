@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
  *
  * <p>Partition 4: Invalid state abbreviation — return null.
  *   - Test Cases: testGetCrimeSummary_InvalidState
-
+ *
  * <p>Partition 5: Invalid state name — return null.
  *   - Test Cases: testGetCrimeSummary_InvalidStateName
  *
