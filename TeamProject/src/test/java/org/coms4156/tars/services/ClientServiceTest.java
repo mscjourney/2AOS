@@ -27,15 +27,15 @@ import org.slf4j.LoggerFactory;
  * {@code ClientServiceTest} Unit tests for {@link ClientService}.
  * Each test method documents the branch or behavior under validation.
  * 
- * <p>Equivalence Partition Testing for ClientService Methods.
- * ========== String rotateApiKey(long clientId) ===========
- * ========== List<Client> getClientList() ===========
- * ========== Client getClient(long clientId) ==========
- * ========== boolean uniqueNameCheck(String newClientName) ==========
- * ========== boolean uniqueEmailCheck(String email) ===========
- * ========== Client createClient(String name, String email) ===========
- * ========== boolean removeClient(int clientId) ===========
- * ========== boolean updateClient(Client updatedClient) ===========
+ * <p>Equivalence Partition Testing for {@code ClientService} Methods.
+ * ========== {@code String rotateApiKey(long clientId)} ===========
+ * ========== {@code List<Client> getClientList()} ===========
+ * ========== {@code Client getClient(long clientId)} ===========
+ * ========== {@code boolean uniqueNameCheck(String newClientName)} ===========
+ * ========== {@code boolean uniqueEmailCheck(String email)} ===========
+ * ========== {@code Client createClient(String name, String email)} ===========
+ * ========== {@code boolean removeClient(int clientId)} ===========
+ * ========== {@code boolean updateClient(Client updatedClient)} ===========
  */
 public class ClientServiceTest {
 
