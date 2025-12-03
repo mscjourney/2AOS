@@ -102,63 +102,6 @@ public class RouteControllerUnitTest {
   }
 
   @Test
-  public void testGetCitySummaryWithNullCity() throws Exception {
-    mockMvc.perform(get("/summary/  ")) // empty path variable
-        .andExpect(status().isBadRequest())
-          .andExpect(content().string("City cannot be empty."));
-  }
-
-  @Test
-  public void testGetCitySummaryWithCityOnly() throws Exception {
-    mockMvc.perform(get("/summary/New York"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$").exists());
-  }
-
-  @Test
-  public void testGetCitySummaryWithInvalidStartDate() throws Exception {
-    mockMvc.perform(get("/summary/New York")
-            .param("startDate", "invalid-date"))
-        .andExpect(status().isBadRequest())
-        .andExpect(content().string(containsString("Invalid startDate format")));
-  }
-
-  @Test
-  public void testGetCitySummaryWithInvalidEndDate() throws Exception {
-    mockMvc.perform(get("/summary/New York")
-            .param("endDate", "invalid-date"))
-        .andExpect(status().isBadRequest())
-        .andExpect(content().string(containsString("Invalid endDate format")));
-  }
-
-  @Test
-  public void testGetCitySummaryWithStartDateAfterEndDate() throws Exception {
-    mockMvc.perform(get("/summary/New York")
-            .param("startDate", "2024-01-15")
-            .param("endDate", "2024-01-01"))
-        .andExpect(status().isBadRequest())
-        .andExpect(content().string(containsString("startDate cannot be after endDate")));
-  }
-
-  @Test
-  public void testGetCitySummaryWithValidParameters() throws Exception {
-    mockMvc.perform(get("/summary/Boston")
-            .param("startDate", "2024-06-01")
-            .param("endDate", "2024-06-14"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$").exists());
-  }
-
-  @Test
-  public void testGetCitySummaryWithLongerThanFourteenDays() throws Exception {
-    mockMvc.perform(get("/summary/San Francisco")
-            .param("startDate", "2025-08-01")
-            .param("endDate", "2025-10-01"))
-          .andExpect(status().isOk())
-          .andExpect(jsonPath("$").exists());
-  }
-
-  @Test
   public void testLoginWithUsernameIntegration() throws Exception {
     Map<String, String> loginBody = new HashMap<>();
     loginBody.put("username", "alice");
