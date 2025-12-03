@@ -1491,7 +1491,7 @@ public class ClientEndPointUnitTest {
   @Test
   public void getClientsNonEmpty() throws Exception {
     Client client = new Client(2L, "Test", "test@gmail.com", "testingAPI");
-    Client client2 = new Client (4L, "Test2", "mock@gmail.com", "mockingAPI");
+    Client client2 = new Client(4L, "Test2", "mock@gmail.com", "mockingAPI");
     List<Client> clientList = List.of(client, client2);
     when(clientService.getClientList()).thenReturn(clientList);
 

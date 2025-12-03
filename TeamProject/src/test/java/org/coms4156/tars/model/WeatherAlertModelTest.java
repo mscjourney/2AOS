@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
  * Includes parameter validation, basic functionality, edge cases, boundary conditions,
  * and error handling.
  * 
- * FOCUS ON PUBLIC METHODS FIRST
+ * <p>FOCUS ON PUBLIC METHODS FIRST
  * Equivalence Partitions for WeatherAlertModel methods.
  * ======== {@code Map<String, Double> geocodeCity(String city)} =============
  * ======== {@code String fetchWeatherData(double latitude, double longitude)} ==========

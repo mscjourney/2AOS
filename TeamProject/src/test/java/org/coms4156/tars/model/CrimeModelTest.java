@@ -18,7 +18,6 @@ import org.junit.jupiter.api.Test;
  * ==== {@code String getStateAbbreviation(String stateInput)} ====
  * ==== {@code String getStateName(String stateAbbrev)} =====
  * You could use the tests for getCrimeSummary for getState stuff as well I think.
- * 
  */
 class CrimeModelTest {
 
@@ -78,7 +77,6 @@ class CrimeModelTest {
       result = model.getCrimeSummary("NY", "HOM", "06", "2040");
       assertNull(result);
     } catch (RuntimeException e) {
-      assertTrue(false);
       assertTrue(e.getMessage().contains("API call failed"));
     }
   }
