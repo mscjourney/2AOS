@@ -13,6 +13,42 @@ import org.springframework.test.web.servlet.MockMvc;
 
 /**
  * Integration tests for TarsUser related GET endpoints.
+ * 
+ * <p>Equivalence Partition Testing for TarsUser related Endpoints
+ * ========== GET /tarsUsers ==========
+ * 1) Equivalence Partition 1: There is exactly one TarsUser that exists.
+ *
+ * <p>Test Cases:
+ *
+ * <p>2) Equivalence Partition 2: There is more than one TarsUsers that exists.
+ *
+ * <p>Test Cases:
+ *
+ * <p>3) Equivalence Partition 3: There are no clients that exist.
+ *
+ * <p>Test Cases:
+ * 
+ * <p>========== GET /tarsUsers/{userId} ==========
+ * 1) Equivalence Partition 1: userId is non-negative and there is a TarsUser associated with
+ *  that userId.
+ * 
+ * <p>Test Cases:
+ * 
+ * <p>2) Equivalence Partition 2: userId is non-negative, but there is no TarsUser 
+ *  associated with userId.
+ *
+ * <p>3) Equivalence Partition 3: userId is negative
+ * 
+ * <p>Test Cases:
+ * 
+ * <p>========== DELETE /tarsUsers/{userId} ==========
+ * 1) Equivalence Partition 1: There exists a TarsUser associated with the userId.
+ *
+ * <p>Test Cases:
+ *
+ * <p>2) Equivalence Partition 2: There does not exist a TarsUser associated with the userId.
+ *
+ * <p>Test Cases:
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -55,20 +91,5 @@ public class TarsUserEndpointUnitTest {
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.status").value(400))
         .andExpect(jsonPath("$.message").exists());
-  }
-
-  /**
-   * {@code getClientUserListCases} Validates user list retrieval by client id.
-   */
-  @Test
-  @DisplayName("GET /userPreferenceList/client/{clientId} returns 200 list or 400 invalid id")
-  void getClientUserListCases() throws Exception {
-    mockMvc.perform(get("/userPreferenceList/client/1"))
-          .andExpect(status().isOk());
-
-    mockMvc.perform(get("/userPreferenceList/client/-2"))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.status").value(400))
-        .andExpect(jsonPath("$.message").value("Client Id cannot be negative."));
   }
 }

@@ -37,7 +37,7 @@ import org.springframework.test.web.servlet.MockMvc;
 * in {@link RouteController}. Tests cover all branches and validation paths.
 *
 * <p>Equivalence Partition Testing for Client Endpoints
-* =========== ## POST /client/create ===========
+* =========== POST /client/create ===========
 * 1) Equivalence Partition 1: Name and Email are both non-null and unique to each client.
 *     No two clients can have same name or email. Check is case-insensitive -> alice == Alice.
 *     Name and Email can contain leading/trailing whitespace.
@@ -58,7 +58,7 @@ import org.springframework.test.web.servlet.MockMvc;
 *
 * <p>Other Tests: createClientServiceReturnsNullTest (service failure : INTERNAL ERROR)
 *
-* <p>=========== ## POST /client/createUser ===========
+* <p>=========== POST /client/createUser ===========
 * 1) Equivalence Partition 1: Valid TarsUser body is passed in.
 *     A valid TarsUser body contains non-negative clientId, non-empty username,
 *     non-empty email, non-empty role.
@@ -108,7 +108,7 @@ import org.springframework.test.web.servlet.MockMvc;
 *
 * <p>Test Cases: loginMissingCredentialsTest
 *
-* <p>=========== ## GET /clients ===========
+* <p>=========== GET /clients ===========
 * 1) Equivalence Partition 1: There is exactly one client that exists.
 *
 * <p>Test Cases: getClientsExactlyOne
