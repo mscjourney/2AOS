@@ -5,13 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -40,7 +37,7 @@ import org.springframework.test.web.servlet.MockMvc;
 * in {@link RouteController}. Tests cover all branches and validation paths.
 *
 * <p>Equivalence Partition Testing for Client Endpoints
-* ## POST /client/create
+* =========== ## POST /client/create ===========
 * 1) Equivalence Partition 1: Name and Email are both non-null and unique to each client.
 *     No two clients can have same name or email. Check is case-insensitive -> alice == Alice.
 *     Name and Email can contain leading/trailing whitespace.
@@ -61,7 +58,7 @@ import org.springframework.test.web.servlet.MockMvc;
 *
 * <p>Other Tests: createClientServiceReturnsNullTest (service failure : INTERNAL ERROR)
 *
-* <p>## POST /client/createUser
+* <p>=========== ## POST /client/createUser ===========
 * 1) Equivalence Partition 1: Valid TarsUser body is passed in.
 *     A valid TarsUser body contains non-negative clientId, non-empty username,
 *     non-empty email, non-empty role.
@@ -89,7 +86,7 @@ import org.springframework.test.web.servlet.MockMvc;
 *
 * <p>Other Tests: createClientUserServiceReturnsNullTest (service failure : INTERNAL ERROR)
 * 
-* <p>## POST /login
+* <p>========= POST /login Equivalence Partitions ===========
 * 1) Equivalence Partition 1: At least one of the following fields: 1) email, 2) username, or 
 *     3) userId of the TarsUser is specified and the field match the corresponding field of 
 *     an existing TarsUser. Login is successful
@@ -110,6 +107,19 @@ import org.springframework.test.web.servlet.MockMvc;
 * <p>4) Equivalence Partition 4: None of the fields are passed in.
 *
 * <p>Test Cases: loginMissingCredentialsTest
+*
+* <p>=========== ## GET /clients ===========
+* 1) Equivalence Partition 1: There is exactly one client that exists.
+*
+* <p>Test Cases: getClientsExactlyOne
+*
+* <p>2) Equivalence Partition 2: There is more than one clients that exists.
+*
+* <p>Test Cases: getClientsTestMultiple (located in ClientEndpointsGetUnitTest.java)
+*
+* <p>3) Equivalence Partition 3: There are no clients that exist.
+*
+* <p>Test Cases: getClientsTestEmpty
 */
 @WebMvcTest(RouteController.class)
 public class ClientEndPointUnitTest {
@@ -1477,5 +1487,33 @@ public class ClientEndPointUnitTest {
         .andExpect(jsonPath("$.status").value(403));
 
     verify(tarsUserService).listUsers();
+  }
+
+  /**
+   * {@code getClientsExactlyOne} Returns exactly one client upon performing /clients.
+   */
+  @Test
+  public void getClientsExactlyOne() throws Exception {
+    Client client = new Client(2L, "Test", "test@gmail.com", "testingAPI");
+    List<Client> clientList = List.of(client);
+    when(clientService.getClientList()).thenReturn(clientList);
+
+    mockMvc.perform(get("/clients"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(1)))
+        .andExpect(jsonPath("$[0].clientId").value(2));
+  }
+
+  /**
+   * {@code getClientsTestEmpty} Returns an empty client list upon performing /clients.
+   */
+  @Test
+  public void getClientsTestEmpty() throws Exception {
+    List<Client> clientList = new ArrayList<>();
+    when(clientService.getClientList()).thenReturn(clientList);
+
+    mockMvc.perform(get("/clients"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(0)));
   }
 }

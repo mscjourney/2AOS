@@ -13,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
 /**
+ * {@code ClientEndpointsGetUnitTest}
  * Integration tests for client GET endpoints validating success, not-found and
  * bad-request scenarios with DTO / ApiError payloads.
  */
@@ -23,8 +24,12 @@ public class ClientEndpointsGetUnitTest {
   @Autowired
   private MockMvc mockMvc;
 
+  /* ======== GET /clients/{clientId} Equivalence Partitions ======= */
+
   /**
    * {@code getClientByIdOk} Verifies existing client id returns 200 and DTO fields.
+   * Equivalence Partition 1: clientId is non-negative and there is an existing client
+   *   associated with that id.
    */
   @Test
   @DisplayName("GET /clients/{id} returns 200 when client exists")
@@ -36,6 +41,8 @@ public class ClientEndpointsGetUnitTest {
 
   /**
    * {@code getClientByIdNotFound} Confirms missing client id yields 404 and ApiError message.
+   * Equivalence Partition 2: clientId is non-negative but there is no existing client
+   *    associated with that id.
    */
   @Test
   @DisplayName("GET /clients/{id} returns 404 when client missing")
@@ -48,6 +55,7 @@ public class ClientEndpointsGetUnitTest {
 
   /**
    * {@code getClientByIdBadRequest} Validates negative client id produces 400 with message.
+   * Equivalence Partition 3: clientId is negative.
    */
   @Test
   @DisplayName("GET /clients/{id} returns 400 when id negative")
@@ -63,7 +71,7 @@ public class ClientEndpointsGetUnitTest {
    */
   @Test
   @DisplayName("GET /clients returns 200 on success")
-  public void getClientsTest() throws Exception {
+  public void getClientsTestMultiple() throws Exception {
     mockMvc.perform(get("/clients"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$", hasSize(6)))
