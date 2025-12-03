@@ -1,4 +1,4 @@
-package org.coms4156.tars;
+package org.coms4156.tars.controller;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertFalse;
