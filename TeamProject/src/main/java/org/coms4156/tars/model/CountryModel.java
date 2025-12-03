@@ -55,7 +55,7 @@ public class CountryModel {
     for (JsonNode node : advisoryArray) {
       String nodeCountry = node.path("country").asText(null);
 
-      if (nodeCountry != null && nodeCountry.equalsIgnoreCase(country)) {
+      if (nodeCountry != null && nodeCountry.equalsIgnoreCase(country.trim())) {
 
         String matchedCountry = nodeCountry;
         String capital = node.path("capital").asText("");

@@ -63,7 +63,7 @@ import org.springframework.test.web.servlet.MockMvc;
 *     A valid TarsUser body contains non-negative clientId, non-empty username,
 *     non-empty email, non-empty role.
 *     There must exist a client specified by clientId and there must be not exist a TarsUser
-*     with the same username or email as in the Request Body.
+*     with the same username or email as in the Request Body under the same client.
 *     Fields can contain leading/trailing whitespace.
 *
 * <p>Test Cases: createClientUserSuccessTest, createClientUserTrimsWhitespaceTest,
@@ -71,7 +71,7 @@ import org.springframework.test.web.servlet.MockMvc;
 *
 * <p>2) Equivalence Partition 2: Invalid TarsUser body.
 *     A TarsUser body is invalid if clientid is negative, username/email/role is empty.
-*     Another TarsUser already exists with the provided email or username.
+*     Another TarsUser already exists with the provided email or username under the same client.
 *     The body as well as any of mentioned the fields mentioned is null.
 *
 * <p>Test Cases: createClientUserWithNullBodyTest, createClientUserWithNullClientIdTest,

@@ -26,6 +26,16 @@ import org.slf4j.LoggerFactory;
 /**
  * {@code ClientServiceTest} Unit tests for {@link ClientService}.
  * Each test method documents the branch or behavior under validation.
+ * 
+ * <p>Equivalence Partition Testing for ClientService Methods.
+ * ========== String rotateApiKey(long clientId) ===========
+ * ========== List<Client> getClientList() ===========
+ * ========== Client getClient(long clientId) ==========
+ * ========== boolean uniqueNameCheck(String newClientName) ==========
+ * ========== boolean uniqueEmailCheck(String email) ===========
+ * ========== Client createClient(String name, String email) ===========
+ * ========== boolean removeClient(int clientId) ===========
+ * ========== boolean updateClient(Client updatedClient) ===========
  */
 public class ClientServiceTest {
 

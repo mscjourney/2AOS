@@ -31,6 +31,48 @@ import org.slf4j.LoggerFactory;
 /**
  * {@code TarsUserServiceTest} Unit tests for {@link TarsUserService}.
  * Each test method documents the branch or behavior under validation.
+ * 
+ * <p>Equivalence Partition Testing for TarsUserService Methods.
+ * =========== List<TarsUser> listUsers() ================
+ * Equivalence Partiton is the same as entrypoint GET /tarsUsers
+ * =========== List<TarsUser> listUsersByClientId(Long clientId) ============
+ * Equivalence Partition 1: clientId is not null.
+ * Equivalence Partition 2: clientId is null.
+ * =========== TarsUser findById(Long userId) =============
+ * ====== TarsUser createUser(Long clientId, String username, String email, String role) ======
+ * Equivalence Partition 1: All params are not null. Client associated with clientId exists.
+ *    username and email must maintain uniqueness per client. (case-insensitive)
+ * Equivalence Partition 2: All params are not null. Client associated with clientId exists.
+ *    username and/or email do not maintain uniqueness under the specified client.
+ * Equivalence Partition 3: All params are not null. Client associated with clientId does NOT exist.
+ * Equivalence Partition 4: Any of the params passed in are null.
+ * =========== boolean deactivateUser(Long userId) ===========
+ * Equivalence Partition 1: userId is not null. There exists a TarsUser specified by userId.
+ * Equivalence Partition 2: userId is not null, There does NOT exist a TarsUser specified by userId.
+ * Equivalence Partition 3: userId is null.
+ * =========== boolean updateLastLogin(Long userId) ==========
+ * Equivalence Partition 1: userId is not null. There exists a TarsUser specified by userId.
+ * Equivalence Partition 2: userId is not null, There does NOT exist a TarsUser specified by userId.
+ * Equivalence Partition 3: userId is null.
+ * =========== boolean existsByClientIdAndUsername(Long clientId, String username) ===========
+ * Equivalence Partition 1: clientId and username are not null. There does NOT exist a TarsUser with
+ *    the specified username under the specified client. We do not check if the client exists 
+ *    because the caller of this function will have guaranteed that.
+ * Equivalence Partition 2: clientId and username are not null. There DOES exist a TarsUser with
+ *    the specified username under the specified client.
+ * Equivalence Partition 3: clientId and/or username are null.
+ * =========== boolean existsByClientIdAndUserEmail(Long clientId, String email) ============
+ * Equivalence Partition 1: clientId and email are not null. There does NOT exist a TarsUser with
+ *    the specified email under the specified client. We do not check if the client exists because
+ *    the caller of this function will have guaranteed that.
+ * Equivalence Partition 2: clientId and email are not null. There DOES exist a TarsUser with
+ *    the specified email under the specified client.
+ * Equivalence Partition 3: clientId and/or email are null.
+ * =========== TarsUser deleteUser(Long userId) ===========
+ * Equivalence Partition 1: userId is not null and there exists a TarsUser associated with userId.
+ * Equivalence Partition 2: userId is not null and there does not exist a TarsUser associated with
+ *    userId.
+ * Equivalence Partition 3: userId is null.
  */
 public class TarsUserServiceTest {
 
