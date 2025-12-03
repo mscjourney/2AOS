@@ -42,7 +42,8 @@ public class RouteControllerUnitTest {
 
   /**
    * {@code indexTest} Tests the index endpoint returns the welcome message.
-   *  Equivalence Partition 1: No input. Both / and /index always result in OK.
+   * Equivalence Partition 1: No input. Both / and /index always result in OK.
+   * 
    * @throws Exception if the request fails
    */
   @Test
@@ -62,7 +63,7 @@ public class RouteControllerUnitTest {
   }
   
   /* Other Tests */
-  
+
   @Test
   public void testGetCountryAdvisory() throws Exception {
     TravelAdvisory mockCanadaAdvisory = 
