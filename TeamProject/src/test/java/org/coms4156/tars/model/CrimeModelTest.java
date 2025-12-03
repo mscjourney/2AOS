@@ -49,6 +49,10 @@ class CrimeModelTest {
       String result = model.getCrimeSummary("CA", "ASS", "10", "2025");
       assertNotNull(result);
       assertTrue(result.contains("California") && result.contains("cases per 100,000 people"));
+
+      result = model.getCrimeSummary("ca", "ASS", "10", "2025");
+      assertNotNull(result);
+      assertTrue(result.contains("California") && result.contains("cases per 100,000 people"));
     } catch (RuntimeException e) {
       assertTrue(e.getMessage().contains("API call failed"));
     }

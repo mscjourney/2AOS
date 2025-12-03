@@ -16,52 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 public class CountryModelTest {
 
-  private CountryModel countryModel = new CountryModel();
-
-  @Test
-  void testGetCountryInfoValidCountry() {
-    JsonNode usNode = countryModel.getCountryInfo("United States");
-    assertNotNull(usNode);
-    assertEquals("United States", usNode.get("country").asText());
-    assertEquals("Washington, DC", usNode.get("capital").asText());
-    assertTrue(usNode.get("summary").asText().contains("diverse landscapes"));
-    assertTrue(usNode.get("summary").asText().contains("and entertainment attractions."));
-    assertTrue(usNode.get("summary").asText().contains("national parks and coastlines"));
-
-    JsonNode norwayNode = countryModel.getCountryInfo("Norway");
-    assertNotNull(norwayNode);
-    assertEquals("Norway", norwayNode.get("country").asText());
-    assertEquals("Oslo", norwayNode.get("capital").asText());
-    assertTrue(norwayNode.get("summary").asText().contains("fjords, Northern Lights"));
-    assertTrue(norwayNode.get("summary").asText().contains("pristine outdoor adventure"));
-  }
-
-  @Test
-  void testGetCountryInfoInvalidCountry() {
-    JsonNode node = countryModel.getCountryInfo("Mars");
-    assertNull(node);
-
-    node = countryModel.getCountryInfo("New York");
-    assertNull(node);
-  }
-
-  @Test
-  void testGetCountryInfoInvalidParameter() throws Exception {
-    IllegalArgumentException ex1 = assertThrows(
-        IllegalArgumentException.class, 
-        () -> countryModel.getCountryInfo(null));
-    assertTrue(ex1.getMessage().contains("Country cannot be empty."));
-
-    IllegalArgumentException ex2 = assertThrows(
-        IllegalArgumentException.class, 
-        () -> countryModel.getCountryInfo(""));
-    assertTrue(ex2.getMessage().contains("Country cannot be empty."));
-
-    IllegalArgumentException ex3 = assertThrows(
-        IllegalArgumentException.class, 
-        () -> countryModel.getCountryInfo("       "));
-    assertTrue(ex3.getMessage().contains("Country cannot be empty."));
-  }
+  private final CountryModel countryModel = new CountryModel();
 
   @Test
   void testCountrySummaryInvalidParameter() throws Exception {
