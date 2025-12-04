@@ -683,9 +683,14 @@ public class RouteController {
   /**
    * Handles GET requests to retrieve weather recommendations for a specified city
    * and number of forecast days.
+   *
+   * @param city the city we want to generate the weather recommendation for
+   * @param days the day range to consider when making the recommendation
+   * @return a ResponseEntity containing the recommended days for the city if successful,
+   *      BAD_REQUEST on invalid params, or INTERNAL FAILURE on API Failure.
    */
   @GetMapping("/recommendation/weather/")
-  public ResponseEntity<WeatherRecommendation> getWeatherRecommendation(
+  public ResponseEntity<?> getWeatherRecommendation(
       @RequestParam String city,
       @RequestParam int days) {
     if (logger.isInfoEnabled()) {
@@ -696,10 +701,81 @@ public class RouteController {
         if (logger.isWarnEnabled()) {
           logger.warn("Invalid days parameter: {}", days);
         }
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>("Days must be in the range [0, 14], inclusively.", 
+                                      HttpStatus.BAD_REQUEST);
       }
 
       WeatherRecommendation recommendation = WeatherModel.getRecommendedDays(city, days);
+      if (logger.isInfoEnabled()) {
+        logger.info("Weather recommendation generated for city={} days={}", city, days);
+      }
+
+      return ResponseEntity.ok(recommendation);
+    } catch (IllegalArgumentException e) {
+      if (logger.isErrorEnabled()) {
+        logger.error("Invalid City = {} was passed in", city, e);
+      }
+      return new ResponseEntity<>("City could not be found.", HttpStatus.BAD_REQUEST);
+    } catch (Exception e) {
+      if (logger.isErrorEnabled()) {
+        logger.error("Error generating recommendation city={} days={}", city, days, e);
+      }
+      return new ResponseEntity<>("API Failure.", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /**
+   * Handles GET requests to retrieve weather recommendations for a specified city
+   * and number of forecast days given user preferences.
+   *
+   * @param userId the id of the user we are creating weather recommendations for.
+   * @param city the city we want to generate the weather recommendation for
+   * @param days the day range to consider when making the recommendation
+   * @return a ResponseEntity containing the recommended days for the City using user's 
+   *      weather preferences if successful, NOT_FOUND if TarsUser or their preferences do not 
+   *      exist, or BAD_REQUEST on invalid params, or INTERNAL FAILURE on API Failure.
+   */
+  @GetMapping("/recommendation/weather/user/{userId}")
+  public ResponseEntity<?> getUserWeatherRecommendation(@PathVariable Long userId,
+          @RequestParam String city,
+          @RequestParam int days) {
+    if (logger.isInfoEnabled()) {
+      logger.info("GET /recommendation/weather city={} days={}", city, days);
+    }
+    try {
+      if (userId < 0) {
+        if (logger.isWarnEnabled()) {
+          logger.warn("Negative userId provided: {}", userId);
+        }
+        return new ResponseEntity<>("User Id cannot be negative.", HttpStatus.BAD_REQUEST);
+      }
+
+      if (days <= 0 || days > 14) {
+        if (logger.isWarnEnabled()) {
+          logger.warn("Invalid days parameter: {}", days);
+        }
+        return new ResponseEntity<>("Days must be in the range [0, 14], inclusively.", 
+                                      HttpStatus.BAD_REQUEST);
+      }
+
+      TarsUser tarsUser = tarsUserService.findById(userId);
+      if (tarsUser == null) {
+        if (logger.isWarnEnabled()) {
+          logger.warn("TarsUser with id={} does not exist.", userId);
+        }
+        return new ResponseEntity<>("TarsUser not found.", HttpStatus.NOT_FOUND);
+      }
+
+      UserPreference userPreference = tarsService.getUserPreference(userId);
+      if (userPreference == null) {
+        if (logger.isWarnEnabled()) {
+          logger.warn("No user found for id={}", userId);
+        }
+        return new ResponseEntity<>("User Preferences could not be found.", HttpStatus.NOT_FOUND);
+      }
+
+      WeatherRecommendation recommendation 
+          = WeatherModel.getUserRecDays(city, days, userPreference);
 
       if (logger.isInfoEnabled()) {
         logger.info("Weather recommendation generated for city={} days={}", city, days);
@@ -707,6 +783,11 @@ public class RouteController {
 
       return ResponseEntity.ok(recommendation);
 
+    } catch (IllegalArgumentException e) {
+      if (logger.isErrorEnabled()) {
+        logger.error("Invalid City = {} was passed in", city, e);
+      }
+      return new ResponseEntity<>("City could not be found.", HttpStatus.BAD_REQUEST);
     } catch (Exception e) {
       if (logger.isErrorEnabled()) {
         logger.error("Error generating recommendation city={} days={}", city, days, e);
@@ -717,6 +798,13 @@ public class RouteController {
 
   /**
    * Handles GET requests to retrieve weather alerts for a specified location.
+   *
+   * @param city the city we want to retrieve weather alerts for
+   *    Can be null if lat & lon provided
+   * @param lat the latitude of the location we want to retrieve weather alerts for
+   *    Can be null if city provided
+   * @param lon the longitude of the location we want to retrieve weather alerts for
+   *    Can be null if city provided
    */
   @GetMapping("/alert/weather")
   public ResponseEntity<WeatherAlert> getWeatherAlerts(
@@ -763,59 +851,14 @@ public class RouteController {
   }
 
   /**
-   * Handles GET requests to retrieve weather recommendations for a specified city
-   * and number of forecast days given user preferences.
-   */
-  @GetMapping("/recommendation/weather/user")
-  public ResponseEntity<WeatherRecommendation> getUserWeatherRecommendation(
-          @RequestParam String city,
-          @RequestParam long userId,
-          @RequestParam int days) {
-    if (logger.isInfoEnabled()) {
-      logger.info("GET /recommendation/weather city={} days={}", city, days);
-    }
-    try {
-      if (days <= 0 || days > 14) {
-        if (logger.isWarnEnabled()) {
-          logger.warn("Invalid days parameter: {}", days);
-        }
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-      }
-
-      UserPreference user = tarsService.getUserPreference(userId);
-      if (userId < 0) {
-        if (logger.isWarnEnabled()) {
-          logger.warn("Negative userId provided: {}", userId);
-        }
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-      }
-
-      if (user == null) {
-        if (logger.isWarnEnabled()) {
-          logger.warn("No user found for id={}", userId);
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-      }
-
-      WeatherRecommendation recommendation = WeatherModel.getUserRecDays(city, days, user);
-
-      if (logger.isInfoEnabled()) {
-        logger.info("Weather recommendation generated for city={} days={}", city, days);
-      }
-
-      return ResponseEntity.ok(recommendation);
-
-    } catch (Exception e) {
-      if (logger.isErrorEnabled()) {
-        logger.error("Error generating recommendation city={} days={}", city, days, e);
-      }
-      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
-
-  /**
    * Handles GET requests to retrieve weather alerts for the specified user
    * based on their city preferences.
+   *
+   * @param userId the userId of a TarsUser who will be generating weather alerts for.
+   * @return the list of weather alerts containing a weather alert for each of the city in
+   *    the specfied user's city preferences if sucessful. BAD_REQUEST if userId is negative.
+   *    NOT_FOUND if TarsUser associated with UserId doesn't exist or preferences of the TarsUser
+   *    cannot be found. INTERNAL_SERVER_ERROR upon API Failure.
    */
   @GetMapping("/alert/weather/user/{userId}")
   public ResponseEntity<?> getUserWeatherAlerts(@PathVariable Long userId) {
@@ -868,6 +911,14 @@ public class RouteController {
 
   /**
    * Handles GET requests to retrieve crime summary data.
+   * 
+   * @param state the state we are retrieving crime summary data for.
+   * @param offense the type of offense in particular that we are retrieving
+   * @param month the month in which we want the crime data for.
+   * @param year, the year in which we want the crime data for.
+   * @return a summary of the crime data in the specified state for the specified offense
+   *      during month/year. BAD_REQUEST if API rejected with BAD_REQUEST.
+   *      INTERNAL_SERVER_ERROR on API Failure.
    */
   @GetMapping("/crime/summary")
   public ResponseEntity<?> getCrimeSummary(
