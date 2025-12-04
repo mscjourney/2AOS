@@ -732,8 +732,8 @@ public class RouteController {
    * @param city the city we want to generate the weather recommendation for
    * @param days the day range to consider when making the recommendation
    * @return a ResponseEntity containing the recommended days for the City using user's 
-   *      weather preferences if successful, NOT_FOUND if TarsUser or their preferences do not 
-   *      exist, or BAD_REQUEST on invalid params, or INTERNAL FAILURE on API Failure.
+   *     weather preferences if successful, NOT_FOUND if TarsUser or their preferences do not 
+   *     exist, or BAD_REQUEST on invalid params, or INTERNAL FAILURE on API Failure.
    */
   @GetMapping("/recommendation/weather/user/{userId}")
   public ResponseEntity<?> getUserWeatherRecommendation(@PathVariable Long userId,
@@ -800,11 +800,11 @@ public class RouteController {
    * Handles GET requests to retrieve weather alerts for a specified location.
    *
    * @param city the city we want to retrieve weather alerts for
-   *    Can be null if lat & lon provided
+   *     Can be null if lat & lon provided
    * @param lat the latitude of the location we want to retrieve weather alerts for
-   *    Can be null if city provided
+   *     Can be null if city provided
    * @param lon the longitude of the location we want to retrieve weather alerts for
-   *    Can be null if city provided
+   *     Can be null if city provided
    */
   @GetMapping("/alert/weather")
   public ResponseEntity<WeatherAlert> getWeatherAlerts(
@@ -856,9 +856,9 @@ public class RouteController {
    *
    * @param userId the userId of a TarsUser who will be generating weather alerts for.
    * @return the list of weather alerts containing a weather alert for each of the city in
-   *    the specfied user's city preferences if sucessful. BAD_REQUEST if userId is negative.
-   *    NOT_FOUND if TarsUser associated with UserId doesn't exist or preferences of the TarsUser
-   *    cannot be found. INTERNAL_SERVER_ERROR upon API Failure.
+   *     the specfied user's city preferences if sucessful. BAD_REQUEST if userId is negative.
+   *     NOT_FOUND if TarsUser associated with UserId doesn't exist or preferences of the TarsUser
+   *     cannot be found. INTERNAL_SERVER_ERROR upon API Failure.
    */
   @GetMapping("/alert/weather/user/{userId}")
   public ResponseEntity<?> getUserWeatherAlerts(@PathVariable Long userId) {
@@ -911,11 +911,11 @@ public class RouteController {
 
   /**
    * Handles GET requests to retrieve crime summary data.
-   * 
+   *
    * @param state the state we are retrieving crime summary data for.
    * @param offense the type of offense in particular that we are retrieving
    * @param month the month in which we want the crime data for.
-   * @param year, the year in which we want the crime data for.
+   * @param year the year in which we want the crime data for.
    * @return a summary of the crime data in the specified state for the specified offense
    *      during month/year. BAD_REQUEST if API rejected with BAD_REQUEST.
    *      INTERNAL_SERVER_ERROR on API Failure.
