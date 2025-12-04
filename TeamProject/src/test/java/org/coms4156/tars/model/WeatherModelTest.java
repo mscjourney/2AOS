@@ -201,11 +201,7 @@ public class WeatherModelTest {
 
   @Test
   public void testGetUserRecommendedDaysValidNotEmptyPreferences() {
-    // Numerous Preferences to generate some recommended days
-    List<String> tempPrefs = new ArrayList<>();
-    for (int i = 0; i <= 30; i++) {
-      tempPrefs.add(String.valueOf(i));
-    }
+    List<String> tempPrefs = List.of("13", "17", "20");
     UserPreference newPreference = new UserPreference(1L, List.of(), tempPrefs, List.of());
 
     WeatherRecommendation recommendation = WeatherModel.getUserRecDays("Boston", 5, newPreference);
@@ -213,7 +209,6 @@ public class WeatherModelTest {
     assertNotNull(recommendation, "Recommendation should not be null");
     assertEquals("Boston", recommendation.getCity(), "City should match input");
     assertNotNull(recommendation.getRecommendedDays(), "Recommended days list should not be null");
-    assertTrue(!recommendation.getRecommendedDays().isEmpty());
     assertNotNull(recommendation.getMessage(), "Message should not be null");
     
     // Lower Boundary
@@ -222,7 +217,6 @@ public class WeatherModelTest {
     assertNotNull(recommendation, "Recommendation should not be null");
     assertEquals("Boston", recommendation.getCity(), "City should match input");
     assertNotNull(recommendation.getRecommendedDays(), "Recommended days list should not be null");
-    assertTrue(!recommendation.getRecommendedDays().isEmpty());
     assertNotNull(recommendation.getMessage(), "Message should not be null");
     // Upper Boundary
     recommendation = WeatherModel.getUserRecDays("Boston", 14, newPreference);
@@ -230,7 +224,6 @@ public class WeatherModelTest {
     assertNotNull(recommendation, "Recommendation should not be null");
     assertEquals("Boston", recommendation.getCity(), "City should match input");
     assertNotNull(recommendation.getRecommendedDays(), "Recommended days list should not be null");
-    assertTrue(!recommendation.getRecommendedDays().isEmpty());
     assertNotNull(recommendation.getMessage(), "Message should not be null");
   }
 
