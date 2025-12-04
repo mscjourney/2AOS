@@ -12,12 +12,28 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for CrimeModel.
- * 
+ *
  * <p>Equivalence Partition for CrimeModel Methods
  * === {@code String getCrimeSummary(String state, String offense, String month, String year)} ===
- * ==== {@code String getStateAbbreviation(String stateInput)} ====
- * ==== {@code String getStateName(String stateAbbrev)} =====
- * You could use the tests for getCrimeSummary for getState stuff as well I think.
+ * Partition 1: Valid state (abbrev), valid offense,
+ * valid month, valid year — API returns summary.
+ *   - Test Cases: testGetCrimeSummary_Success, testGetCrimeSummary_Success_2
+ *
+ * <p>Partition 2: Valid state (full name), valid offense,
+ * valid month, valid year — API returns summary.
+ *   - Test Cases: testGetCrimeSummary_FullStateName
+ *
+ * <p>Partition 3: Valid state, valid offense, but invalid or out-of-range date — return null.
+ *   - Test Cases: testGetCrimeSummary_InvalidDate
+ *
+ * <p>Partition 4: Invalid state abbreviation — return null.
+ *   - Test Cases: testGetCrimeSummary_InvalidState
+ *
+ * <p>Partition 5: Invalid state name — return null.
+ *   - Test Cases: testGetCrimeSummary_InvalidStateName
+ *
+ * <p>Partition 6: Valid state but invalid offense code — return null.
+ *   - Test Cases: testGetCrimeSummary_InvalidOffense
  */
 class CrimeModelTest {
 

@@ -26,16 +26,151 @@ import org.slf4j.LoggerFactory;
 /**
  * {@code ClientServiceTest} Unit tests for {@link ClientService}.
  * Each test method documents the branch or behavior under validation.
- * 
- * <p>Equivalence Partition Testing for {@code ClientService} Methods.
- * ========== {@code String rotateApiKey(long clientId)} ===========
- * ========== {@code List<Client> getClientList()} ===========
- * ========== {@code Client getClient(long clientId)} ===========
- * ========== {@code boolean uniqueNameCheck(String newClientName)} ===========
- * ========== {@code boolean uniqueEmailCheck(String email)} ===========
- * ========== {@code Client createClient(String name, String email)} ===========
- * ========== {@code boolean removeClient(int clientId)} ===========
- * ========== {@code boolean updateClient(Client updatedClient)} ===========
+ *
+ * <p>Equivalence Partition Testing for ClientService methods.
+ * ========== {@code List<Client> getClientList()} ==========
+ * Partition 1: clients list already initialized — return defensive copy.
+ *   - Test Cases: getClientListReturnsDefensiveCopyTest
+ * Partition 2: clients list is null — reload before returning.
+ *   - Test Cases: getClientListReloadClients
+ *
+ * <p>========== {@code Client getClient(long clientId)} ==========
+ * Partition 1: valid existing clientId — return matching client.
+ *   - Test Cases: getClientByIdSuccessTest
+ * Partition 2: clientId does not exist — return null.
+ *   - Test Cases: getClientByIdNotFoundTest
+ * Partition 3: clientId is negative — return null and log WARN.
+ *   - Test Cases: getClientWithNegativeIdTest
+ * Partition 4: clients list null before invocation — reload then getClient.
+ *   - Test Cases: getClientReloadClients
+ *
+ * <p>========== {@code boolean uniqueNameCheck(String name)} ==========
+ * Partition 1: name is null — return false.
+ *   - Test Cases: uniqueNameCheckWithNullTest
+ * Partition 2: name matches existing client name — return false.
+ *   - Test Cases: uniqueNameCheckWithExistingNameTest
+ * Partition 3: name matches ignoring case — return false.
+ *   - Test Cases: createClientWithDuplicateNameCaseInsensitiveTest
+ * Partition 4: name is unique — return true.
+ *   - Test Cases: uniqueNameCheckWithUniqueNameTest
+ * Partition 5: existing clients may have null names — skip and succeed.
+ *   - Test Cases: testIsNameTakenNullExistingName
+ *
+ * <p>========== {@code boolean uniqueEmailCheck(String email)} ==========
+ * Partition 1: email is null — return false.
+ *   - Test Cases: uniqueEmailCheckWithNullTest
+ * Partition 2: email matches existing email — return false.
+ *   - Test Cases: uniqueEmailCheckWithExistingEmailTest
+ * Partition 3: case-insensitive match — return false.
+ *   - Test Cases: createClientWithDuplicateEmailCaseInsensitiveTest
+ * Partition 4: email is unique — return true.
+ *   - Test Cases: uniqueEmailCheckWithUniqueEmailTest
+ * Partition 5: existing users may have null emails — skip and succeed.
+ *   - Test Cases: testIsEmailTakenNullExistingEmail
+ *
+ * <p>========== {@code Client createClient(String name, String email)} ==========
+ * Partition 1: valid name and email — create client.
+ *   - Test Cases: createClientSuccessTest
+ * Partition 2: null name — reject.
+ *   - Test Cases: createClientWithNullNameTest
+ * Partition 3: blank name — reject.
+ *   - Test Cases: createClientWithBlankNameTest
+ * Partition 4: null email — reject.
+ *   - Test Cases: createClientWithNullEmailTest
+ * Partition 5: blank email — reject.
+ *   - Test Cases: createClientWithBlankEmailTest
+ * Partition 6: duplicate name — reject.
+ *   - Test Cases: createClientWithDuplicateNameTest
+ * Partition 7: duplicate email — reject.
+ *   - Test Cases: createClientWithDuplicateEmailTest
+ * Partition 8: case-insensitive duplicates — reject.
+ *   - Test Cases: createClientWithDuplicateNameCaseInsensitiveTest,
+ *                 createClientWithDuplicateEmailCaseInsensitiveTest
+ * Partition 9: successful creation logs INFO.
+ *   - Test Cases: createClientLogsSuccessTest
+ *
+ * <p>========== {@code boolean removeClient(int clientId)} ==========
+ * Partition 1: existing clientId — remove successfully.
+ *   - Test Cases: removeClientSuccessTest
+ * Partition 2: non-existent clientId — return false.
+ *   - Test Cases: removeClientNotFoundTest
+ * Partition 3: clients list is null — reload first.
+ *   - Test Cases: removeClientReloadClients
+ * Partition 4: successful deletion logs INFO.
+ *   - Test Cases: removeClientLogsSuccessTest
+ *
+ * <p>========== {@code boolean updateClient(Client updatedClient)} ==========
+ * Equivalence Partition 1: valid update — success.
+ *   - Test Cases: updateClientSuccessTest
+ * Equivalence Partition 2: updatedClient is null — reject.
+ *   - Test Cases: updateClientWithNullTest
+ * Equivalence Partition 3: updatedClient.clientId is null — reject.
+ *   - Test Cases: updateClientWithNullIdTest
+ * Equivalence Partition 4: updatedClient.name is blank — reject.
+ *   - Test Cases: updateClientWithBlankNameTest, testUpdateClientBlankName
+ * Equivalence Partition 5: name conflicts with another client — reject.
+ *   - Test Cases: updateClientWithDuplicateNameTest
+ * Equivalence Partition 6: apiKey missing in update — preserve old apiKey.
+ *   - Test Cases: updateClientPreservesApiKeyTest
+ * Equivalence Partition 7: updating non-existent client — reject.
+ *   - Test Cases: updateClientNotFoundTest
+ * Equivalence Partition 8: other clients may have null IDs or names — still update as long as
+ *               update target is valid.
+ *   - Test Cases: testUpdateClientOtherNullClientId,
+ *                 testUpdateClientOtherNullName
+ * Equivalence Partition 9: updated client has null ID — reject.
+ *   - Test Cases: testUpdateExistingClientNullId
+ * Equivalence Partition 10: successful update logs INFO.
+ *   - Test Cases: updateClientLogsSuccessTest
+ *
+ * <p>========== {@code String rotateApiKey(long clientId)} ==========
+ * Equivalence Partition 1: existing clientId — rotate and return new key.
+ *   - Test Cases: rotateApiKeySuccessTest
+ * Equivalence Partition 2: non-existent client — return null.
+ *   - Test Cases: rotateApiKeyNotFoundTest
+ * Equivalence Partition 3: successful rotation logs INFO.
+ *   - Test Cases: rotateApiKeyLogsSuccessTest
+ *
+ * <p>========== File Handling Behavior ==========
+ * Equivalence Partition 1: file exists — load normally.
+ *   - Test Cases: clientServiceInitializationTest,
+ *                 serviceLogsInfoOnExistingFileTest
+ * Equivalence Partition 2: file missing — create new file.
+ *   - Test Cases: serviceCreatesFileWhenMissingTest
+ * Equivalence Partition 3: file corrupt — return empty list.
+ *   - Test Cases: loadDataHandlesCorruptedFileTest
+ * Equivalence Partition 4: save throws IOException — handle gracefully.
+ *   - Test Cases: saveDataHandlesIoExceptionTest
+ * Equivalence Partition 5: parent directory null (root path) — still initialize.
+ *   - Test Cases: testParentDirectoryNull
+ *
+ * <p>========== Logger Guard Behavior ==========
+ * Equivalence Partition 1: INFO disabled — INFO logs skipped.
+ *   - Test Cases: testLoggerInfoDisabled
+ * Equivalence Partition 2: WARN disabled — WARN logs skipped.
+ *   - Test Cases: testLoggerWarnDisabled
+ * Equivalence Partition 3: ERROR disabled — errors suppressed.
+ *   - Test Cases: testLoggerErrorDisabled
+ * Equivalence Partition 4: DEBUG disabled — debug logs skipped.
+ *   - Test Cases: testLoggerDebugDisabled
+ *
+ * <p>========== ID Generation Behavior ==========
+ * Equivalence Partition 1: all existing IDs valid — next ID is max + 1.
+ *   - Test Cases: testMaxIdNotUpdated
+ * Equivalence Partition 2: existing IDs may include null — skip null during max scan.
+ *   - Test Cases: testIsNameTakenNullExistingName,
+ *                 testIsEmailTakenNullExistingEmail,
+ *                 testUpdateClientOtherNullClientId
+ *
+ * <p>========== General Unitility Behavior ==========
+ * Equivalence Partition 1: printClients logs all clients.
+ *   - Test Cases: printClientsLogsAllTest
+ * Equivalence Partition 2: copyFrom called with null — no changes applied.
+ *   - Test Cases: testCopyFromNullSource
+ * Equivalence Partition 3: data persists across instances.
+ *   - Test Cases: persistenceAcrossInstancesTest
+ * Equivalence Partition 4: API key generation uniqueness.
+ *   - Test Cases: apiKeyGenerationIsUniqueTest
  */
 public class ClientServiceTest {
 
@@ -876,9 +1011,9 @@ public class ClientServiceTest {
   public void rotateApiKeySuccessTest() {
     Client client = clientService.getClient(1L);
     String oldKey = client.getApiKey();
-    
+
     String newKey = clientService.rotateApiKey(1L);
-    
+
     assertNotNull(
         newKey,
         "New API key should be generated"
@@ -892,7 +1027,7 @@ public class ClientServiceTest {
         oldKey.equals(newKey),
         "New key should differ from old key"
     );
-    
+
     Client retrieved = clientService.getClient(1L);
     assertEquals(
         newKey,
@@ -913,7 +1048,7 @@ public class ClientServiceTest {
     logger.addAppender(listAppender);
 
     String newKey = clientService.rotateApiKey(999L);
-    
+
     assertNull(
         newKey,
         "Should return null for non-existent client"
