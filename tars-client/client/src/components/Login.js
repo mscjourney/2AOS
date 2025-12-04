@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE } from '../config';
 import './Login.css';
-
-const API_BASE = 'http://localhost:3001/api';
 
 function Login() {
   const [loginType, setLoginType] = useState('username'); // 'username', 'email', or 'userId'
@@ -27,7 +26,8 @@ function Login() {
       } else if (loginType === 'email') {
         loginData.email = email.trim();
       } else {
-        loginData.userId = parseInt(userId);
+        // Send userId as string to match Java backend expectation
+        loginData.userId = userId.toString();
       }
 
       // Login via API

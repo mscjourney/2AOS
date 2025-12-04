@@ -7,8 +7,10 @@ const TarsApiClient = require('./src/tarsApiClient');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Initialize API client
-const apiClient = new TarsApiClient('http://localhost:8080');
+// Initialize API client - use environment variable for backend URL
+// Default to localhost for local development, but can be overridden for GCP/production
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8080';
+const apiClient = new TarsApiClient(BACKEND_URL);
 
 // Middleware
 app.use(cors());
@@ -392,9 +394,10 @@ module.exports = app;
 
 // Start server only if this file is run directly (not when required for tests)
 if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`TARS Client Server running on http://localhost:${PORT}`);
-    console.log(`Dashboard available at http://localhost:${PORT}/dashboard`);
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`TARS Client Server running on http://0.0.0.0:${PORT}`);
+    console.log(`Dashboard available at http://0.0.0.0:${PORT}/dashboard`);
+    console.log(`Backend URL: ${BACKEND_URL}`);
     console.log(`Registered routes:`);
     console.log(`  PUT /api/setPreference/:id`);
     console.log(`  PUT /api/user/:id/remove`);

@@ -5,13 +5,14 @@ A standalone Node.js client application for the TARS API with a React dashboard 
 ## Features
 
 - **Persistent Client ID**: Each Node.js instance stores its `clientId` locally in `client-config.json`
-- **React Dashboard**: Modern web UI accessible at `http://localhost:3001/dashboard`
+- **React Dashboard**: Modern web UI accessible at `http://localhost:3001/dashboard` (local) or `http://34.75.80.228:3001/dashboard` (GCP)
 - **Multiple Instance Support**: Each Node.js instance is a separate client that can connect simultaneously
 - **Full API Coverage**: Access to all TARS API endpoints through the dashboard
 - **Admin Dashboard**: User management interface for administrators
 - **Crime Summary**: Access to FBI crime statistics
 - **Weather Services**: Weather recommendations and alerts
 - **City Summaries**: Comprehensive city information
+- **Easy Startup Scripts**: Pre-configured scripts for quick deployment (`start-server.sh`, `start-server-background.sh`)
 
 ## Architecture
 
@@ -30,10 +31,11 @@ The application consists of three main components:
 ### 2. API Client (`src/tarsApiClient.js`)
 - **Purpose**: Wraps the Java TARS API endpoints and manages client ID persistence
 - **Responsibilities**:
-  - Communicates with the Java backend running on `http://localhost:8080`
+  - Communicates with the Java backend running on `http://localhost:8080` (local) or `http://34.75.80.228:8080` (GCP)
   - Manages persistent client ID storage in `client-config.json`
   - Provides methods for all TARS API operations (users, weather, crime, etc.)
   - Handles error responses and converts them to user-friendly messages
+  - Backend URL is configurable via `BACKEND_URL` environment variable
 
 ### 3. React Frontend (`client/`)
 - **Purpose**: Modern web-based user interface
@@ -113,18 +115,112 @@ cd ..
    This creates an optimized production build in `client/build/`
 
 4. **Start the Node.js Server**:
-   - In a new terminal, navigate to the `tars-client` directory:
+
+   **Option A: Using Startup Scripts (Recommended for GCP/Production)**
+   
+   The easiest way to start the server with proper configuration:
+   
+   ```bash
+   cd tars-client
+   
+   # Foreground mode (for testing/debugging)
+   ./start-server.sh
+   # Press Ctrl+C to stop
+   
+   # OR Background mode (for production)
+   ./start-server-background.sh
+   # Use ./stop-server.sh to stop
+   ```
+   
+   The scripts automatically:
+   - Set `BACKEND_URL` to `http://34.75.80.228:8080` (GCP) or `http://localhost:8080` (local)
+   - Set `PORT` to `3001`
+   - Check dependencies and start the server
+   
+   **Option B: Manual Start**
+   
    ```bash
    cd tars-client
    npm start
    ```
-   - You should see: `TARS Client Server running on http://localhost:3001`
+   - For GCP, you'll need to set environment variables:
+     ```bash
+     export BACKEND_URL=http://34.75.80.228:8080
+     export PORT=3001
+     npm start
+     ```
+   - For local development:
+     ```bash
+     export BACKEND_URL=http://localhost:8080
+     npm start
+     ```
 
 5. **Access the Application**:
-   - Open your browser and go to: `http://localhost:3001`
+   - **Local Development**: `http://localhost:3001`
+   - **GCP Production**: `http://34.75.80.228:3001`
    - You'll be redirected to the login page
    - Use admin credentials to access the admin dashboard
    - Regular users can access the main dashboard
+
+### Using Startup Scripts (Recommended)
+
+The project includes convenient startup scripts that automatically configure the server for both local development and GCP deployment.
+
+#### Available Scripts
+
+- **`start-server.sh`**: Runs server in foreground (see logs in terminal)
+- **`start-server-background.sh`**: Runs server in background (detached)
+- **`stop-server.sh`**: Stops a background server
+
+#### Quick Start with Scripts
+
+```bash
+cd tars-client
+
+# Make scripts executable (first time only)
+chmod +x start-server.sh start-server-background.sh stop-server.sh
+
+# Start in foreground (for testing/debugging)
+./start-server.sh
+# Press Ctrl+C to stop
+
+# OR start in background (for production)
+./start-server-background.sh
+# Server runs detached - use ./stop-server.sh to stop
+```
+
+#### What the Scripts Do
+
+The startup scripts automatically:
+- ✅ Set `BACKEND_URL` environment variable:
+  - Default: `http://34.75.80.228:8080` (GCP)
+  - Can be overridden: `BACKEND_URL=http://localhost:8080 ./start-server.sh`
+- ✅ Set `PORT` environment variable (default: `3001`)
+- ✅ Change to the correct directory
+- ✅ Check and install dependencies if needed
+- ✅ Start the server with proper configuration
+
+#### Viewing Logs (Background Mode)
+
+```bash
+# View real-time logs
+tail -f server.log
+
+# View last 50 lines
+tail -50 server.log
+```
+
+#### Customizing Backend URL
+
+You can override the default backend URL:
+
+```bash
+# For local development
+BACKEND_URL=http://localhost:8080 ./start-server.sh
+
+# For custom GCP setup
+BACKEND_URL=http://your-ip:8080 ./start-server.sh
+```
 
 ### Development Mode (with Hot Reload)
 
@@ -156,8 +252,14 @@ This starts the Express server on `http://localhost:3001` with nodemon (auto-rel
 ### Quick Start Commands
 
 ```bash
-# Production mode (recommended)
+# Using startup scripts (recommended)
+./start-server.sh            # Foreground mode - see logs in terminal
+./start-server-background.sh # Background mode - runs detached
+./stop-server.sh             # Stop background server
+
+# Manual start
 npm start                    # Start Node.js server (after building React app)
+                             # Requires BACKEND_URL environment variable for GCP
 
 # Development mode
 npm run dev                  # Start Node.js server with auto-reload
@@ -166,6 +268,22 @@ cd client && npm start        # Start React dev server (separate terminal)
 # Build React app
 npm run build                # Build React app for production
 ```
+
+### URLs and Access Points
+
+**Local Development:**
+- Frontend/UI: `http://localhost:3001`
+- Backend API: `http://localhost:8080`
+- Login Page: `http://localhost:3001/login`
+- Dashboard: `http://localhost:3001/dashboard`
+
+**GCP Production:**
+- Frontend/UI: `http://34.75.80.228:3001`
+- Backend API: `http://34.75.80.228:8080`
+- Login Page: `http://34.75.80.228:3001/login`
+- Dashboard: `http://34.75.80.228:3001/dashboard`
+
+**Note**: The Node.js server (port 3001) acts as a proxy - it forwards all `/api/*` requests to the Java backend (port 8080). Users typically only interact with port 3001.
 
 ## Running Multiple Clients Simultaneously
 
@@ -189,17 +307,19 @@ mvn spring-boot:run
 3. **Start First Client Instance** (Terminal 1 - Default port 3001):
 ```bash
 cd tars-client
-PORT=3001 npm start
+PORT=3001 ./start-server.sh
+# OR
+PORT=3001 BACKEND_URL=http://localhost:8080 ./start-server.sh
 ```
-- Access at: `http://localhost:3001`
+- Access at: `http://localhost:3001` (local) or `http://34.75.80.228:3001` (GCP)
 - Example: **Alice (Admin)** - Use admin credentials to log in
 
 4. **Start Second Client Instance** (Terminal 2 - Port 3002):
 ```bash
 cd tars-client
-PORT=3002 npm start
+PORT=3002 BACKEND_URL=http://localhost:8080 ./start-server.sh
 ```
-- Access at: `http://localhost:3002`
+- Access at: `http://localhost:3002` (local) or `http://34.75.80.228:3002` (GCP)
 - Example: **Charlie (Regular User)** - Use regular user credentials to log in
 
 ### Example: Running Alice (Admin) and Charlie (Regular User)
