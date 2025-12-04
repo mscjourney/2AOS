@@ -31,7 +31,8 @@ public class ClientEndpointsErrorTest {
   @DisplayName("GET /clients returns 500 on service exception")
   public void getClientsError() throws Exception {
     when(clientService.getClientList()).thenThrow(new RuntimeException("boom"));
-    mockMvc.perform(get("/clients"))
+    mockMvc.perform(get("/clients")
+      .header("X-API-Key", org.coms4156.tars.controller.TestKeys.clientKey()))
         .andExpect(status().isInternalServerError())
         .andExpect(jsonPath("$.status").value(500))
         .andExpect(jsonPath("$.message").value("boom"));

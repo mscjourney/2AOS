@@ -119,7 +119,8 @@ public class LoggingTest {
   public void testGetUserPreferenceEndpointLogging() throws Exception {
     listAppender.list.clear();
 
-    mockMvc.perform(get("/retrievePreference/1"))
+    mockMvc.perform(get("/retrievePreference/1")
+        .header("X-API-Key", org.coms4156.tars.controller.TestKeys.clientKey()))
         .andExpect(result -> {
           int status = result.getResponse().getStatus();
           if (status != 200 && status != 400 && status != 404) {

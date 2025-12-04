@@ -247,14 +247,16 @@ public class RouteController {
    * @return 200 with JSON containing the new key; 404 if client not found
    */
   @PostMapping({"/clients/{clientId}/rotateKey"})
-  public ResponseEntity<Map<String, String>> rotateClientApiKey(@PathVariable("clientId") long clientId) {
+  public ResponseEntity<Map<String, String>> rotateClientApiKey(
+      @PathVariable("clientId") long clientId) {
     if (logger.isInfoEnabled()) {
       logger.info("POST /clients/{}/rotateKey invoked", clientId);
     }
     Client existing = clientService.getClient(clientId);
     if (existing == null) {
       if (logger.isWarnEnabled()) {
-        logger.warn("POST /clients/{}/rotateKey failed: client not found", clientId);
+        logger.warn("POST /clients/{}/rotateKey failed: client not found",
+            clientId);
       }
       throw new NotFoundException("Client not found.");
     }
@@ -262,7 +264,8 @@ public class RouteController {
     String newKey = clientService.rotateApiKey(clientId);
     if (newKey == null || newKey.isBlank()) {
       if (logger.isErrorEnabled()) {
-        logger.error("POST /clients/{}/rotateKey internal error: rotate returned null/blank", clientId);
+        logger.error("POST /clients/{}/rotateKey internal error: "
+            + "rotate returned null/blank", clientId);
       }
       throw new RuntimeException("Failed to rotate API key.");
     }
@@ -271,7 +274,8 @@ public class RouteController {
     body.put("clientId", String.valueOf(clientId));
     body.put("apiKey", newKey);
     if (logger.isInfoEnabled()) {
-      logger.info("POST /clients/{}/rotateKey success (key suffix={})", clientId, newKey.substring(newKey.length() - 4));
+      logger.info("POST /clients/{}/rotateKey success (key suffix={})",
+          clientId, newKey.substring(newKey.length() - 4));
     }
     return ResponseEntity.ok(body);
   }
@@ -279,11 +283,12 @@ public class RouteController {
   /**
    * Updates a client's per-minute rate limit.
    * Request Method: POST
-   * Body: { "limit": <positive integer> }
+   * Body: JSON with "limit" field containing positive integer
    *
    * @param clientId client identifier
    * @param body JSON containing new limit
-   * @return 200 with updated client DTO; 400 for invalid input; 404 if client not found
+   * @return 200 with updated client DTO; 400 for invalid input;
+   *     404 if client not found
    */
   @PostMapping({"/clients/{clientId}/setRateLimit"})
   public ResponseEntity<ClientDto> setClientRateLimit(

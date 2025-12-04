@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import org.coms4156.tars.model.Client;
 import org.junit.jupiter.api.BeforeAll;
@@ -15,6 +16,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
+/**
+ * Integration test for clients endpoint admin-only access control.
+ */
 @SpringBootTest(properties = {
     "security.adminApiKeys=adminkey000000000000000000000000",
   "security.apiKey.header=X-API-Key",
@@ -30,9 +34,15 @@ public class ClientsAdminAccessTest {
   private static final ObjectMapper MAPPER = new ObjectMapper();
   private static String CLIENT_KEY;
 
+  /**
+   * Seeds test client for access control tests.
+   *
+   * @throws IOException if file operations fail
+   */
   @BeforeAll
-  public static void loadClientKey() throws Exception {
-    List<Client> clients = MAPPER.readValue(new File(DATA_PATH), new TypeReference<List<Client>>() {});
+  public static void setup() throws IOException {
+    List<Client> clients = MAPPER.readValue(new File(DATA_PATH),
+        new TypeReference<List<Client>>() {});
     if (!clients.isEmpty()) {
       CLIENT_KEY = clients.get(0).getApiKey();
     } else {
@@ -76,12 +86,14 @@ public class ClientsAdminAccessTest {
 
   @Test
   public void clientCreateAllowedForAdminKey() throws Exception {
-    String unique = java.util.UUID.randomUUID().toString().substring(0,8);
+    String unique = java.util.UUID.randomUUID().toString().substring(0, 8);
     mockMvc.perform(
-      org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/client/create")
-        .header("X-API-Key", "adminkey000000000000000000000000")
-        .contentType("application/json")
-        .content("{\"name\":\"newadmin-" + unique + "\",\"email\":\"newadmin-" + unique + "@example.com\"}"))
-      .andExpect(status().isCreated());
+        org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+            .post("/client/create")
+            .header("X-API-Key", "adminkey000000000000000000000000")
+            .contentType("application/json")
+            .content("{\"name\":\"newadmin-" + unique
+                + "\",\"email\":\"newadmin-" + unique + "@example.com\"}"))
+        .andExpect(status().isCreated());
   }
 }

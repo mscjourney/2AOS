@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.coms4156.tars.model.Client;
@@ -16,6 +17,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
+/**
+ * Integration test for client rate limit admin endpoint.
+ */
 @SpringBootTest(properties = {
     "security.adminApiKeys=adminkey000000000000000000000000",
   "security.apiKey.header=X-API-Key",
@@ -32,8 +36,13 @@ public class ClientRateLimitAdminTest {
   private static long CLIENT_ID;
   private static String CLIENT_KEY;
 
+  /**
+   * Seeds test client for rate limit tests.
+   *
+   * @throws IOException if file operations fail
+   */
   @BeforeAll
-  public static void seed() throws Exception {
+  public static void setup() throws IOException {
     File f = new File(DATA_PATH);
     if (!f.exists()) {
       f.getParentFile().mkdirs();
@@ -41,7 +50,8 @@ public class ClientRateLimitAdminTest {
     }
     List<Client> clients = MAPPER.readValue(f, new TypeReference<List<Client>>() {});
     if (clients.isEmpty()) {
-      Client c = new Client(5L, "limit-client", "limit@example.com", "limitkey000000000000000000000000");
+      Client c = new Client(5L, "limit-client", "limit@example.com",
+          "limitkey000000000000000000000000");
       clients.add(c);
       MAPPER.writeValue(f, clients);
     }

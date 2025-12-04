@@ -18,6 +18,13 @@ import org.springframework.test.web.servlet.MockMvc;
 @SpringBootTest
 @AutoConfigureMockMvc
 public class TarsUserEndpointUnitTest {
+  /**
+   * Disable API key security for tests to prevent 401 responses.
+   */
+  @org.junit.jupiter.api.BeforeAll
+  public static void disableSecurity() {
+    System.setProperty("security.enabled", "false");
+  }
 
   @Autowired
   private MockMvc mockMvc;
@@ -33,12 +40,14 @@ public class TarsUserEndpointUnitTest {
   @Test
   @DisplayName("GET /tarsUsers/{id} returns 200 when user exists")
   void getTarsUserByIdOk() throws Exception {
-    mockMvc.perform(get("/tarsUsers/1"))
+    mockMvc.perform(get("/tarsUsers/1")
+      .header("X-API-Key", org.coms4156.tars.controller.TestKeys.clientKey()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.userId").value(1))
         .andExpect(jsonPath("$.username").value("alice"));
 
-    mockMvc.perform(get("/tarsUsers/4"))
+    mockMvc.perform(get("/tarsUsers/4")
+      .header("X-API-Key", org.coms4156.tars.controller.TestKeys.clientKey()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.userId").value(4))
         .andExpect(jsonPath("$.username").value("jdoe"));
@@ -52,11 +61,13 @@ public class TarsUserEndpointUnitTest {
   @Test
   @DisplayName("GET /tarsUsers/{id} returns 404 when user missing")
   void getTarsUserByIdNotFound() throws Exception {
-    mockMvc.perform(get("/tarsUsers/0"))
+    mockMvc.perform(get("/tarsUsers/0")
+      .header("X-API-Key", org.coms4156.tars.controller.TestKeys.clientKey()))
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.status").value(404))
         .andExpect(jsonPath("$.message").exists());
-    mockMvc.perform(get("/tarsUsers/9999"))
+    mockMvc.perform(get("/tarsUsers/9999")
+      .header("X-API-Key", org.coms4156.tars.controller.TestKeys.clientKey()))
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.status").value(404))
         .andExpect(jsonPath("$.message").exists());
@@ -69,11 +80,13 @@ public class TarsUserEndpointUnitTest {
   @Test
   @DisplayName("GET /tarsUsers/{id} returns 400 when id negative")
   void getTarsUserByIdBadRequest() throws Exception {
-    mockMvc.perform(get("/tarsUsers/-1"))
+    mockMvc.perform(get("/tarsUsers/-1")
+      .header("X-API-Key", org.coms4156.tars.controller.TestKeys.clientKey()))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.status").value(400))
         .andExpect(jsonPath("$.message").exists());
-    mockMvc.perform(get("/tarsUsers/-10"))
+    mockMvc.perform(get("/tarsUsers/-10")
+      .header("X-API-Key", org.coms4156.tars.controller.TestKeys.clientKey()))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.status").value(400))
         .andExpect(jsonPath("$.message").exists());
@@ -87,7 +100,8 @@ public class TarsUserEndpointUnitTest {
    */
   @Test
   void testGetTarsUserListNonEmpty() throws Exception {
-    mockMvc.perform(get("/tarsUsers"))
+    mockMvc.perform(get("/tarsUsers")
+      .header("X-API-Key", org.coms4156.tars.controller.TestKeys.clientKey()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$", hasSize(4)));
   }

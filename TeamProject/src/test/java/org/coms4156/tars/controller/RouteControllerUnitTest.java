@@ -74,13 +74,18 @@ public class RouteControllerUnitTest {
     long clientId = 1L;
     try {
       java.io.File f = new java.io.File("./data/clients.json");
-      com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-      java.util.List<org.coms4156.tars.model.Client> clients = mapper.readValue(
-          f, new com.fasterxml.jackson.core.type.TypeReference<java.util.List<org.coms4156.tars.model.Client>>() {});
+      com.fasterxml.jackson.databind.ObjectMapper mapper =
+          new com.fasterxml.jackson.databind.ObjectMapper();
+      com.fasterxml.jackson.core.type.TypeReference<java.util.List<
+          org.coms4156.tars.model.Client>> typeRef =
+          new com.fasterxml.jackson.core.type.TypeReference<
+              java.util.List<org.coms4156.tars.model.Client>>() {};
+      java.util.List<org.coms4156.tars.model.Client> clients =
+          mapper.readValue(f, typeRef);
       if (!clients.isEmpty()) {
         clientId = clients.get(0).getClientId();
       }
-    } catch (Exception ignored) {}
+    } catch (Exception ignored) { /* intentional for test setup */ }
     java.util.Map<String, Integer> payload = new java.util.HashMap<>();
     payload.put("limit", 10);
     mockMvc.perform(post("/clients/" + clientId + "/setRateLimit")
@@ -105,7 +110,7 @@ public class RouteControllerUnitTest {
           new TravelAdvisory("Indonesia", "Level 2: Exercise increased caution", mockRisks);
     
     mockMvc.perform(get("/country/Indonesia").header("X-API-Key", TestKeys.clientKey()))
-      .andExpect(status().isOk())
+        .andExpect(status().isOk())
         .andExpect(content().string(mockIndonesiaAdvisory.toString()));
 
     mockMvc.perform(get("/country/Earth").header("X-API-Key", TestKeys.clientKey()))
@@ -162,24 +167,4 @@ public class RouteControllerUnitTest {
   }
 }
 
-class TestKeys {
-  private static String cachedClientKey;
-
-  public static String clientKey() {
-    if (cachedClientKey != null) return cachedClientKey;
-    try {
-      // Read first client's key from data/clients.json
-      com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-      java.io.File f = new java.io.File("./data/clients.json");
-      java.util.List<org.coms4156.tars.model.Client> clients = mapper.readValue(
-          f, new com.fasterxml.jackson.core.type.TypeReference<java.util.List<org.coms4156.tars.model.Client>>() {});
-      if (!clients.isEmpty()) {
-        cachedClientKey = clients.get(0).getApiKey();
-        return cachedClientKey;
-      }
-    } catch (Exception ignored) {}
-    // Fallback to a known test key if data file missing
-    cachedClientKey = "clientkey000000000000000000000000";
-    return cachedClientKey;
-  }
-}
+// Helper moved to its own file to satisfy OneTopLevelClass rule.

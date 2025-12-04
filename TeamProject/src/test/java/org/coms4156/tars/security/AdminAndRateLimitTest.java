@@ -21,6 +21,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
+/**
+ * Integration test for admin access control and rate limiting functionality.
+ */
 @SpringBootTest(properties = {
   "security.enabled=true",
   "security.adminApiKeys=adminkey000000000000000000000000",
@@ -38,8 +41,13 @@ public class AdminAndRateLimitTest {
   private static long CLIENT_ID;
   private static String CLIENT_KEY;
 
+  /**
+   * Seeds test client for rate limiting tests.
+   *
+   * @throws IOException if file operations fail
+   */
   @BeforeAll
-  public static void seed() throws IOException {
+  public static void setup() throws IOException {
     File f = new File(DATA_PATH);
     if (!f.exists()) {
       f.getParentFile().mkdirs();
@@ -67,14 +75,16 @@ public class AdminAndRateLimitTest {
   @Test
   @Order(1)
   public void nonAdminAccessClientsEndpointForbidden() throws Exception {
-    mockMvc.perform(post("/clients/" + CLIENT_ID + "/rotateKey").header("X-API-Key", CLIENT_KEY))
+    mockMvc.perform(post("/clients/" + CLIENT_ID + "/rotateKey")
+            .header("X-API-Key", CLIENT_KEY))
         .andExpect(status().isForbidden());
   }
 
   @Test
   @Order(2)
   public void adminAccessClientsEndpointAllowed() throws Exception {
-    mockMvc.perform(post("/clients/" + CLIENT_ID + "/rotateKey").header("X-API-Key", "adminkey000000000000000000000000"))
+    mockMvc.perform(post("/clients/" + CLIENT_ID + "/rotateKey")
+            .header("X-API-Key", "adminkey000000000000000000000000"))
         .andExpect(status().isOk());
   }
 
@@ -82,7 +92,8 @@ public class AdminAndRateLimitTest {
   @Order(3)
   public void rateLimitExceededReturns429() throws Exception {
     // Reload current key in case it was rotated in previous test
-    List<Client> clients = MAPPER.readValue(new File(DATA_PATH), new TypeReference<List<Client>>() {});
+    List<Client> clients = MAPPER.readValue(new File(DATA_PATH),
+        new TypeReference<List<Client>>() {});
     for (Client c : clients) {
       if (c.getClientId().equals(CLIENT_ID)) {
         CLIENT_KEY = c.getApiKey();
@@ -90,9 +101,10 @@ public class AdminAndRateLimitTest {
       }
     }
     // Ensure very low rate limit for the client
-    mockMvc.perform(post("/clients/" + CLIENT_ID + "/setRateLimit").header("X-API-Key", "adminkey000000000000000000000000")
-      .contentType("application/json").content("{\"limit\":1}"))
-      .andExpect(status().isOk());
+    mockMvc.perform(post("/clients/" + CLIENT_ID + "/setRateLimit")
+            .header("X-API-Key", "adminkey000000000000000000000000")
+            .contentType("application/json").content("{\"limit\":1}"))
+        .andExpect(status().isOk());
     // First allowed
     mockMvc.perform(get("/tarsUsers").header("X-API-Key", CLIENT_KEY))
         .andExpect(status().isOk());

@@ -29,7 +29,13 @@ import org.springframework.test.web.servlet.MockMvc;
  * in RouteController endpoints.
  */
 @WebMvcTest(RouteController.class)
+@org.springframework.test.context.TestPropertySource(properties = {
+  "security.clientApiKeys=clientkey000000000000000000000000",
+  "security.adminApiKeys=adminkey000000000000000000000000"
+})
+@org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc(addFilters = false)
 public class RouteControllerExceptionTest {
+  private static final String ADMIN_KEY = "adminkey000000000000000000000000";
 
   @Autowired
   private MockMvc mockMvc;
@@ -47,7 +53,8 @@ public class RouteControllerExceptionTest {
     Mockito.when(tarsService.getUserPreferenceList())
         .thenThrow(new RuntimeException("Database error"));
 
-    mockMvc.perform(get("/userPreferenceList"))
+    mockMvc.perform(get("/userPreferenceList")
+      .header("X-API-Key", ADMIN_KEY))
         .andExpect(status().isInternalServerError());
   }
 
@@ -74,6 +81,7 @@ public class RouteControllerExceptionTest {
     Mockito.when(tarsService.setUserPreference(preference)).thenReturn(false);
 
     mockMvc.perform(put("/setPreference/1")
+      .header("X-API-Key", ADMIN_KEY)
       .contentType("application/json")
       .content(mapper.writeValueAsString(preference)))
         .andExpect(status().isBadRequest())
@@ -87,6 +95,7 @@ public class RouteControllerExceptionTest {
           .thenThrow(new RuntimeException("API error"));
 
       mockMvc.perform(get("/recommendation/weather/")
+          .header("X-API-Key", ADMIN_KEY)
           .param("city", "InvalidCity")
           .param("days", "7")
           .contentType(MediaType.APPLICATION_JSON))
@@ -106,6 +115,7 @@ public class RouteControllerExceptionTest {
           .thenThrow(new IllegalArgumentException("Invalid city"));
 
       mockMvc.perform(get("/alert/weather")
+          .header("X-API-Key", ADMIN_KEY)
           .param("city", "InvalidCity")
           .contentType(MediaType.APPLICATION_JSON))
           .andExpect(status().isBadRequest());
@@ -121,6 +131,7 @@ public class RouteControllerExceptionTest {
           .thenThrow(new RuntimeException("Network error"));
 
       mockMvc.perform(get("/alert/weather")
+          .header("X-API-Key", ADMIN_KEY)
           .param("city", "ErrorCity")
           .contentType(MediaType.APPLICATION_JSON))
           .andExpect(status().isInternalServerError());
@@ -142,6 +153,7 @@ public class RouteControllerExceptionTest {
           .thenThrow(new IllegalArgumentException("Invalid user data"));
 
       mockMvc.perform(get("/alert/weather/user/1")
+          .header("X-API-Key", ADMIN_KEY)
           .contentType(MediaType.APPLICATION_JSON))
           .andExpect(status().isBadRequest());
     }
@@ -163,6 +175,7 @@ public class RouteControllerExceptionTest {
           .thenThrow(new RuntimeException("Unexpected error"));
 
       mockMvc.perform(get("/alert/weather/user/1")
+          .header("X-API-Key", ADMIN_KEY)
           .contentType(MediaType.APPLICATION_JSON))
           .andExpect(status().isInternalServerError());
     }
@@ -179,6 +192,7 @@ public class RouteControllerExceptionTest {
             })) {
 
       mockMvc.perform(get("/crime/summary")
+          .header("X-API-Key", ADMIN_KEY)
           .param("state", "NC")
           .param("offense", "V")
           .param("month", "10")
@@ -198,7 +212,8 @@ public class RouteControllerExceptionTest {
                   .thenThrow(new IllegalArgumentException("Invalid Country Error"));
             })) {
 
-      mockMvc.perform(get("/country/Canada"))
+      mockMvc.perform(get("/country/Canada")
+        .header("X-API-Key", ADMIN_KEY))
         .andExpect(status().isBadRequest())
           .andExpect(content().string("Invalid Country Error"));
     }
@@ -214,7 +229,8 @@ public class RouteControllerExceptionTest {
                   .thenThrow(new RuntimeException("Invalid Country Error"));
             })) {
 
-      mockMvc.perform(get("/country/Canada"))
+      mockMvc.perform(get("/country/Canada")
+          .header("X-API-Key", ADMIN_KEY))
           .andExpect(status().isInternalServerError());
     }
   }

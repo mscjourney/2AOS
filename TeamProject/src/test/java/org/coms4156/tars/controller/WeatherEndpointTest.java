@@ -41,9 +41,14 @@ import org.springframework.test.web.servlet.MockMvc;
  *    GET /alert/weather?city={city}&lat={lat}&lon={lon}
  *    GET /alert/weather/user/{userId}
  */
-@SpringBootTest
+@SpringBootTest(properties = {
+  "security.clientApiKeys=clientkey000000000000000000000000",
+  "security.adminApiKeys=adminkey000000000000000000000000"
+})
 @AutoConfigureMockMvc
 public class WeatherEndpointTest {
+  private static final String API_KEY = "clientkey000000000000000000000000";
+  private static final String ADMIN_KEY = "adminkey000000000000000000000000";
 
   @Autowired
   private MockMvc mockMvc;
@@ -127,6 +132,7 @@ public class WeatherEndpointTest {
           .thenReturn(recommendation);
 
       mockMvc.perform(get("/recommendation/weather/")
+          .header("X-API-Key", ADMIN_KEY)
           .param("city", "New York")
           .param("days", "7"))
           .andExpect(status().isOk())
@@ -152,6 +158,7 @@ public class WeatherEndpointTest {
           .thenReturn(recommendation);
 
       mockMvc.perform(get("/recommendation/weather/")
+          .header("X-API-Key", ADMIN_KEY)
           .param("city", "Boston")
           .param("days", "14"))
           .andExpect(status().isOk())
@@ -165,6 +172,7 @@ public class WeatherEndpointTest {
           .thenReturn(recommendation);
       // RecommendedDays is at most one since we are only looking at one day range.
       mockMvc.perform(get("/recommendation/weather/")
+          .header("X-API-Key", ADMIN_KEY)
           .param("city", "Boston")
           .param("days", "1"))
           .andExpect(status().isOk())
@@ -186,6 +194,7 @@ public class WeatherEndpointTest {
           .thenReturn(recommendation);
 
       mockMvc.perform(get("/recommendation/weather/")
+          .header("X-API-Key", ADMIN_KEY)
           .param("city", "San Francisco")
           .param("days", "5")
           .contentType(MediaType.APPLICATION_JSON))
@@ -203,18 +212,21 @@ public class WeatherEndpointTest {
   @Test
   public void testGetWeatherRecommendationInvalidCityValidDays() throws Exception {
     mockMvc.perform(get("/recommendation/weather/")
+      .header("X-API-Key", ADMIN_KEY)
         .param("city", "109123")
         .param("days", "1"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.message", containsString("Error processing forecast")));
 
     mockMvc.perform(get("/recommendation/weather/")
+      .header("X-API-Key", ADMIN_KEY)
         .param("city", "asdasdsad")
         .param("days", "14"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.message", containsString("Error processing forecast")));
 
     mockMvc.perform(get("/recommendation/weather/")
+      .header("X-API-Key", ADMIN_KEY)
         .param("city", "!!!")
         .param("days", "7"))
         .andExpect(status().isOk())
@@ -231,16 +243,19 @@ public class WeatherEndpointTest {
   @Test
   public void testGetWeatherRecommendationWithInvalidDays() throws Exception {
     mockMvc.perform(get("/recommendation/weather/")
+      .header("X-API-Key", ADMIN_KEY)
         .param("city", "Boston")
         .param("days", "0"))
         .andExpect(status().isBadRequest());
 
     mockMvc.perform(get("/recommendation/weather/")
+      .header("X-API-Key", ADMIN_KEY)
         .param("city", "Boston")
         .param("days", "15"))
         .andExpect(status().isBadRequest());
 
     mockMvc.perform(get("/recommendation/weather/")
+      .header("X-API-Key", ADMIN_KEY)
         .param("city", "Boston")
         .param("days", "-5"))
         .andExpect(status().isBadRequest());
@@ -265,6 +280,7 @@ public class WeatherEndpointTest {
           .thenReturn(coordAlert);
 
       mockMvc.perform(get("/alert/weather")
+          .header("X-API-Key", ADMIN_KEY)
           .param("lat", "40.7128")
           .param("lon", "-74.0060")
           .contentType(MediaType.APPLICATION_JSON))
@@ -286,6 +302,7 @@ public class WeatherEndpointTest {
           .thenReturn(extremeAlert);
 
       mockMvc.perform(get("/alert/weather")
+          .header("X-API-Key", ADMIN_KEY)
           .param("lat", "90.0")
           .param("lon", "180.0")
           .contentType(MediaType.APPLICATION_JSON))
@@ -311,6 +328,7 @@ public class WeatherEndpointTest {
           .thenReturn(mockWeatherAlert);
 
       mockMvc.perform(get("/alert/weather")
+          .header("X-API-Key", ADMIN_KEY)
           .param("city", "New York"))
           .andExpect(status().isOk())
           .andExpect(jsonPath("$.location").value("New York"))
@@ -331,6 +349,7 @@ public class WeatherEndpointTest {
           .thenReturn(mockWeatherAlert);
 
       mockMvc.perform(get("/alert/weather")
+          .header("X-API-Key", ADMIN_KEY)
           .param("city", "New York")
           .param("lat", "35.229"))
           .andExpect(status().isOk())
@@ -352,6 +371,7 @@ public class WeatherEndpointTest {
           .thenReturn(mockWeatherAlert);
 
       mockMvc.perform(get("/alert/weather")
+          .header("X-API-Key", ADMIN_KEY)
           .param("city", "New York")
           .param("lon", "-48.1943"))
           .andExpect(status().isOk())
@@ -375,6 +395,7 @@ public class WeatherEndpointTest {
           .thenReturn(accentedAlert);
 
       mockMvc.perform(get("/alert/weather")
+          .header("X-API-Key", ADMIN_KEY)
           .param("city", "São Paulo")
           .contentType(MediaType.APPLICATION_JSON))
           .andExpect(status().isOk())
@@ -391,15 +412,18 @@ public class WeatherEndpointTest {
   @Test
   public void testGetWeatherAlertInvalidCity() throws Exception {
     mockMvc.perform(get("/alert/weather")
+      .header("X-API-Key", ADMIN_KEY)
         .param("city", "asdoij"))
           .andExpect(status().isBadRequest());
       
     mockMvc.perform(get("/alert/weather")
+      .header("X-API-Key", ADMIN_KEY)
         .param("city", "!!!")
         .param("lat", "39.213"))
           .andExpect(status().isBadRequest());
       
     mockMvc.perform(get("/alert/weather")
+      .header("X-API-Key", ADMIN_KEY)
         .param("city", "!!!")
         .param("lon", "-19.213"))
           .andExpect(status().isBadRequest());
@@ -412,14 +436,17 @@ public class WeatherEndpointTest {
    */
   @Test
   public void testGetWeatherAlertNoParam() throws Exception {
-    mockMvc.perform(get("/alert/weather"))
+    mockMvc.perform(get("/alert/weather")
+      .header("X-API-Key", ADMIN_KEY))
         .andExpect(status().isBadRequest());
 
     mockMvc.perform(get("/alert/weather")
+      .header("X-API-Key", ADMIN_KEY)
       .param("lat", "42.1345"))
         .andExpect(status().isBadRequest());
     
     mockMvc.perform(get("/alert/weather")
+      .header("X-API-Key", ADMIN_KEY)
       .param("lon", "-32.15"))
         .andExpect(status().isBadRequest());
   }
@@ -442,7 +469,8 @@ public class WeatherEndpointTest {
       mockedModel.when(() -> WeatherAlertModel.getUserAlerts(mockUser))
           .thenReturn(mockList);
 
-      mockMvc.perform(get("/alert/weather/user/2"))
+      mockMvc.perform(get("/alert/weather/user/2")
+          .header("X-API-Key", ADMIN_KEY))
           .andExpect(status().isOk())
           .andExpect(jsonPath("$[0].location").value("New York"))
           .andExpect(jsonPath("$[0].alerts").isArray())
@@ -473,7 +501,8 @@ public class WeatherEndpointTest {
     TarsUser tarsUser = new TarsUser(4L, "Denise", "den@gmail.com", "user");
     Mockito.when(tarsUserService.findById(4L)).thenReturn(tarsUser);
 
-    mockMvc.perform(get("/alert/weather/user/4"))
+    mockMvc.perform(get("/alert/weather/user/4")
+      .header("X-API-Key", ADMIN_KEY))
         .andExpect(status().isNotFound())
         .andExpect(content().string("User Preferences not found."));
   }
@@ -485,11 +514,13 @@ public class WeatherEndpointTest {
    */
   @Test
   public void testGetUserWeatherAlertsNoTarsUser() throws Exception {
-    mockMvc.perform(get("/alert/weather/user/0"))
+    mockMvc.perform(get("/alert/weather/user/0")
+      .header("X-API-Key", ADMIN_KEY))
         .andExpect(status().isNotFound())
         .andExpect(content().string("TarsUser not found."));
     
-    mockMvc.perform(get("/alert/weather/user/12308"))
+    mockMvc.perform(get("/alert/weather/user/12308")
+      .header("X-API-Key", ADMIN_KEY))
         .andExpect(status().isNotFound())
         .andExpect(content().string("TarsUser not found."));
   }
@@ -500,11 +531,13 @@ public class WeatherEndpointTest {
    */
   @Test
   public void testGetUserWeatherAlertsNegativeId() throws Exception {
-    mockMvc.perform(get("/alert/weather/user/-1"))
+    mockMvc.perform(get("/alert/weather/user/-1")
+      .header("X-API-Key", ADMIN_KEY))
         .andExpect(status().isBadRequest())
         .andExpect(content().string("User Id cannot be less than zero."));
     
-    mockMvc.perform(get("/alert/weather/user/-1290"))
+    mockMvc.perform(get("/alert/weather/user/-1290")
+      .header("X-API-Key", ADMIN_KEY))
         .andExpect(status().isBadRequest())
         .andExpect(content().string("User Id cannot be less than zero."));
   }
@@ -521,6 +554,7 @@ public class WeatherEndpointTest {
              LoggerTestUtil.capture(RouteController.class, Level.WARN)) {
 
       mockMvc.perform(get("/recommendation/weather/")
+        .header("X-API-Key", ADMIN_KEY)
         .param("city", "New York")
         .param("days", "13"))
           .andExpect(status().isOk());
@@ -542,6 +576,7 @@ public class WeatherEndpointTest {
              LoggerTestUtil.capture(RouteController.class, Level.WARN)) {
               
       mockMvc.perform(get("/alert/weather")
+        .header("X-API-Key", ADMIN_KEY)
         .param("city", "Los Angeles"))
           .andExpect(status().isOk());
       
@@ -568,6 +603,7 @@ public class WeatherEndpointTest {
             .thenReturn(mockList);    
           
         mockMvc.perform(get("/alert/weather/user/2")
+          .header("X-API-Key", ADMIN_KEY)
           .param("city", "Los Angeles"))
             .andExpect(status().isOk());
         
@@ -589,6 +625,7 @@ public class WeatherEndpointTest {
              LoggerTestUtil.capture(RouteController.class, Level.ERROR)) {
       
       mockMvc.perform(get("/recommendation/weather/")
+        .header("X-API-Key", ADMIN_KEY)
         .param("city", "New York")
         .param("days", "20"))
           .andExpect(status().isBadRequest());
@@ -610,10 +647,12 @@ public class WeatherEndpointTest {
              LoggerTestUtil.capture(RouteController.class, Level.ERROR)) {
       
       mockMvc.perform(get("/alert/weather")
+        .header("X-API-Key", ADMIN_KEY)
         .param("lat", "20.9104"))
           .andExpect(status().isBadRequest());
       
       mockMvc.perform(get("/alert/weather")
+        .header("X-API-Key", ADMIN_KEY)
         .param("city", "!!!"))
           .andExpect(status().isBadRequest());
 
@@ -633,16 +672,19 @@ public class WeatherEndpointTest {
     try (LoggerTestUtil.CapturedLogger cap =
              LoggerTestUtil.capture(RouteController.class, Level.ERROR)) {
       
-      mockMvc.perform(get("/alert/weather/user/-1"))
+      mockMvc.perform(get("/alert/weather/user/-1")
+          .header("X-API-Key", ADMIN_KEY))
           .andExpect(status().isBadRequest());
       
-      mockMvc.perform(get("/alert/weather/user/1"))
+      mockMvc.perform(get("/alert/weather/user/1")
+          .header("X-API-Key", ADMIN_KEY))
           .andExpect(status().isNotFound());
 
       TarsUser tarsUser = new TarsUser(2L, "Denise", "den@gmail.com", "user");
       Mockito.when(tarsUserService.findById(2L)).thenReturn(tarsUser);
 
-      mockMvc.perform(get("/alert/weather/user/2"))
+      mockMvc.perform(get("/alert/weather/user/2")
+          .header("X-API-Key", ADMIN_KEY))
           .andExpect(status().isNotFound());
 
       assertFalse(

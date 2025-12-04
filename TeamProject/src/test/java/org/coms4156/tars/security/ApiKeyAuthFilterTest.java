@@ -21,8 +21,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
+/**
+ * Integration test for API key authentication filter.
+ */
 @SpringBootTest
-  @TestPropertySource(properties = "security.enabled=true")
+@TestPropertySource(properties = "security.enabled=true")
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ApiKeyAuthFilterTest {
@@ -34,8 +37,13 @@ public class ApiKeyAuthFilterTest {
   private static final ObjectMapper MAPPER = new ObjectMapper();
   private static final String TEST_API_KEY = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"; // 32 hex chars
 
+  /**
+   * Seeds test client for authentication tests.
+   *
+   * @throws IOException if file operations fail
+   */
   @BeforeAll
-  public static void seedClients() throws IOException {
+  public static void setup() throws IOException {
     File file = new File(DATA_PATH);
     File parent = file.getParentFile();
     if (parent != null && !parent.exists()) {

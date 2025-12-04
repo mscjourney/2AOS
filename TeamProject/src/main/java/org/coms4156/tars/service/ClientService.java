@@ -92,6 +92,7 @@ public class ClientService {
     }
     return null;
   }
+
   /**
    * {@code generateApiKey} Generates a new API key for a client.
    *

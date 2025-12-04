@@ -35,9 +35,14 @@ import org.springframework.test.web.servlet.MockMvc;
  *    GET /userPreferenceList
  *    GET /userPreferenceList/client/{clientId}
  */
-@SpringBootTest
+@SpringBootTest(properties = {
+  "security.clientApiKeys=clientkey000000000000000000000000",
+  "security.adminApiKeys=adminkey000000000000000000000000"
+})
 @AutoConfigureMockMvc
 public class UserPreferenceEndpointTest {
+  private static final String API_KEY = "clientkey000000000000000000000000";
+  private static final String ADMIN_KEY = "adminkey000000000000000000000000";
     
   @Autowired
   private MockMvc mockMvc;
@@ -63,6 +68,7 @@ public class UserPreferenceEndpointTest {
         List.of("New York",  "Paris"));
 
     mockMvc.perform(put("/setPreference/1")
+        .header("X-API-Key", ADMIN_KEY)
         .contentType("application/json")
         .content(mapper.writeValueAsString(user1)))
         // Accept either 200 (added) or 400 (RequestBody is null) 
@@ -75,6 +81,7 @@ public class UserPreferenceEndpointTest {
         });
 
     mockMvc.perform(put("/setPreference/2")
+        .header("X-API-Key", ADMIN_KEY)
         .contentType("application/json")
         .content(mapper.writeValueAsString(user2)))
         // Accept either 200 (added) or 400 (RequestBody is null) 
@@ -96,14 +103,16 @@ public class UserPreferenceEndpointTest {
    */
   @Test
   public void getUserPreferenceTestValidId() throws Exception {
-    mockMvc.perform(get("/retrievePreference/1"))
+    mockMvc.perform(get("/retrievePreference/1")
+      .header("X-API-Key", ADMIN_KEY))
       .andExpect(status().isOk())
       .andExpect(jsonPath("$.id").value(1))
       .andExpect(jsonPath("$.weatherPreferences", contains("sunny")))
       .andExpect(jsonPath("$.temperaturePreferences", contains("22")))
         .andExpect(jsonPath("$.cityPreferences", contains("Boston")));
     
-    mockMvc.perform(get("/retrievePreference/2"))
+    mockMvc.perform(get("/retrievePreference/2")
+      .header("X-API-Key", ADMIN_KEY))
       .andExpect(status().isOk())
       .andExpect(jsonPath("$.id").value(2))
       .andExpect(jsonPath("$.weatherPreferences", contains("rainy")))
@@ -118,14 +127,17 @@ public class UserPreferenceEndpointTest {
    */
   @Test
   public void getUserPreferenceTestWithNoPreferences() throws Exception {
-    mockMvc.perform(put("/clearPreference/2"))
+    mockMvc.perform(put("/clearPreference/2")
+      .header("X-API-Key", ADMIN_KEY))
         .andExpect(status().isOk());
-    mockMvc.perform(get("/retrievePreference/2")) // No longer has any preferences
+    mockMvc.perform(get("/retrievePreference/2")
+      .header("X-API-Key", ADMIN_KEY)) // No longer has any preferences
         .andExpect(status().isBadRequest())
         .andExpect(content().string("User had no existing preferences."));
   
     // TarsUser with id 3 exist but no preferences have been set.
-    mockMvc.perform(get("/retrievePreference/3"))
+    mockMvc.perform(get("/retrievePreference/3")
+      .header("X-API-Key", ADMIN_KEY))
         .andExpect(status().isBadRequest())
         .andExpect(content().string("User had no existing preferences."));
   }
@@ -137,11 +149,13 @@ public class UserPreferenceEndpointTest {
    */
   @Test
   public void getUserPreferenceTestWithNoTarsUser() throws Exception {
-    mockMvc.perform(get("/retrievePreference/0"))
+    mockMvc.perform(get("/retrievePreference/0")
+      .header("X-API-Key", ADMIN_KEY))
       .andExpect(status().isNotFound())
         .andExpect(content().string(containsString("TarsUser not found.")));
   
-    mockMvc.perform(get("/retrievePreference/9999"))
+    mockMvc.perform(get("/retrievePreference/9999")
+      .header("X-API-Key", ADMIN_KEY))
       .andExpect(status().isNotFound())
         .andExpect(content().string(containsString("TarsUser not found.")));
   }
@@ -152,11 +166,13 @@ public class UserPreferenceEndpointTest {
    */
   @Test
   public void getUserPreferenceTestWithNegativeId() throws Exception {
-    mockMvc.perform(get("/retrievePreference/-1"))
+    mockMvc.perform(get("/retrievePreference/-1")
+      .header("X-API-Key", ADMIN_KEY))
       .andExpect(status().isBadRequest())
         .andExpect(content().string(containsString("User Id cannot be negative.")));
     
-    mockMvc.perform(get("/retrievePreference/-2831"))
+    mockMvc.perform(get("/retrievePreference/-2831")
+      .header("X-API-Key", ADMIN_KEY))
       .andExpect(status().isBadRequest())
         .andExpect(content().string(containsString("User Id cannot be negative.")));
   }
@@ -184,6 +200,7 @@ public class UserPreferenceEndpointTest {
     UserPreference newUserPreference = 
         new UserPreference(1L, weatherPreferences, temperaturePreferences, cityPreferences);
     mockMvc.perform(put("/setPreference/1")
+      .header("X-API-Key", ADMIN_KEY)
       .contentType("application/json")
       .content(mapper.writeValueAsString(newUserPreference)))
         .andExpect(status().isOk())
@@ -200,6 +217,7 @@ public class UserPreferenceEndpointTest {
     UserPreference modifiedUserPreference = 
         new UserPreference(1L, weatherPreferences, temperaturePreferences, cityPreferences);
     mockMvc.perform(put("/setPreference/1")
+      .header("X-API-Key", ADMIN_KEY)
       .contentType("application/json")
       .content(mapper.writeValueAsString(modifiedUserPreference)))
         .andExpect(status().isOk())
@@ -220,6 +238,7 @@ public class UserPreferenceEndpointTest {
     UserPreference preference = 
         new UserPreference(5L, emptyPreference, emptyPreference, emptyPreference);
     mockMvc.perform(put("/setPreference/10")
+      .header("X-API-Key", ADMIN_KEY)
       .contentType("application/json")
       .content(mapper.writeValueAsString(preference)))
         .andExpect(status().isBadRequest())
@@ -237,6 +256,7 @@ public class UserPreferenceEndpointTest {
     UserPreference preference = 
         new UserPreference(15L, emptyPreference, emptyPreference, emptyPreference);
     mockMvc.perform(put("/setPreference/15")
+      .header("X-API-Key", ADMIN_KEY)
       .contentType("application/json")
       .content(mapper.writeValueAsString(preference)))
         .andExpect(status().isNotFound())
@@ -245,6 +265,7 @@ public class UserPreferenceEndpointTest {
     preference = 
         new UserPreference(0L, emptyPreference, emptyPreference, emptyPreference);
     mockMvc.perform(put("/setPreference/0")
+      .header("X-API-Key", ADMIN_KEY)
       .contentType("application/json")
       .content(mapper.writeValueAsString(preference)))
         .andExpect(status().isNotFound())
@@ -261,6 +282,7 @@ public class UserPreferenceEndpointTest {
     UserPreference preference = 
         new UserPreference(-1L, emptyPreference, emptyPreference, emptyPreference);
     mockMvc.perform(put("/setPreference/-1")
+      .header("X-API-Key", ADMIN_KEY)
       .contentType("application/json")
       .content(mapper.writeValueAsString(preference)))
         .andExpect(status().isBadRequest())
@@ -269,6 +291,7 @@ public class UserPreferenceEndpointTest {
     preference = 
         new UserPreference(-1231L, emptyPreference, emptyPreference, emptyPreference);
     mockMvc.perform(put("/setPreference/-1231")
+      .header("X-API-Key", ADMIN_KEY)
       .contentType("application/json")
       .content(mapper.writeValueAsString(preference)))
         .andExpect(status().isBadRequest())
@@ -285,11 +308,13 @@ public class UserPreferenceEndpointTest {
    */
   @Test
   public void clearPreferenceValidId() throws Exception {
-    mockMvc.perform(put("/clearPreference/1"))
+    mockMvc.perform(put("/clearPreference/1")
+      .header("X-API-Key", ADMIN_KEY))
         .andExpect(status().isOk())
         .andExpect(content().string("User Preference cleared successfully."));
 
-    mockMvc.perform(put("/clearPreference/2"))
+    mockMvc.perform(put("/clearPreference/2")
+      .header("X-API-Key", ADMIN_KEY))
         .andExpect(status().isOk())
         .andExpect(content().string("User Preference cleared successfully."));
   }
@@ -301,15 +326,18 @@ public class UserPreferenceEndpointTest {
    */
   @Test
   public void clearPreferenceNoPreferences() throws Exception {
-    mockMvc.perform(put("/clearPreference/3"))
+    mockMvc.perform(put("/clearPreference/3")
+      .header("X-API-Key", ADMIN_KEY))
         .andExpect(status().isBadRequest())
         .andExpect(content().string("User had no existing preferences."));
 
-    mockMvc.perform(put("/clearPreference/2"))
+    mockMvc.perform(put("/clearPreference/2")
+      .header("X-API-Key", ADMIN_KEY))
         .andExpect(status().isOk())
         .andExpect(content().string("User Preference cleared successfully."));
     // Repeated clearPreference would also fall into this partition.
-    mockMvc.perform(put("/clearPreference/2"))
+    mockMvc.perform(put("/clearPreference/2")
+      .header("X-API-Key", ADMIN_KEY))
         .andExpect(status().isBadRequest())
         .andExpect(content().string("User had no existing preferences."));
   }
@@ -320,11 +348,13 @@ public class UserPreferenceEndpointTest {
    */
   @Test
   public void clearPreferenceNoTarsUser() throws Exception {
-    mockMvc.perform(put("/clearPreference/0"))
+    mockMvc.perform(put("/clearPreference/0")
+      .header("X-API-Key", ADMIN_KEY))
         .andExpect(status().isNotFound())
         .andExpect(content().string("TarsUser not found.")); 
  
-    mockMvc.perform(put("/clearPreference/10"))
+    mockMvc.perform(put("/clearPreference/10")
+      .header("X-API-Key", ADMIN_KEY))
         .andExpect(status().isNotFound())
         .andExpect(content().string("TarsUser not found."));   
   }
@@ -335,11 +365,13 @@ public class UserPreferenceEndpointTest {
    */
   @Test
   public void clearPreferenceNegativeId() throws Exception {
-    mockMvc.perform(put("/clearPreference/-1"))
+    mockMvc.perform(put("/clearPreference/-1")
+      .header("X-API-Key", ADMIN_KEY))
         .andExpect(status().isBadRequest())
         .andExpect(content().string("User Id cannot be negative."));   
     
-    mockMvc.perform(put("/clearPreference/-1231"))
+    mockMvc.perform(put("/clearPreference/-1231")
+      .header("X-API-Key", ADMIN_KEY))
         .andExpect(status().isBadRequest())
         .andExpect(content().string("User Id cannot be negative."));   
   }
@@ -352,7 +384,8 @@ public class UserPreferenceEndpointTest {
    */
   @Test
   public void testGetUserPreferenceList() throws Exception {
-    mockMvc.perform(get("/userPreferenceList"))
+    mockMvc.perform(get("/userPreferenceList")
+      .header("X-API-Key", ADMIN_KEY))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].id").value(1))
         .andExpect(jsonPath("$[0].weatherPreferences", contains("sunny")))
@@ -371,12 +404,15 @@ public class UserPreferenceEndpointTest {
   @Test
   public void testGetUserPreferenceListEmpty() throws Exception {
     // Remove the existing preferences
-    mockMvc.perform(put("/clearPreference/1"))
+    mockMvc.perform(put("/clearPreference/1")
+      .header("X-API-Key", ADMIN_KEY))
         .andExpect(status().isOk());
-    mockMvc.perform(put("/clearPreference/2"))
+    mockMvc.perform(put("/clearPreference/2")
+      .header("X-API-Key", ADMIN_KEY))
         .andExpect(status().isOk());
 
-    mockMvc.perform(get("/userPreferenceList"))
+    mockMvc.perform(get("/userPreferenceList")
+      .header("X-API-Key", ADMIN_KEY))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$", hasSize(0)));
   }
@@ -390,7 +426,8 @@ public class UserPreferenceEndpointTest {
    */
   @Test
   public void testGetClientUserListWithExistingPreferences() throws Exception {
-    mockMvc.perform(get("/userPreferenceList/client/1"))
+    mockMvc.perform(get("/userPreferenceList/client/1")
+      .header("X-API-Key", ADMIN_KEY))
         .andExpect(jsonPath("$[0].id").value(1))
         .andExpect(jsonPath("$[0].weatherPreferences", contains("sunny")))
         .andExpect(jsonPath("$[0].temperaturePreferences", contains("22")))
@@ -404,10 +441,12 @@ public class UserPreferenceEndpointTest {
    */  
   @Test
   public void testGetClientUserListWithNoPreferences() throws Exception {
-    mockMvc.perform(put("/clearPreference/2"))
+    mockMvc.perform(put("/clearPreference/2")
+      .header("X-API-Key", ADMIN_KEY))
         .andExpect(status().isOk());
 
-    mockMvc.perform(get("/userPreferenceList/client/2"))
+    mockMvc.perform(get("/userPreferenceList/client/2")
+      .header("X-API-Key", ADMIN_KEY))
         .andExpect(jsonPath("$[0].id").value(2))
         .andExpect(jsonPath("$[0].weatherPreferences", empty()))
         .andExpect(jsonPath("$[0].temperaturePreferences", empty()))
@@ -423,15 +462,18 @@ public class UserPreferenceEndpointTest {
   @Test
   public void testGetClientUserListWithNoUsers() throws Exception {
     // Client 6 does not have users under it
-    mockMvc.perform(get("/userPreferenceList/client/6"))
+    mockMvc.perform(get("/userPreferenceList/client/6")
+      .header("X-API-Key", ADMIN_KEY))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$", hasSize(0)));
 
     // Client 0 and Client 3030 does not exist
-    mockMvc.perform(get("/userPreferenceList/client/0"))
+    mockMvc.perform(get("/userPreferenceList/client/0")
+      .header("X-API-Key", ADMIN_KEY))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$", hasSize(0)));
-    mockMvc.perform(get("/userPreferenceList/client/3030"))
+    mockMvc.perform(get("/userPreferenceList/client/3030")
+      .header("X-API-Key", ADMIN_KEY))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$", hasSize(0)));
   }
@@ -442,10 +484,12 @@ public class UserPreferenceEndpointTest {
    */  
   @Test
   public void testGetClientUserListNegativeId() throws Exception {
-    mockMvc.perform(get("/userPreferenceList/client/-1"))
+    mockMvc.perform(get("/userPreferenceList/client/-1")
+      .header("X-API-Key", ADMIN_KEY))
         .andExpect(status().isBadRequest());
     
-    mockMvc.perform(get("/userPreferenceList/client/-1123"))
+    mockMvc.perform(get("/userPreferenceList/client/-1123")
+      .header("X-API-Key", ADMIN_KEY))
         .andExpect(status().isBadRequest());
   }
 
@@ -463,6 +507,7 @@ public class UserPreferenceEndpointTest {
           List.of("10", "15"), List.of("New York",  "Paris"));
 
       mockMvc.perform(put("/setPreference/2")
+        .header("X-API-Key", ADMIN_KEY)
         .contentType("application/json")
         .content(mapper.writeValueAsString(userPreference)))
           .andExpect(status().isOk());
@@ -483,7 +528,8 @@ public class UserPreferenceEndpointTest {
     try (LoggerTestUtil.CapturedLogger cap =
              LoggerTestUtil.capture(RouteController.class, Level.WARN)) {
 
-      mockMvc.perform(put("/clearPreference/2"))
+      mockMvc.perform(put("/clearPreference/2")
+        .header("X-API-Key", ADMIN_KEY))
           .andExpect(status().isOk());
 
       assertFalse(
@@ -502,7 +548,8 @@ public class UserPreferenceEndpointTest {
     try (LoggerTestUtil.CapturedLogger cap =
              LoggerTestUtil.capture(RouteController.class, Level.WARN)) {
 
-      mockMvc.perform(get("/retrievePreference/2"))
+      mockMvc.perform(get("/retrievePreference/2")
+        .header("X-API-Key", ADMIN_KEY))
           .andExpect(status().isOk())
           .andExpect(jsonPath("$.id").value(2))
           .andExpect(jsonPath("$.weatherPreferences", contains("rainy")))
@@ -525,7 +572,8 @@ public class UserPreferenceEndpointTest {
     try (LoggerTestUtil.CapturedLogger cap =
              LoggerTestUtil.capture(RouteController.class, Level.WARN)) {
 
-      mockMvc.perform(get("/userPreferenceList"))
+      mockMvc.perform(get("/userPreferenceList")
+        .header("X-API-Key", ADMIN_KEY))
           .andExpect(status().isOk())
           .andExpect(jsonPath("$", hasSize(2)))
           .andExpect(jsonPath("$[0].id").value(1))
@@ -548,7 +596,8 @@ public class UserPreferenceEndpointTest {
     try (LoggerTestUtil.CapturedLogger cap =
              LoggerTestUtil.capture(RouteController.class, Level.WARN)) {
 
-      mockMvc.perform(get("/userPreferenceList/client/1"))
+      mockMvc.perform(get("/userPreferenceList/client/1")
+        .header("X-API-Key", ADMIN_KEY))
           .andExpect(status().isOk())
           .andExpect(jsonPath("$", hasSize(1)))
           .andExpect(jsonPath("$[0].id").value(1));
@@ -573,12 +622,14 @@ public class UserPreferenceEndpointTest {
           List.of("10", "15"), List.of("New York",  "Paris"));
 
       mockMvc.perform(put("/setPreference/-1")
+        .header("X-API-Key", ADMIN_KEY)
         .contentType("application/json")
         .content(mapper.writeValueAsString(userPreference)))
           .andExpect(status().isBadRequest())
           .andExpect(content().string("User Id cannot be negative."));
 
       mockMvc.perform(put("/setPreference/2")
+        .header("X-API-Key", ADMIN_KEY)
         .contentType("application/json")
         .content(mapper.writeValueAsString(userPreference)))
           .andExpect(status().isBadRequest())
@@ -587,6 +638,7 @@ public class UserPreferenceEndpointTest {
       userPreference = new UserPreference(203L, List.of("rainy"),
         List.of("10", "15"), List.of("New York",  "Paris"));
       mockMvc.perform(put("/setPreference/203")
+      .header("X-API-Key", ADMIN_KEY)
       .contentType("application/json")
       .content(mapper.writeValueAsString(userPreference)))
         .andExpect(status().isNotFound())
@@ -608,15 +660,18 @@ public class UserPreferenceEndpointTest {
     try (LoggerTestUtil.CapturedLogger cap =
              LoggerTestUtil.capture(RouteController.class, Level.ERROR)) {
 
-      mockMvc.perform(put("/clearPreference/-1"))
+      mockMvc.perform(put("/clearPreference/-1")
+        .header("X-API-Key", ADMIN_KEY))
           .andExpect(status().isBadRequest())
           .andExpect(content().string("User Id cannot be negative."));
 
-      mockMvc.perform(put("/clearPreference/3"))
+      mockMvc.perform(put("/clearPreference/3")
+        .header("X-API-Key", ADMIN_KEY))
           .andExpect(status().isBadRequest())
           .andExpect(content().string("User had no existing preferences."));    
 
-      mockMvc.perform(put("/clearPreference/6"))
+      mockMvc.perform(put("/clearPreference/6")
+        .header("X-API-Key", ADMIN_KEY))
           .andExpect(status().isNotFound())
           .andExpect(content().string("TarsUser not found."));  
 
@@ -636,15 +691,18 @@ public class UserPreferenceEndpointTest {
     try (LoggerTestUtil.CapturedLogger cap =
              LoggerTestUtil.capture(RouteController.class, Level.ERROR)) {
 
-      mockMvc.perform(get("/retrievePreference/-1"))
+      mockMvc.perform(get("/retrievePreference/-1")
+        .header("X-API-Key", ADMIN_KEY))
           .andExpect(status().isBadRequest())
           .andExpect(content().string("User Id cannot be negative."));
 
-      mockMvc.perform(get("/retrievePreference/3"))
+      mockMvc.perform(get("/retrievePreference/3")
+        .header("X-API-Key", ADMIN_KEY))
           .andExpect(status().isBadRequest())
           .andExpect(content().string("User had no existing preferences."));    
       
-      mockMvc.perform(get("/retrievePreference/300"))
+      mockMvc.perform(get("/retrievePreference/300")
+        .header("X-API-Key", ADMIN_KEY))
           .andExpect(status().isNotFound())
           .andExpect(content().string("TarsUser not found."));    
 
@@ -664,7 +722,8 @@ public class UserPreferenceEndpointTest {
     try (LoggerTestUtil.CapturedLogger cap =
              LoggerTestUtil.capture(RouteController.class, Level.ERROR)) {
 
-      mockMvc.perform(get("/userPreferenceList/client/-1"))
+      mockMvc.perform(get("/userPreferenceList/client/-1")
+        .header("X-API-Key", ADMIN_KEY))
           .andExpect(status().isBadRequest());  
 
       assertFalse(

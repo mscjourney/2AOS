@@ -21,6 +21,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
+/**
+ * Integration test for client API key rotation functionality with admin security.
+ */
 @SpringBootTest(properties = {
   "security.adminApiKeys=adminkey000000000000000000000000",
   "security.apiKey.header=X-API-Key",
@@ -39,6 +42,11 @@ public class ClientKeyRotationTest {
   // private static String TEST_API_KEY;
   private static long TEST_CLIENT_ID;
 
+  /**
+   * Ensures a test client exists in the clients data file before running tests.
+   *
+   * @throws IOException if file operations fail
+   */
   @BeforeAll
   public static void ensureClient() throws IOException {
     File file = new File(DATA_PATH);
@@ -53,12 +61,14 @@ public class ClientKeyRotationTest {
       clients = new ArrayList<>();
     }
     if (clients.isEmpty()) {
-      Client c = new Client(1L, "rotation-client", "rotation@example.com", "cccccccccccccccccccccccccccccccc");
+      Client c = new Client(1L, "rotation-client", "rotation@example.com",
+          "cccccccccccccccccccccccccccccccc");
       clients.add(c);
     }
     Client first = clients.get(0);
     // client key not used for admin-only rotation
-    TEST_CLIENT_ID = first.getClientId() == null ? 1L : first.getClientId();
+    TEST_CLIENT_ID = first.getClientId() == null
+        ? 1L : first.getClientId();
     MAPPER.writeValue(file, clients);
   }
 
@@ -73,10 +83,11 @@ public class ClientKeyRotationTest {
   @Order(2)
   public void rotateWithAdminKeyReturnsNewKey() throws Exception {
     // Admin-only endpoint: use configured admin key
-    mockMvc.perform(post("/clients/" + TEST_CLIENT_ID + "/rotateKey").header("X-API-Key", "adminkey000000000000000000000000"))
-      .andExpect(status().isOk())
-      .andExpect(jsonPath("$.apiKey").exists())
-      .andExpect(jsonPath("$.apiKey").isString())
-      .andExpect(jsonPath("$.clientId").value(String.valueOf(TEST_CLIENT_ID)));
+    mockMvc.perform(post("/clients/" + TEST_CLIENT_ID + "/rotateKey")
+            .header("X-API-Key", "adminkey000000000000000000000000"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.apiKey").exists())
+        .andExpect(jsonPath("$.apiKey").isString())
+        .andExpect(jsonPath("$.clientId").value(String.valueOf(TEST_CLIENT_ID)));
   }
 }

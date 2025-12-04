@@ -17,6 +17,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
 
+/**
+ * Integration test for custom API key header configuration.
+ */
 @SpringBootTest(properties = {
   "security.apiKey.header=X-CUSTOM-Key",
   "security.enabled=true"
@@ -31,6 +34,11 @@ public class ApiKeyHeaderConfigTest {
   private static final ObjectMapper MAPPER = new ObjectMapper();
   private static final String TEST_API_KEY = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
 
+  /**
+   * Seeds test client data before running tests.
+   *
+   * @throws IOException if file operations fail
+   */
   @BeforeAll
   public static void seedClients() throws IOException {
     File file = new File(DATA_PATH);

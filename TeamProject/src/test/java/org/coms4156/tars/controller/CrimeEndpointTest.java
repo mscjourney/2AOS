@@ -29,6 +29,13 @@ import org.springframework.test.web.servlet.MockMvc;
 @SpringBootTest
 @AutoConfigureMockMvc
 public class CrimeEndpointTest {
+  /**
+   * Disable API key security for tests to prevent 401 responses.
+   */
+  @org.junit.jupiter.api.BeforeAll
+  public static void disableSecurity() {
+    System.setProperty("security.enabled", "false");
+  }
 
   @Autowired
   private MockMvc mockMvc;
@@ -48,20 +55,22 @@ public class CrimeEndpointTest {
   @Test
   void testGetCrimeSummaryWithValidParams() throws Exception {
     mockMvc.perform(get("/crime/summary")
-                .param("state", "NC")
-                .param("offense", "V")
-                .param("month", "12")
-                .param("year", "2025"))
+        .header("X-API-Key", org.coms4156.tars.controller.TestKeys.clientKey())
+        .param("state", "NC")
+        .param("offense", "V")
+        .param("month", "12")
+        .param("year", "2025"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.state").value("NC"))
         .andExpect(jsonPath("$.month").value("12"))
         .andExpect(jsonPath("$.year").value("2025"));
       
     mockMvc.perform(get("/crime/summary")
-                  .param("state", "ny")// works with lowercase
-                  .param("offense", "V")
-                  .param("month", "12")
-                  .param("year", "2025"))
+        .header("X-API-Key", org.coms4156.tars.controller.TestKeys.clientKey())
+        .param("state", "ny")// works with lowercase
+        .param("offense", "V")
+        .param("month", "12")
+        .param("year", "2025"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.state").value("ny"))
         .andExpect(jsonPath("$.month").value("12"))

@@ -25,6 +25,14 @@ import org.springframework.test.web.servlet.MockMvc;
 @SpringBootTest
 @AutoConfigureMockMvc
 public class CountryEndpointTest {
+  /**
+   * Disable API key security for tests to prevent 401 responses.
+   */
+  @org.junit.jupiter.api.BeforeAll
+  public static void disableSecurity() {
+    System.setProperty("security.enabled", "false");
+  }
+
   @Autowired
   private MockMvc mockMvc;
 
@@ -37,21 +45,24 @@ public class CountryEndpointTest {
    */
   @Test
   void testGetCountryAdvisoryValidCountry() throws Exception {
-    mockMvc.perform(get("/country/United States"))
+    mockMvc.perform(get("/country/United States")
+        .header("X-API-Key", TestKeys.clientKey()))
         .andExpect(status().isOk())
         .andExpect(content().string(containsString("country = United States")))
         .andExpect(content().string(containsString("level = No advisory")))
         .andExpect(content().string(
           containsString("riskIndicators = [No nationwide travel advisory issued]")));
     // case insensitive
-    mockMvc.perform(get("/country/uniTeD statEs"))
+    mockMvc.perform(get("/country/uniTeD statEs")
+        .header("X-API-Key", TestKeys.clientKey()))
         .andExpect(status().isOk())
         .andExpect(content().string(containsString("country = United States")))
         .andExpect(content().string(containsString("level = No advisory")))
         .andExpect(content().string(
           containsString("riskIndicators = [No nationwide travel advisory issued]")));
     // case insensitive
-    mockMvc.perform(get("/country/united states"))
+    mockMvc.perform(get("/country/united states")
+        .header("X-API-Key", TestKeys.clientKey()))
         .andExpect(status().isOk())
         .andExpect(content().string(containsString("country = United States")))
         .andExpect(content().string(containsString("level = No advisory")))

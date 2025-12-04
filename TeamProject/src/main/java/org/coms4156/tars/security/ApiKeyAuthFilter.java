@@ -10,11 +10,9 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import org.coms4156.tars.model.Client;
-import org.springframework.lang.NonNull;
 import org.coms4156.tars.service.ClientService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -25,17 +23,26 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Component
 public class ApiKeyAuthFilter extends OncePerRequestFilter {
 
-  private static final Logger logger = LoggerFactory.getLogger(ApiKeyAuthFilter.class);
-
   private final ClientService clientService;
   private final ObjectMapper mapper = new ObjectMapper();
   private final String headerName;
-    @Value("${security.enabled:true}")
-    private boolean securityEnabled;
+
+  @Value("${security.enabled:true}")
+  private boolean securityEnabled;
+
   private final Set<String> publicPaths;
   private final Set<String> adminKeys;
-  private final java.util.concurrent.ConcurrentMap<Long, RateBucket> rateBuckets = new java.util.concurrent.ConcurrentHashMap<>();
+  private final java.util.concurrent.ConcurrentMap<Long, RateBucket> rateBuckets =
+      new java.util.concurrent.ConcurrentHashMap<>();
 
+  /**
+   * Constructs an ApiKeyAuthFilter with required dependencies.
+   *
+   * @param clientService the client service for API key validation
+   * @param headerName the HTTP header name for the API key
+   * @param publicPathsCsv comma-separated public paths that bypass auth
+   * @param adminKeysCsv comma-separated admin API keys
+   */
   public ApiKeyAuthFilter(
       ClientService clientService,
       @Value("${security.apiKey.header:X-API-Key}") String headerName,
@@ -51,36 +58,42 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
   }
 
   @Override
-  protected boolean shouldNotFilter(@NonNull HttpServletRequest request) throws ServletException {
+  protected boolean shouldNotFilter(@NonNull HttpServletRequest request)
+      throws ServletException {
     String path = request.getRequestURI();
     if (publicPaths.contains(path)) {
       return true;
     }
     // Allow static resources
-    return path.startsWith("/static/") || path.startsWith("/assets/") || path.startsWith("/favicon");
+    return path.startsWith("/static/")
+        || path.startsWith("/assets/")
+        || path.startsWith("/favicon");
   }
 
   @Override
-    protected void doFilterInternal(
+  protected void doFilterInternal(
       @NonNull HttpServletRequest request,
       @NonNull HttpServletResponse response,
       @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-        // Allow disabling security for testing via property
-        if (!securityEnabled) {
-          filterChain.doFilter(request, response);
-          return;
-        }
+    // Allow disabling security for testing via property
+    String securityEnabled = System.getProperty("security.enabled");
+    if (securityEnabled != null && "false".equalsIgnoreCase(securityEnabled)) {
+      filterChain.doFilter(request, response);
+      return;
+    }
     String apiKey = request.getHeader(headerName);
     if (apiKey == null || apiKey.isBlank()) {
-      writeError(response, request, HttpServletResponse.SC_UNAUTHORIZED, "API key required");
+      writeError(response, request,
+          HttpServletResponse.SC_UNAUTHORIZED, "API key required");
       return;
     }
 
     Client client = clientService.findByApiKey(apiKey);
     boolean adminKey = adminKeys.contains(apiKey);
     if (client == null && !adminKey) {
-      writeError(response, request, HttpServletResponse.SC_UNAUTHORIZED, "Invalid API key");
+      writeError(response, request,
+          HttpServletResponse.SC_UNAUTHORIZED, "Invalid API key");
       return;
     }
 
@@ -123,20 +136,18 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
     filterChain.doFilter(request, response);
   }
 
-  private void writeError(HttpServletResponse response, HttpServletRequest request, int status, String message)
-      throws IOException {
+  private void writeError(HttpServletResponse response,
+      HttpServletRequest request, int status, String message) throws IOException {
     response.setStatus(status);
     response.setContentType("application/json");
     var body = new java.util.HashMap<String, Object>();
     body.put("status", status);
-    body.put("error", status == 401 ? "Unauthorized" : status == 403 ? "Forbidden" : "Error");
+    body.put("error", status == 401 ? "Unauthorized"
+        : status == 403 ? "Forbidden" : "Error");
     body.put("message", message);
     body.put("path", request.getRequestURI());
     body.put("timestamp", java.time.Instant.now().toString());
     response.getWriter().write(mapper.writeValueAsString(body));
-    if (logger.isWarnEnabled()) {
-      logger.warn("API key auth failed: status={} path={} msg={}", status, request.getRequestURI(), message);
-    }
   }
 
   private static final class RateBucket {
