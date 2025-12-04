@@ -763,6 +763,57 @@ public class RouteController {
   }
 
   /**
+   * Handles GET requests to retrieve weather recommendations for a specified city
+   * and number of forecast days given user preferences.
+   */
+  @GetMapping("/recommendation/weather/user")
+  public ResponseEntity<WeatherRecommendation> getUserWeatherRecommendation(
+          @RequestParam String city,
+          @RequestParam long userId,
+          @RequestParam int days) {
+    if (logger.isInfoEnabled()) {
+      logger.info("GET /recommendation/weather city={} days={}", city, days);
+    }
+    try {
+      if (days <= 0 || days > 14) {
+        if (logger.isWarnEnabled()) {
+          logger.warn("Invalid days parameter: {}", days);
+        }
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+      }
+
+      UserPreference user = tarsService.getUserPreference(userId);
+      if (userId < 0) {
+        if (logger.isWarnEnabled()) {
+          logger.warn("Negative userId provided: {}", userId);
+        }
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+      }
+
+      if (user == null) {
+        if (logger.isWarnEnabled()) {
+          logger.warn("No user found for id={}", userId);
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+      }
+
+      WeatherRecommendation recommendation = WeatherModel.getUserRecDays(city, days, user);
+
+      if (logger.isInfoEnabled()) {
+        logger.info("Weather recommendation generated for city={} days={}", city, days);
+      }
+
+      return ResponseEntity.ok(recommendation);
+
+    } catch (Exception e) {
+      if (logger.isErrorEnabled()) {
+        logger.error("Error generating recommendation city={} days={}", city, days, e);
+      }
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /**
    * Handles GET requests to retrieve weather alerts for the specified user
    * based on their city preferences.
    */
