@@ -153,7 +153,7 @@ public class RouteControllerUnitTest {
 
   /**
    * {@code testLoginEmptyRequestBody}
-   * Equivalence Partition 6: RequestBody is empty or populated with irrelevant fields
+   * Equivalence Partition 6: RequestBody is empty or populated with irrelevant fields.
    */
   @Test
   public void testLoginEmptyRequestBody() throws Exception {
