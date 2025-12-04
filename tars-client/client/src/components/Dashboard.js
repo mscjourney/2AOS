@@ -38,10 +38,22 @@ function Dashboard() {
   const [countrySummary, setCountrySummary] = useState(null);
   const [summaryCountry, setSummaryCountry] = useState('United States');
   
+  // Personal alerts state
+  const [personalAlerts, setPersonalAlerts] = useState([]);
+  const [loadingAlerts, setLoadingAlerts] = useState(false);
+  
   useEffect(() => {
     initializeClient();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Auto-fetch personal alerts when user is logged in and tab is active
+  useEffect(() => {
+    if (activeTab === 'personal-alerts' && loggedInUser && loggedInUser.userId) {
+      handleGetPersonalAlerts();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, loggedInUser]);
 
   const initializeClient = async () => {
     try {
@@ -210,6 +222,28 @@ function Dashboard() {
     }
   };
 
+  const handleGetPersonalAlerts = async () => {
+    if (!loggedInUser || !loggedInUser.userId) {
+      setError('Please log in to view your personal alerts');
+      return;
+    }
+    
+    try {
+      setError(null);
+      setLoadingAlerts(true);
+      const response = await axios.get(`${API_BASE}/alert/weather/user/${loggedInUser.userId}`);
+      // Response is an array of WeatherAlert objects
+      setPersonalAlerts(Array.isArray(response.data) ? response.data : []);
+    } catch (err) {
+      console.error('Error getting personal alerts:', err);
+      const errorMsg = err.response?.data?.error || err.message;
+      setError(errorMsg);
+      setPersonalAlerts([]);
+    } finally {
+      setLoadingAlerts(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="dashboard">
@@ -315,6 +349,14 @@ function Dashboard() {
         >
           Country Summary
         </button>
+        {loggedInUser && (
+          <button 
+            className={activeTab === 'personal-alerts' ? 'tab active' : 'tab'}
+            onClick={() => setActiveTab('personal-alerts')}
+          >
+            Personal Alerts
+          </button>
+        )}
       </div>
 
       <div className="tab-content">
@@ -752,6 +794,120 @@ function Dashboard() {
                     </div>
                   )}
                 </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'personal-alerts' && (
+          <div className="personal-alerts">
+            <div className="card">
+              <h2>Personal Weather Alerts</h2>
+              <p style={{ color: '#718096', marginBottom: '1.5rem' }}>
+                Weather alerts for all cities in your preferences
+              </p>
+              
+              {!loggedInUser ? (
+                <div className="alert" style={{ background: '#fff3cd', borderLeft: '4px solid #ffc107', padding: '1rem' }}>
+                  <strong>Please log in</strong> to view your personal weather alerts based on your city preferences.
+                </div>
+              ) : (
+                <>
+                  <button 
+                    onClick={handleGetPersonalAlerts} 
+                    className="btn-primary"
+                    disabled={loadingAlerts}
+                  >
+                    {loadingAlerts ? 'Loading...' : 'Refresh Alerts'}
+                  </button>
+                  
+                  {loadingAlerts && (
+                    <div style={{ marginTop: '1rem', textAlign: 'center', color: '#718096' }}>
+                      Loading your alerts...
+                    </div>
+                  )}
+                  
+                  {!loadingAlerts && personalAlerts.length === 0 && (
+                    <div className="alert" style={{ marginTop: '1.5rem', background: '#e6fffa', borderLeft: '4px solid #38a169', padding: '1rem' }}>
+                      <strong>No alerts found.</strong> Make sure you have city preferences set in your profile.
+                    </div>
+                  )}
+                  
+                  {!loadingAlerts && personalAlerts.length > 0 && (
+                    <div style={{ marginTop: '2rem' }}>
+                      <h3 style={{ marginBottom: '1.5rem', color: '#2d3748' }}>
+                        {personalAlerts.length} Alert{personalAlerts.length !== 1 ? 's' : ''} Found
+                      </h3>
+                      {personalAlerts.map((alert, idx) => (
+                        <div key={idx} className="result" style={{ marginBottom: '2rem', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '1.5rem' }}>
+                          <h3 style={{ color: '#667eea', marginBottom: '1rem' }}>
+                            {alert.location || `Alert ${idx + 1}`}
+                          </h3>
+                          
+                          {alert.timestamp && (
+                            <p style={{ marginBottom: '0.5rem', color: '#718096' }}>
+                              <strong>Timestamp:</strong> {alert.timestamp}
+                            </p>
+                          )}
+                          
+                          {alert.alerts && alert.alerts.length > 0 && (
+                            <div style={{ marginTop: '1rem' }}>
+                              <h4 style={{ color: '#e53e3e', marginBottom: '0.75rem' }}>⚠️ Active Alerts:</h4>
+                              {alert.alerts.map((alertItem, alertIdx) => (
+                                <div key={alertIdx} className="alert-item" style={{ 
+                                  background: '#fed7d7', 
+                                  padding: '1rem', 
+                                  borderRadius: '6px', 
+                                  marginBottom: '0.75rem',
+                                  borderLeft: '4px solid #e53e3e'
+                                }}>
+                                  {Object.entries(alertItem).map(([key, value]) => (
+                                    <p key={key} style={{ margin: '0.25rem 0' }}>
+                                      <strong>{key}:</strong> {String(value)}
+                                    </p>
+                                  ))}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          
+                          {alert.recommendations && alert.recommendations.length > 0 && (
+                            <div style={{ marginTop: '1rem' }}>
+                              <h4 style={{ color: '#38a169', marginBottom: '0.75rem' }}>💡 Recommendations:</h4>
+                              <ul style={{ paddingLeft: '1.5rem' }}>
+                                {alert.recommendations.map((rec, recIdx) => (
+                                  <li key={recIdx} style={{ marginBottom: '0.5rem', color: '#4a5568' }}>
+                                    {rec}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          
+                          {alert.currentConditions && Object.keys(alert.currentConditions).length > 0 && (
+                            <div style={{ marginTop: '1rem' }}>
+                              <h4 style={{ marginBottom: '0.75rem', color: '#2d3748' }}>Current Conditions:</h4>
+                              <div className="current-conditions" style={{ 
+                                display: 'grid', 
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+                                gap: '0.75rem',
+                                background: '#f7fafc',
+                                padding: '1rem',
+                                borderRadius: '6px'
+                              }}>
+                                {Object.entries(alert.currentConditions).map(([key, value]) => (
+                                  <p key={key} style={{ margin: 0 }}>
+                                    <strong>{key}:</strong> {String(value)}
+                                  </p>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
