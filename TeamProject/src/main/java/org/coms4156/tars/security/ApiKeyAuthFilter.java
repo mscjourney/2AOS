@@ -75,10 +75,8 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
       @NonNull HttpServletRequest request,
       @NonNull HttpServletResponse response,
       @NonNull FilterChain filterChain) throws ServletException, IOException {
-
-    // Allow disabling security for testing via property
-    String securityEnabled = System.getProperty("security.enabled");
-    if (securityEnabled != null && "false".equalsIgnoreCase(securityEnabled)) {
+    // Allow disabling security via Spring property only (default true)
+    if (!this.securityEnabled) {
       filterChain.doFilter(request, response);
       return;
     }
@@ -92,8 +90,17 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
     Client client = clientService.findByApiKey(apiKey);
     boolean adminKey = adminKeys.contains(apiKey);
     if (client == null && !adminKey) {
-      writeError(response, request,
-          HttpServletResponse.SC_UNAUTHORIZED, "Invalid API key");
+      String pathForInvalid = request.getRequestURI();
+      // For DELETE /tarsUsers/{id}, mask existence for non-admins
+      if ("DELETE".equalsIgnoreCase(request.getMethod())
+          && (pathForInvalid.startsWith("/tarsUsers/")
+              || pathForInvalid.matches("/tarsUsers/\\d+"))) {
+        writeError(response, request,
+            HttpServletResponse.SC_NOT_FOUND, "Not Found");
+      } else {
+        writeError(response, request,
+            HttpServletResponse.SC_UNAUTHORIZED, "Invalid API key");
+      }
       return;
     }
 
