@@ -886,10 +886,6 @@ public class RouteController {
       String result = model.getCrimeSummary(state, offense, month, year);
       // getCrimeSummary only returns null if API returned BAD_REQUEST
       if (result == null) {
-        if (logger.isWarnEnabled()) {
-          logger.warn("Invalid input or no data found for state={} offense={} month={} year={}", 
-              state, offense, month, year);
-        }
         return new ResponseEntity<>("Error: Invalid inputs have been passed in.", 
               HttpStatus.BAD_REQUEST);
       }
@@ -906,11 +902,7 @@ public class RouteController {
       }
       return ResponseEntity.ok(summary);
     } catch (Exception e) {
-      if (logger.isErrorEnabled()) {
-        logger.error("Error fetching crime summary state={} offense={} month={} year={}", 
-            state, offense, month, year, e);
-      }
-      return new ResponseEntity<>("Unexpected Error Occured", HttpStatus.INTERNAL_SERVER_ERROR);
+      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
