@@ -353,19 +353,6 @@ app.get('/api/country/:country', async (req, res) => {
   }
 });
 
-// Get city summary
-app.get('/api/summary/:city', async (req, res) => {
-  try {
-    const { city } = req.params;
-    const { startDate, endDate, state } = req.query;
-    const summary = await apiClient.getCitySummary(city, startDate, endDate, state);
-    res.json(summary);
-  } catch (error) {
-    console.error('Error getting city summary:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
 // Serve static files from React build (ONLY for non-API routes)
 // This middleware explicitly excludes /api/* paths
 app.use((req, res, next) => {

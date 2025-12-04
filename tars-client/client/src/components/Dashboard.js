@@ -34,13 +34,6 @@ function Dashboard() {
   const [alertLat, setAlertLat] = useState('');
   const [alertLon, setAlertLon] = useState('');
   
-  // City summary state
-  const [citySummary, setCitySummary] = useState(null);
-  const [summaryCity, setSummaryCity] = useState('New York');
-  const [summaryState, setSummaryState] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  
   // Country summary state
   const [countrySummary, setCountrySummary] = useState(null);
   const [summaryCountry, setSummaryCountry] = useState('United States');
@@ -161,20 +154,6 @@ function Dashboard() {
       }
       const response = await axios.get(`${API_BASE}/alert/weather`, { params });
       setWeatherAlerts(response.data);
-    } catch (err) {
-      setError(err.response?.data?.error || err.message);
-    }
-  };
-
-  const handleGetCitySummary = async () => {
-    try {
-      setError(null);
-      const params = {};
-      if (startDate) params.startDate = startDate;
-      if (endDate) params.endDate = endDate;
-      if (summaryState) params.state = summaryState;
-      const response = await axios.get(`${API_BASE}/summary/${encodeURIComponent(summaryCity)}`, { params });
-      setCitySummary(response.data);
     } catch (err) {
       setError(err.response?.data?.error || err.message);
     }
@@ -331,12 +310,6 @@ function Dashboard() {
           Weather
         </button>
         <button 
-          className={activeTab === 'city' ? 'tab active' : 'tab'}
-          onClick={() => setActiveTab('city')}
-        >
-          City Summary
-        </button>
-        <button 
           className={activeTab === 'country' ? 'tab active' : 'tab'}
           onClick={() => setActiveTab('country')}
         >
@@ -455,7 +428,7 @@ function Dashboard() {
               <ul style={{ listStyle: 'none', padding: 0 }}>
                 <li style={{ padding: '0.5rem 0', color: '#4a5568' }}>✓ Get crime statistics and summaries</li>
                 <li style={{ padding: '0.5rem 0', color: '#4a5568' }}>✓ Get weather recommendations and alerts</li>
-                <li style={{ padding: '0.5rem 0', color: '#4a5568' }}>✓ View comprehensive city summaries</li>
+                <li style={{ padding: '0.5rem 0', color: '#4a5568' }}>✓ View comprehensive country summaries</li>
               </ul>
               {localStorage.getItem('loggedInUser') && (
                 <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '2px solid #e2e8f0' }}>
@@ -705,188 +678,6 @@ function Dashboard() {
                       <div className="current-conditions">
                         {Object.entries(weatherAlerts.currentConditions).map(([key, value]) => (
                           <p key={key}><strong>{key}:</strong> {String(value)}</p>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'city' && (
-          <div className="city-summary">
-            <div className="card">
-              <h2>City Summary</h2>
-              <div className="form-group">
-                <label>City:</label>
-                <input
-                  type="text"
-                  value={summaryCity}
-                  onChange={(e) => setSummaryCity(e.target.value)}
-                  className="form-control"
-                  placeholder="e.g., New York"
-                />
-              </div>
-              <div className="form-group">
-                <label>State (optional, for US cities to get crime data):</label>
-                <input
-                  type="text"
-                  value={summaryState}
-                  onChange={(e) => setSummaryState(e.target.value)}
-                  className="form-control"
-                  placeholder="e.g., New York or NY"
-                />
-              </div>
-              <div className="form-group">
-                <label>Date Range (optional):</label>
-                <div className="form-row">
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="form-control"
-                    placeholder="Start Date"
-                  />
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="form-control"
-                    placeholder="End Date"
-                  />
-                </div>
-              </div>
-              <button onClick={handleGetCitySummary} className="btn-primary">Get City Summary</button>
-              {citySummary && (
-                <div className="result">
-                  <h3>Summary for {citySummary.city}</h3>
-                  <p className="summary-message">{citySummary.message}</p>
-                  
-                  {citySummary.weatherRecommendation && (
-                    <div className="summary-section">
-                      <h4>Weather Recommendation</h4>
-                      <p><strong>City:</strong> {citySummary.weatherRecommendation.city}</p>
-                      <p>{citySummary.weatherRecommendation.message}</p>
-                      {citySummary.weatherRecommendation.recommendedDays && 
-                       citySummary.weatherRecommendation.recommendedDays.length > 0 && (
-                        <div>
-                          <strong>Recommended Days:</strong>
-                          <ul>
-                            {citySummary.weatherRecommendation.recommendedDays.map((day, idx) => (
-                              <li key={idx}>{day}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  
-                  {citySummary.weatherAlert && (
-                    <div className="summary-section">
-                      <h4>Weather Alerts</h4>
-                      <p><strong>Location:</strong> {citySummary.weatherAlert.location || summaryCity}</p>
-                      {citySummary.weatherAlert.timestamp && (
-                        <p><strong>Timestamp:</strong> {citySummary.weatherAlert.timestamp}</p>
-                      )}
-                      {citySummary.weatherAlert.alerts && citySummary.weatherAlert.alerts.length > 0 && (
-                        <div>
-                          <strong>Active Alerts:</strong>
-                          {citySummary.weatherAlert.alerts.map((alertItem, idx) => (
-                            <div key={idx} className="alert-item">
-                              {Object.entries(alertItem).map(([key, value]) => (
-                                <p key={key}><strong>{key}:</strong> {String(value)}</p>
-                              ))}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      {citySummary.weatherAlert.recommendations && citySummary.weatherAlert.recommendations.length > 0 && (
-                        <div>
-                          <strong>Recommendations:</strong>
-                          <ul>
-                            {citySummary.weatherAlert.recommendations.map((rec, idx) => (
-                              <li key={idx}>{rec}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      {citySummary.weatherAlert.currentConditions && Object.keys(citySummary.weatherAlert.currentConditions).length > 0 && (
-                        <div>
-                          <strong>Current Conditions:</strong>
-                          <div className="current-conditions">
-                            {Object.entries(citySummary.weatherAlert.currentConditions).map(([key, value]) => (
-                              <p key={key}><strong>{key}:</strong> {String(value)}</p>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  
-                  {citySummary.travelAdvisory && (
-                    <div className="summary-section">
-                      <h4>Travel Advisory</h4>
-                      {citySummary.travelAdvisory.country && (
-                        <p><strong>Country:</strong> {citySummary.travelAdvisory.country}</p>
-                      )}
-                      {citySummary.travelAdvisory.level && (
-                        <p><strong>Advisory Level:</strong> <span style={{ 
-                          color: citySummary.travelAdvisory.level.includes('Level 4') ? '#e53e3e' :
-                                 citySummary.travelAdvisory.level.includes('Level 3') ? '#dd6b20' :
-                                 citySummary.travelAdvisory.level.includes('Level 2') ? '#d69e2e' : '#38a169',
-                          fontWeight: '600'
-                        }}>{citySummary.travelAdvisory.level}</span></p>
-                      )}
-                      {citySummary.travelAdvisory.riskIndicators && citySummary.travelAdvisory.riskIndicators.length > 0 && (
-                        <div>
-                          <strong>Risk Indicators:</strong>
-                          <ul>
-                            {citySummary.travelAdvisory.riskIndicators.map((risk, idx) => (
-                              <li key={idx}>{risk}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  
-                  {citySummary.crimeSummary && (
-                    <div className="summary-section">
-                      <h4>Crime Data</h4>
-                      {citySummary.crimeSummary.state && (
-                        <p><strong>State:</strong> {citySummary.crimeSummary.state}</p>
-                      )}
-                      {citySummary.crimeSummary.month && citySummary.crimeSummary.year && (
-                        <p><strong>Period:</strong> {citySummary.crimeSummary.month}/{citySummary.crimeSummary.year}</p>
-                      )}
-                      {citySummary.crimeSummary.message && (
-                        <div className="current-conditions">
-                          <p>{citySummary.crimeSummary.message}</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  
-                  {citySummary.interestedUsers && citySummary.interestedUsers.length > 0 && (
-                    <div className="summary-section">
-                      <h4>Interested Users ({citySummary.interestedUsers.length})</h4>
-                      <div className="user-list">
-                        {citySummary.interestedUsers.map((user) => (
-                          <div key={user.id} className="user-item">
-                            <p><strong>User ID:</strong> {user.id}</p>
-                            <p><strong>Client ID:</strong> {user.clientId}</p>
-                            {user.cityPreferences && user.cityPreferences.length > 0 && (
-                              <p><strong>Cities:</strong> {user.cityPreferences.join(', ')}</p>
-                            )}
-                            {user.weatherPreferences && user.weatherPreferences.length > 0 && (
-                              <p><strong>Weather:</strong> {user.weatherPreferences.join(', ')}</p>
-                            )}
-                            {user.temperaturePreferences && user.temperaturePreferences.length > 0 && (
-                              <p><strong>Temperature:</strong> {user.temperaturePreferences.join(', ')}</p>
-                            )}
-                          </div>
                         ))}
                       </div>
                     </div>

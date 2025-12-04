@@ -38,7 +38,7 @@ The application consists of three main components:
 ### 3. React Frontend (`client/`)
 - **Purpose**: Modern web-based user interface
 - **Components**:
-  - `Dashboard.js`: Main dashboard with tabs for Crime Summary, Weather, and City Summary
+  - `Dashboard.js`: Main dashboard with tabs for Crime Summary, Weather, and Country Summary
   - `AdminDashboard.js`: Admin-only interface for user management
   - `Login.js`: User authentication
   - `UserProfile.js`: User profile and preferences management
@@ -210,10 +210,9 @@ npm run build                # Build React app for production
   - Retrieve weather alerts by city or coordinates
   - Configure forecast days (1-14)
 
-- **City Summary Tab**:
-  - Get comprehensive city summaries
-  - View weather recommendations, alerts, and travel advisories
-  - See crime data and travel safety information
+- **Country Summary Tab**:
+  - Get comprehensive country summaries
+  - View travel advisories and safety information
 
 ### Admin Dashboard (Admin Users Only)
 

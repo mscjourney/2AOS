@@ -310,31 +310,6 @@ class TarsApiClient {
   }
 
   /**
-   * Get city summary
-   */
-  async getCitySummary(city, startDate = null, endDate = null, state = null) {
-    try {
-      const params = {};
-      if (startDate) params.startDate = startDate;
-      if (endDate) params.endDate = endDate;
-      if (state) params.state = state;
-
-      const response = await axios.get(
-        `${this.baseUrl}/summary/${encodeURIComponent(city)}`,
-        { params }
-      );
-      return response.data;
-    } catch (error) {
-      const errorMsg = error.response?.data 
-        ? (typeof error.response.data === 'object' 
-            ? JSON.stringify(error.response.data) 
-            : error.response.data)
-        : error.message;
-      throw new Error(`Failed to get city summary: ${errorMsg}`);
-    }
-  }
-
-  /**
    * Get country summary
    */
   async getCountrySummary(country) {
