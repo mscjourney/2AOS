@@ -1,13 +1,13 @@
 package org.coms4156.tars.model;
 
-import java.util.List;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -163,7 +163,7 @@ public class WeatherModelTest {
     String invalidCity = "NonExistentCity12345XYZ";
 
     IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-        WeatherModel.getRecommendedDays(invalidCity, 7);
+      WeatherModel.getRecommendedDays(invalidCity, 7);
     });
 
     assertTrue(exception.getMessage().contains("City Not Found"));
@@ -172,7 +172,7 @@ public class WeatherModelTest {
   @Test
   public void testGetRecommendedDaysWithEmptyCityName() {
     IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-        WeatherModel.getRecommendedDays(" ", 7);
+      WeatherModel.getRecommendedDays(" ", 7);
     });
 
     assertTrue(exception.getMessage().contains("City Not Found"));
@@ -181,19 +181,19 @@ public class WeatherModelTest {
   @Test
   public void testGetRecommendedDaysOutOfRange() {
     IllegalArgumentException exception1 = assertThrows(IllegalArgumentException.class, () -> {
-        WeatherModel.getRecommendedDays(" ", 0);
+      WeatherModel.getRecommendedDays(" ", 0);
     });
 
     assertTrue(exception1.getMessage().contains("Days out of range"));
 
     IllegalArgumentException exception2 = assertThrows(IllegalArgumentException.class, () -> {
-        WeatherModel.getRecommendedDays(" ", 15);
+      WeatherModel.getRecommendedDays(" ", 15);
     });
 
     assertTrue(exception2.getMessage().contains("Days out of range"));
 
     IllegalArgumentException exception3 = assertThrows(IllegalArgumentException.class, () -> {
-        WeatherModel.getRecommendedDays(" ", 120);
+      WeatherModel.getRecommendedDays(" ", 120);
     });
 
     assertTrue(exception3.getMessage().contains("Days out of range"));
@@ -201,46 +201,37 @@ public class WeatherModelTest {
 
   @Test
   public void testGetUserRecommendedDaysValidNotEmptyPreferences() {
-    List<String> tempPrefs = List.of("13", "17");
+    // Numerous Preferences to generate some recommended days
+    List<String> tempPrefs = new ArrayList<>();
+    for (int i = 0; i <= 30; i++) {
+      tempPrefs.add(String.valueOf(i));
+    }
     UserPreference newPreference = new UserPreference(1L, List.of(), tempPrefs, List.of());
 
     WeatherRecommendation recommendation = WeatherModel.getUserRecDays("Boston", 5, newPreference);
     
     assertNotNull(recommendation, "Recommendation should not be null");
-    assertEquals("Boston", recommendation.getCity(), 
-        "City should match input");
-    assertNotNull(recommendation.getRecommendedDays(), 
-        "Recommended days list should not be null");
-    assertNotNull(recommendation.getMessage(), 
-        "Message should not be null");
-    assertFalse(recommendation.getMessage().contains("Error"), 
-        "Should not contain error message for valid city");
+    assertEquals("Boston", recommendation.getCity(), "City should match input");
+    assertNotNull(recommendation.getRecommendedDays(), "Recommended days list should not be null");
+    assertTrue(!recommendation.getRecommendedDays().isEmpty());
+    assertNotNull(recommendation.getMessage(), "Message should not be null");
     
     // Lower Boundary
     recommendation = WeatherModel.getUserRecDays("Boston", 1, newPreference);
     
     assertNotNull(recommendation, "Recommendation should not be null");
-    assertEquals("Boston", recommendation.getCity(), 
-        "City should match input");
-    assertNotNull(recommendation.getRecommendedDays(), 
-        "Recommended days list should not be null");
-    assertNotNull(recommendation.getMessage(), 
-        "Message should not be null");
-    assertFalse(recommendation.getMessage().contains("Error"), 
-        "Should not contain error message for valid city");
-
+    assertEquals("Boston", recommendation.getCity(), "City should match input");
+    assertNotNull(recommendation.getRecommendedDays(), "Recommended days list should not be null");
+    assertTrue(!recommendation.getRecommendedDays().isEmpty());
+    assertNotNull(recommendation.getMessage(), "Message should not be null");
     // Upper Boundary
     recommendation = WeatherModel.getUserRecDays("Boston", 14, newPreference);
     
     assertNotNull(recommendation, "Recommendation should not be null");
-    assertEquals("Boston", recommendation.getCity(), 
-        "City should match input");
-    assertNotNull(recommendation.getRecommendedDays(), 
-        "Recommended days list should not be null");
-    assertNotNull(recommendation.getMessage(), 
-        "Message should not be null");
-    assertFalse(recommendation.getMessage().contains("Error"), 
-        "Should not contain error message for valid city");
+    assertEquals("Boston", recommendation.getCity(), "City should match input");
+    assertNotNull(recommendation.getRecommendedDays(), "Recommended days list should not be null");
+    assertTrue(!recommendation.getRecommendedDays().isEmpty());
+    assertNotNull(recommendation.getMessage(), "Message should not be null");
   }
 
   @Test
@@ -255,7 +246,8 @@ public class WeatherModelTest {
     assertNotNull(recommendation.getRecommendedDays(), 
         "Recommended days list should not be null");
     // Empty Preferences will never have any days that meet preference
-    assertTrue(recommendation.getMessage().contains("No days meet your preferences"));
+    assertEquals(recommendation.getMessage(), 
+        "No days meet your preferences in Boston over the next 5 days.");
     
     // Lower Boundary
     recommendation = WeatherModel.getUserRecDays("Boston", 1, newPreference);
@@ -265,7 +257,8 @@ public class WeatherModelTest {
         "City should match input");
     assertNotNull(recommendation.getRecommendedDays(), 
         "Recommended days list should not be null");
-    assertTrue(recommendation.getMessage().contains("No days meet your preferences"));
+    assertEquals(recommendation.getMessage(), 
+        "No days meet your preferences in Boston over the next 1 days.");
 
     // Upper Boundary
     recommendation = WeatherModel.getUserRecDays("Boston", 14, newPreference);
@@ -275,15 +268,16 @@ public class WeatherModelTest {
         "City should match input");
     assertNotNull(recommendation.getRecommendedDays(), 
         "Recommended days list should not be null");
-    assertTrue(recommendation.getMessage().contains("No days meet your preferences"));
+    assertEquals(recommendation.getMessage(), 
+        "No days meet your preferences in Boston over the next 14 days.");
   }
 
-    @Test
+  @Test
   public void testGetUserRecommendedDaysWithInvalidCity() {
     String invalidCity = "NonExistentCity12345XYZ";
 
     IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-        WeatherModel.getUserRecDays(invalidCity, 7, new UserPreference());
+      WeatherModel.getUserRecDays(invalidCity, 7, new UserPreference());
     });
 
     assertTrue(exception.getMessage().contains("City Not Found"));
@@ -292,7 +286,7 @@ public class WeatherModelTest {
   @Test
   public void testGetUserRecommendedDaysWithEmptyCityName() {
     IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-        WeatherModel.getUserRecDays(" ", 7, new UserPreference());
+      WeatherModel.getUserRecDays(" ", 7, new UserPreference());
     });
 
     assertTrue(exception.getMessage().contains("City Not Found"));
@@ -301,19 +295,19 @@ public class WeatherModelTest {
   @Test
   public void testGetUserRecommendedDaysOutOfRange() {
     IllegalArgumentException exception1 = assertThrows(IllegalArgumentException.class, () -> {
-        WeatherModel.getUserRecDays(" ", 0, new UserPreference());
+      WeatherModel.getUserRecDays(" ", 0, new UserPreference());
     });
 
     assertTrue(exception1.getMessage().contains("Days out of range"));
 
     IllegalArgumentException exception2 = assertThrows(IllegalArgumentException.class, () -> {
-        WeatherModel.getUserRecDays(" ", 15, new UserPreference());
+      WeatherModel.getUserRecDays(" ", 15, new UserPreference());
     });
 
     assertTrue(exception2.getMessage().contains("Days out of range"));
 
     IllegalArgumentException exception3 = assertThrows(IllegalArgumentException.class, () -> {
-        WeatherModel.getUserRecDays(" ", 120, new UserPreference());
+      WeatherModel.getUserRecDays(" ", 120, new UserPreference());
     });
 
     assertTrue(exception3.getMessage().contains("Days out of range"));

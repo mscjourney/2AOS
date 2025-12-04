@@ -9,7 +9,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import ch.qos.logback.classic.Level;
-
 import org.coms4156.tars.controller.RouteController;
 import org.coms4156.tars.model.CrimeModel;
 import org.coms4156.tars.model.CrimeSummary;
@@ -21,7 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.web.servlet.MockMvc;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 /**
  * {@code CrimeEndpointTest}
@@ -54,7 +52,7 @@ public class CrimeEndpointTest {
                 .param("state", "NC")
                 .param("offense", "V")
                 .param("month", "11")
-                .param("year", "2025")).andDo(print())
+                .param("year", "2025"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.state").value("NC"))
         .andExpect(jsonPath("$.month").value("11"))
