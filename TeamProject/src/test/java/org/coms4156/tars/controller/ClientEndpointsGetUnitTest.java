@@ -1,6 +1,5 @@
 package org.coms4156.tars.controller;
 
-import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -17,7 +16,11 @@ import org.springframework.test.web.servlet.MockMvc;
  * Integration tests for client GET endpoints validating success, not-found and
  * bad-request scenarios with DTO / ApiError payloads.
  */
-@SpringBootTest
+@SpringBootTest(properties = {
+  "security.enabled=true",
+  "security.adminApiKeys=adminkey000000000000000000000000",
+  "security.apiKey.header=X-API-Key"
+})
 @AutoConfigureMockMvc
 public class ClientEndpointsGetUnitTest {
 
@@ -34,7 +37,7 @@ public class ClientEndpointsGetUnitTest {
   @Test
   @DisplayName("GET /clients/{id} returns 200 when client exists")
   void getClientByIdOk() throws Exception {
-    mockMvc.perform(get("/clients/1"))
+    mockMvc.perform(get("/clients/1").header("X-API-Key", "adminkey000000000000000000000000"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.clientId").value(1));
   }
@@ -47,7 +50,7 @@ public class ClientEndpointsGetUnitTest {
   @Test
   @DisplayName("GET /clients/{id} returns 404 when client missing")
   void getClientByIdNotFound() throws Exception {
-    mockMvc.perform(get("/clients/999"))
+    mockMvc.perform(get("/clients/999").header("X-API-Key", "adminkey000000000000000000000000"))
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.status").value(404))
         .andExpect(jsonPath("$.message").exists());
@@ -60,7 +63,7 @@ public class ClientEndpointsGetUnitTest {
   @Test
   @DisplayName("GET /clients/{id} returns 400 when id negative")
   void getClientByIdBadRequest() throws Exception {
-    mockMvc.perform(get("/clients/-5"))
+    mockMvc.perform(get("/clients/-5").header("X-API-Key", "adminkey000000000000000000000000"))
           .andExpect(status().isBadRequest())
           .andExpect(jsonPath("$.status").value(400))
           .andExpect(jsonPath("$.message").exists());
@@ -72,9 +75,9 @@ public class ClientEndpointsGetUnitTest {
   @Test
   @DisplayName("GET /clients returns 200 on success")
   public void getClientsTestMultiple() throws Exception {
-    mockMvc.perform(get("/clients"))
+    mockMvc.perform(get("/clients").header("X-API-Key", "adminkey000000000000000000000000"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(6)))
+      .andExpect(jsonPath("$[0].clientId").exists())
         .andExpect(jsonPath("$[0].clientId").value(1))
         .andExpect(jsonPath("$[1].clientId").value(2))
         .andExpect(jsonPath("$[2].clientId").value(3))

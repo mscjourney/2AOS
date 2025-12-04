@@ -118,6 +118,11 @@ import org.springframework.test.web.servlet.MockMvc;
 * <p>Test Cases: getClientsTestEmpty
 */
 @WebMvcTest(RouteController.class)
+@org.springframework.test.context.TestPropertySource(properties = {
+  "security.apiKey.header=X-API-Key",
+  "security.adminApiKeys=adminkey000000000000000000000000",
+  "security.publicPaths=/,/index,/login"
+})
 public class ClientEndPointUnitTest {
 
   @Autowired
@@ -125,6 +130,30 @@ public class ClientEndPointUnitTest {
 
   @Autowired
   private ObjectMapper objectMapper;
+  private static final String ADMIN_KEY = "adminkey000000000000000000000000";
+
+  private org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder postAdmin(String url) {
+    return post(url).header("X-API-Key", ADMIN_KEY);
+  }
+  private org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder postClient(String url) {
+    return post(url).header("X-API-Key", clientKey());
+  }
+  private org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder getAdmin(String url) {
+    return get(url).header("X-API-Key", ADMIN_KEY);
+  }
+
+  private String clientKey() {
+    try {
+      com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+      java.io.File f = new java.io.File("./data/clients.json");
+      java.util.List<org.coms4156.tars.model.Client> clients = mapper.readValue(
+          f, new com.fasterxml.jackson.core.type.TypeReference<java.util.List<org.coms4156.tars.model.Client>>() {});
+      if (!clients.isEmpty()) {
+        return clients.get(0).getApiKey();
+      }
+    } catch (Exception ignored) {}
+    return "clientkey000000000000000000000000";
+  }
 
   @MockitoBean
   private TarsService tarsService;
@@ -154,10 +183,10 @@ public class ClientEndPointUnitTest {
 
     when(clientService.uniqueNameCheck("TestClient")).thenReturn(true);
     when(clientService.uniqueEmailCheck("test@example.com")).thenReturn(true);
-    when(clientService.createClient("TestClient", "test@example.com"))
+      when(clientService.createClient("TestClient", "test@example.com"))
         .thenReturn(mockClient);
 
-    mockMvc.perform(post("/client/create")
+    mockMvc.perform(postAdmin("/client/create")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestBody)))
         .andExpect(status().isCreated())
@@ -175,7 +204,7 @@ public class ClientEndPointUnitTest {
    */
   @Test
   public void createClientWithNullBodyTest() throws Exception {
-    mockMvc.perform(post("/client/create")
+    mockMvc.perform(postAdmin("/client/create")
             .contentType(MediaType.APPLICATION_JSON)
             .content("null"))
         .andExpect(status().isBadRequest())
@@ -192,7 +221,7 @@ public class ClientEndPointUnitTest {
     Map<String, String> requestBody = new HashMap<>();
     requestBody.put("email", "test@example.com");
 
-    mockMvc.perform(post("/client/create")
+    mockMvc.perform(postAdmin("/client/create")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestBody)))
         .andExpect(status().isBadRequest())
@@ -210,7 +239,7 @@ public class ClientEndPointUnitTest {
     requestBody.put("name", null);
     requestBody.put("email", "test@example.com");
 
-    mockMvc.perform(post("/client/create")
+    mockMvc.perform(postAdmin("/client/create")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestBody)))
         .andExpect(status().isBadRequest())
@@ -228,7 +257,7 @@ public class ClientEndPointUnitTest {
     requestBody.put("name", "   ");
     requestBody.put("email", "test@example.com");
 
-    mockMvc.perform(post("/client/create")
+    mockMvc.perform(postAdmin("/client/create")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestBody)))
         .andExpect(status().isBadRequest())
@@ -245,7 +274,7 @@ public class ClientEndPointUnitTest {
     Map<String, String> requestBody = new HashMap<>();
     requestBody.put("name", "TestClient");
 
-    mockMvc.perform(post("/client/create")
+    mockMvc.perform(postAdmin("/client/create")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestBody)))
         .andExpect(status().isBadRequest())
@@ -263,7 +292,7 @@ public class ClientEndPointUnitTest {
     requestBody.put("name", "TestClient");
     requestBody.put("email", null);
 
-    mockMvc.perform(post("/client/create")
+    mockMvc.perform(postAdmin("/client/create")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestBody)))
         .andExpect(status().isBadRequest())
@@ -281,7 +310,7 @@ public class ClientEndPointUnitTest {
     requestBody.put("name", "TestClient");
     requestBody.put("email", "   ");
 
-    mockMvc.perform(post("/client/create")
+    mockMvc.perform(postAdmin("/client/create")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestBody)))
         .andExpect(status().isBadRequest())
@@ -299,7 +328,7 @@ public class ClientEndPointUnitTest {
     requestBody.put("name", "TestClient");
     requestBody.put("email", "invalid-email");
 
-    mockMvc.perform(post("/client/create")
+    mockMvc.perform(postAdmin("/client/create")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestBody)))
         .andExpect(status().isBadRequest())
@@ -319,7 +348,7 @@ public class ClientEndPointUnitTest {
 
     when(clientService.uniqueNameCheck("ExistingClient")).thenReturn(false);
 
-    mockMvc.perform(post("/client/create")
+    mockMvc.perform(postAdmin("/client/create")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestBody)))
         .andExpect(status().isConflict())
@@ -342,7 +371,7 @@ public class ClientEndPointUnitTest {
     when(clientService.uniqueNameCheck("NewClient")).thenReturn(true);
     when(clientService.uniqueEmailCheck("existing@example.com")).thenReturn(false);
 
-    mockMvc.perform(post("/client/create")
+    mockMvc.perform(postAdmin("/client/create")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestBody)))
         .andExpect(status().isConflict())
@@ -368,7 +397,7 @@ public class ClientEndPointUnitTest {
     when(clientService.createClient("TestClient", "test@example.com"))
         .thenReturn(null);
 
-    mockMvc.perform(post("/client/create")
+    mockMvc.perform(postAdmin("/client/create")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestBody)))
         .andExpect(status().isInternalServerError())
@@ -398,7 +427,7 @@ public class ClientEndPointUnitTest {
     when(clientService.createClient("TestClient", "test@example.com"))
         .thenReturn(mockClient);
 
-    mockMvc.perform(post("/client/create")
+    mockMvc.perform(postAdmin("/client/create")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestBody)))
         .andExpect(status().isCreated())
@@ -417,7 +446,7 @@ public class ClientEndPointUnitTest {
   @Test
   public void createClientUserSuccessTest() throws Exception {
     TarsUser requestUser = new TarsUser();
-    requestUser.setClientId(1L);
+      requestUser.setClientId(1L);
     requestUser.setUsername("testuser");
     requestUser.setEmail("user@example.com");
     requestUser.setRole("admin");
@@ -441,7 +470,7 @@ public class ClientEndPointUnitTest {
     when(tarsUserService.createUser(1L, "testuser", "user@example.com", "admin"))
         .thenReturn(createdUser);
 
-    mockMvc.perform(post("/client/createUser")
+    mockMvc.perform(postAdmin("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestUser)))
         .andExpect(status().isCreated())
@@ -463,7 +492,7 @@ public class ClientEndPointUnitTest {
    */
   @Test
   public void createClientUserWithNullBodyTest() throws Exception {
-    mockMvc.perform(post("/client/createUser")
+    mockMvc.perform(postAdmin("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content("null"))
         .andExpect(status().isBadRequest())
@@ -482,7 +511,7 @@ public class ClientEndPointUnitTest {
     requestUser.setEmail("user@example.com");
     requestUser.setRole("admin");
 
-    mockMvc.perform(post("/client/createUser")
+    mockMvc.perform(postAdmin("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestUser)))
         .andExpect(status().isBadRequest())
@@ -501,7 +530,7 @@ public class ClientEndPointUnitTest {
     requestUser.setEmail("user@example.com");
     requestUser.setRole("admin");
 
-    mockMvc.perform(post("/client/createUser")
+    mockMvc.perform(postAdmin("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestUser)))
         .andExpect(status().isBadRequest())
@@ -520,7 +549,7 @@ public class ClientEndPointUnitTest {
     requestUser.setEmail("user@example.com");
     requestUser.setRole("admin");
 
-    mockMvc.perform(post("/client/createUser")
+    mockMvc.perform(postAdmin("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestUser)))
         .andExpect(status().isBadRequest())
@@ -539,7 +568,7 @@ public class ClientEndPointUnitTest {
     requestUser.setEmail("user@example.com");
     requestUser.setRole("admin");
 
-    mockMvc.perform(post("/client/createUser")
+    mockMvc.perform(postAdmin("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestUser)))
         .andExpect(status().isBadRequest())
@@ -558,7 +587,7 @@ public class ClientEndPointUnitTest {
     requestUser.setEmail(null);
     requestUser.setRole("admin");
 
-    mockMvc.perform(post("/client/createUser")
+    mockMvc.perform(postAdmin("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestUser)))
         .andExpect(status().isBadRequest())
@@ -577,7 +606,7 @@ public class ClientEndPointUnitTest {
     requestUser.setEmail("   ");
     requestUser.setRole("admin");
 
-    mockMvc.perform(post("/client/createUser")
+    mockMvc.perform(postAdmin("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestUser)))
         .andExpect(status().isBadRequest())
@@ -596,7 +625,7 @@ public class ClientEndPointUnitTest {
     requestUser.setEmail("invalid-email");
     requestUser.setRole("admin");
 
-    mockMvc.perform(post("/client/createUser")
+    mockMvc.perform(postAdmin("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestUser)))
         .andExpect(status().isBadRequest())
@@ -615,7 +644,7 @@ public class ClientEndPointUnitTest {
     requestUser.setEmail("user@example.com");
     requestUser.setRole(null);
 
-    mockMvc.perform(post("/client/createUser")
+    mockMvc.perform(postAdmin("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestUser)))
         .andExpect(status().isBadRequest())
@@ -634,7 +663,7 @@ public class ClientEndPointUnitTest {
     requestUser.setEmail("user@example.com");
     requestUser.setRole("   ");
 
-    mockMvc.perform(post("/client/createUser")
+    mockMvc.perform(postAdmin("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestUser)))
         .andExpect(status().isBadRequest())
@@ -655,7 +684,7 @@ public class ClientEndPointUnitTest {
 
     when(clientService.getClient(999)).thenReturn(null);
 
-    mockMvc.perform(post("/client/createUser")
+    mockMvc.perform(postAdmin("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestUser)))
         .andExpect(status().isNotFound())
@@ -672,7 +701,7 @@ public class ClientEndPointUnitTest {
   public void createClientUserDuplicateUsernameTest() throws Exception {
     TarsUser requestUser = new TarsUser();
     requestUser.setClientId(1L);
-    requestUser.setUsername("existinguser");
+  requestUser.setUsername("existingUser");
     requestUser.setEmail("user@example.com");
     requestUser.setRole("admin");
 
@@ -680,17 +709,17 @@ public class ClientEndPointUnitTest {
     mockClient.setClientId(1L);
 
     when(clientService.getClient(1)).thenReturn(mockClient);
-    when(tarsUserService.existsByClientIdAndUsername(1L, "existinguser"))
+    when(tarsUserService.existsByClientIdAndUsername(1L, "existingUser"))
         .thenReturn(true);
 
-    mockMvc.perform(post("/client/createUser")
+    mockMvc.perform(postAdmin("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestUser)))
         .andExpect(status().isConflict())
         .andExpect(jsonPath("$.message")
             .value("Username already exists for this client."));
 
-    verify(tarsUserService).existsByClientIdAndUsername(1L, "existinguser");
+    verify(tarsUserService).existsByClientIdAndUsername(1L, "existingUser");
   }
 
   /**
@@ -702,7 +731,7 @@ public class ClientEndPointUnitTest {
     TarsUser requestUser = new TarsUser();
     requestUser.setClientId(1L);
     requestUser.setUsername("newuser");
-    requestUser.setEmail("existing@example.com");
+  requestUser.setEmail("existing@Example.com");
     requestUser.setRole("admin");
 
     Client mockClient = new Client();
@@ -711,17 +740,17 @@ public class ClientEndPointUnitTest {
     when(clientService.getClient(1)).thenReturn(mockClient);
     when(tarsUserService.existsByClientIdAndUsername(1L, "newuser"))
         .thenReturn(false);
-    when(tarsUserService.existsByClientIdAndUserEmail(1L, "existing@example.com"))
+    when(tarsUserService.existsByClientIdAndUserEmail(1L, "existing@Example.com"))
         .thenReturn(true);
 
-    mockMvc.perform(post("/client/createUser")
+    mockMvc.perform(postAdmin("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestUser)))
         .andExpect(status().isConflict())
         .andExpect(jsonPath("$.message")
             .value("A user with the email already exists for this client."));
 
-    verify(tarsUserService).existsByClientIdAndUserEmail(1L, "existing@example.com");
+    verify(tarsUserService).existsByClientIdAndUserEmail(1L, "existing@Example.com");
   }
 
   /**
@@ -747,7 +776,7 @@ public class ClientEndPointUnitTest {
     when(tarsUserService.createUser(1L, "testuser", "user@example.com", "admin"))
         .thenReturn(null);
 
-    mockMvc.perform(post("/client/createUser")
+    mockMvc.perform(postAdmin("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestUser)))
         .andExpect(status().isInternalServerError())
@@ -786,7 +815,7 @@ public class ClientEndPointUnitTest {
     when(tarsUserService.createUser(1L, "testuser", "user@example.com", "admin"))
         .thenReturn(createdUser);
 
-    mockMvc.perform(post("/client/createUser")
+    mockMvc.perform(postAdmin("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(requestUser)))
         .andExpect(status().isCreated())
@@ -822,7 +851,7 @@ public class ClientEndPointUnitTest {
       when(clientService.createClient(anyString(), anyString()))
           .thenReturn(mockClient);
 
-      mockMvc.perform(post("/client/create")
+        mockMvc.perform(postAdmin("/client/create")
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(requestBody)))
           .andExpect(status().isCreated());
@@ -864,7 +893,7 @@ public class ClientEndPointUnitTest {
       when(tarsUserService.createUser(anyLong(), anyString(), anyString(), anyString()))
           .thenReturn(createdUser);
 
-      mockMvc.perform(post("/client/createUser")
+        mockMvc.perform(postAdmin("/client/createUser")
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(requestUser)))
           .andExpect(status().isCreated());
@@ -881,7 +910,7 @@ public class ClientEndPointUnitTest {
     body.put("name", "EXISTINGCLIENT");
     body.put("email", "new@example.com");
     when(clientService.uniqueNameCheck("EXISTINGCLIENT")).thenReturn(false);
-    mockMvc.perform(post("/client/create")
+    mockMvc.perform(postAdmin("/client/create")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(body)))
         .andExpect(status().isConflict())
@@ -901,7 +930,7 @@ public class ClientEndPointUnitTest {
     body.put("email", "EXISTING@EXAMPLE.COM");
     when(clientService.uniqueNameCheck("NewClientX")).thenReturn(true);
     when(clientService.uniqueEmailCheck("EXISTING@EXAMPLE.COM")).thenReturn(false);
-    mockMvc.perform(post("/client/create")
+    mockMvc.perform(postAdmin("/client/create")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(body)))
         .andExpect(status().isConflict())
@@ -922,7 +951,7 @@ public class ClientEndPointUnitTest {
     when(clientService.uniqueNameCheck("DupName")).thenReturn(false);
     // Even if email is also duplicate, controller should stop at name.
     when(clientService.uniqueEmailCheck("dup@example.com")).thenReturn(false);
-    mockMvc.perform(post("/client/create")
+    mockMvc.perform(postAdmin("/client/create")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(body)))
         .andExpect(status().isConflict())
@@ -948,7 +977,7 @@ public class ClientEndPointUnitTest {
     mockClient.setClientId(1L);
     when(clientService.getClient(1)).thenReturn(mockClient);
     when(tarsUserService.existsByClientIdAndUsername(1L, "EXISTINGUSER")).thenReturn(true);
-    mockMvc.perform(post("/client/createUser")
+    mockMvc.perform(postAdmin("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(req)))
         .andExpect(status().isConflict())
@@ -973,7 +1002,7 @@ public class ClientEndPointUnitTest {
     when(tarsUserService.existsByClientIdAndUsername(1L, "newuser2")).thenReturn(false);
     when(tarsUserService.existsByClientIdAndUserEmail(1L, "EXISTING@EXAMPLE.COM"))
         .thenReturn(true);
-    mockMvc.perform(post("/client/createUser")
+    mockMvc.perform(postAdmin("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(req)))
         .andExpect(status().isConflict())
@@ -998,7 +1027,7 @@ public class ClientEndPointUnitTest {
     when(clientService.getClient(1)).thenReturn(mockClient);
     when(tarsUserService.existsByClientIdAndUsername(1L, "dupuser")).thenReturn(true);
     when(tarsUserService.existsByClientIdAndUserEmail(1L, "dup@example.com")).thenReturn(true);
-    mockMvc.perform(post("/client/createUser")
+    mockMvc.perform(postAdmin("/client/createUser")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(req)))
         .andExpect(status().isConflict())
@@ -1037,7 +1066,7 @@ public class ClientEndPointUnitTest {
           "dbg@example.com"
       )).thenReturn(mockClient);
 
-      mockMvc.perform(post("/client/create")
+        mockMvc.perform(postAdmin("/client/create")
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(body)))
           .andExpect(status().isCreated());
@@ -1075,7 +1104,7 @@ public class ClientEndPointUnitTest {
           "noinfo@example.com"
       )).thenReturn(mockClient);
 
-      mockMvc.perform(post("/client/create")
+        mockMvc.perform(postAdmin("/client/create")
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(body)))
           .andExpect(status().isCreated());
@@ -1098,7 +1127,7 @@ public class ClientEndPointUnitTest {
       Map<String, String> body = new HashMap<>();
       body.put("email", "x@example.com"); // missing name triggers warn path
 
-      mockMvc.perform(post("/client/create")
+        mockMvc.perform(postAdmin("/client/create")
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(body)))
           .andExpect(status().isBadRequest());
@@ -1131,7 +1160,7 @@ public class ClientEndPointUnitTest {
           "err@example.com"
       )).thenReturn(null); // error path
 
-      mockMvc.perform(post("/client/create")
+        mockMvc.perform(postAdmin("/client/create")
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(body)))
           .andExpect(status().isInternalServerError());
@@ -1181,7 +1210,7 @@ public class ClientEndPointUnitTest {
           "admin"
       )).thenReturn(created);
 
-      mockMvc.perform(post("/client/createUser")
+        mockMvc.perform(postAdmin("/client/createUser")
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(req)))
           .andExpect(status().isCreated());
@@ -1230,7 +1259,7 @@ public class ClientEndPointUnitTest {
           "admin"
       )).thenReturn(created);
 
-      mockMvc.perform(post("/client/createUser")
+        mockMvc.perform(postAdmin("/client/createUser")
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(req)))
           .andExpect(status().isCreated());
@@ -1256,7 +1285,7 @@ public class ClientEndPointUnitTest {
       req.setEmail("x@example.com");
       req.setRole("admin");
 
-      mockMvc.perform(post("/client/createUser")
+        mockMvc.perform(postAdmin("/client/createUser")
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(req)))
           .andExpect(status().isBadRequest());
@@ -1295,7 +1324,7 @@ public class ClientEndPointUnitTest {
           "admin"
       )).thenReturn(null); // error path
 
-      mockMvc.perform(post("/client/createUser")
+        mockMvc.perform(postAdmin("/client/createUser")
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(req)))
           .andExpect(status().isInternalServerError());
@@ -1337,7 +1366,7 @@ public class ClientEndPointUnitTest {
     Map<String, String> loginBody = new HashMap<>();
     loginBody.put("username", "alice");
 
-    mockMvc.perform(post("/login")
+    mockMvc.perform(postClient("/login")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(loginBody)))
         .andExpect(status().isOk())
@@ -1374,7 +1403,7 @@ public class ClientEndPointUnitTest {
     Map<String, String> loginBody = new HashMap<>();
     loginBody.put("email", "alice@gmail.com");
 
-    mockMvc.perform(post("/login")
+    mockMvc.perform(postClient("/login")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(loginBody)))
         .andExpect(status().isOk())
@@ -1406,7 +1435,7 @@ public class ClientEndPointUnitTest {
     Map<String, String> loginBody = new HashMap<>();
     loginBody.put("userId", userId.toString());
 
-    mockMvc.perform(post("/login")
+    mockMvc.perform(postClient("/login")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(loginBody)))
         .andExpect(status().isOk())
@@ -1423,7 +1452,7 @@ public class ClientEndPointUnitTest {
   public void loginMissingCredentialsTest() throws Exception {
     Map<String, String> loginBody = new HashMap<>();
 
-    mockMvc.perform(post("/login")
+    mockMvc.perform(postClient("/login")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(loginBody)))
         .andExpect(status().isBadRequest())
@@ -1445,7 +1474,7 @@ public class ClientEndPointUnitTest {
     Map<String, String> loginBody = new HashMap<>();
     loginBody.put("username", username);
 
-    mockMvc.perform(post("/login")
+    mockMvc.perform(postClient("/login")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(loginBody)))
         .andExpect(status().isNotFound())
@@ -1475,7 +1504,7 @@ public class ClientEndPointUnitTest {
     Map<String, String> loginBody = new HashMap<>();
     loginBody.put("username", "bob");
 
-    mockMvc.perform(post("/login")
+    mockMvc.perform(postClient("/login")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(loginBody)))
         .andExpect(status().isForbidden())
@@ -1495,7 +1524,7 @@ public class ClientEndPointUnitTest {
     List<Client> clientList = List.of(client, client2);
     when(clientService.getClientList()).thenReturn(clientList);
 
-    mockMvc.perform(get("/clients"))
+    mockMvc.perform(getAdmin("/clients"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$", hasSize(2)))
         .andExpect(jsonPath("$[0].clientId").value(2))
@@ -1510,7 +1539,7 @@ public class ClientEndPointUnitTest {
     List<Client> clientList = new ArrayList<>();
     when(clientService.getClientList()).thenReturn(clientList);
 
-    mockMvc.perform(get("/clients"))
+    mockMvc.perform(getAdmin("/clients"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$", hasSize(0)));
   }

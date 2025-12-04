@@ -28,7 +28,11 @@ import org.springframework.test.web.servlet.MockMvc;
 /**
  * {@code RouteControllerUnitTest} Unit tests for RouteController.
  */
-@SpringBootTest
+@SpringBootTest(properties = {
+  "security.apiKey.header=X-API-Key",
+  "security.publicPaths=/,/index,/login",
+  "security.adminApiKeys=adminkey000000000000000000000000"
+})
 @AutoConfigureMockMvc
 public class RouteControllerUnitTest {
 
@@ -66,10 +70,29 @@ public class RouteControllerUnitTest {
 
   @Test
   public void testGetCountryAdvisory() throws Exception {
+    // Increase rate limit for the test client to avoid 429s
+    long clientId = 1L;
+    try {
+      java.io.File f = new java.io.File("./data/clients.json");
+      com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+      java.util.List<org.coms4156.tars.model.Client> clients = mapper.readValue(
+          f, new com.fasterxml.jackson.core.type.TypeReference<java.util.List<org.coms4156.tars.model.Client>>() {});
+      if (!clients.isEmpty()) {
+        clientId = clients.get(0).getClientId();
+      }
+    } catch (Exception ignored) {}
+    java.util.Map<String, Integer> payload = new java.util.HashMap<>();
+    payload.put("limit", 10);
+    mockMvc.perform(post("/clients/" + clientId + "/setRateLimit")
+            .header("X-API-Key", "adminkey000000000000000000000000")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(payload)))
+        .andExpect(status().isOk());
+
     TravelAdvisory mockCanadaAdvisory = 
           new TravelAdvisory("Canada", "Level 1: Exercise normal precautions", new ArrayList<>());
 
-    mockMvc.perform(get("/country/Canada"))
+    mockMvc.perform(get("/country/Canada").header("X-API-Key", TestKeys.clientKey()))
       .andExpect(status().isOk())
         .andExpect(content().string(mockCanadaAdvisory.toString()));
 
@@ -81,11 +104,11 @@ public class RouteControllerUnitTest {
     TravelAdvisory mockIndonesiaAdvisory =
           new TravelAdvisory("Indonesia", "Level 2: Exercise increased caution", mockRisks);
     
-    mockMvc.perform(get("/country/Indonesia"))
+    mockMvc.perform(get("/country/Indonesia").header("X-API-Key", TestKeys.clientKey()))
       .andExpect(status().isOk())
         .andExpect(content().string(mockIndonesiaAdvisory.toString()));
 
-    mockMvc.perform(get("/country/Earth"))
+    mockMvc.perform(get("/country/Earth").header("X-API-Key", TestKeys.clientKey()))
         .andExpect(status().isNotFound());
   }
 
@@ -136,5 +159,27 @@ public class RouteControllerUnitTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(loginBody)))
         .andExpect(status().isForbidden());
+  }
+}
+
+class TestKeys {
+  private static String cachedClientKey;
+
+  public static String clientKey() {
+    if (cachedClientKey != null) return cachedClientKey;
+    try {
+      // Read first client's key from data/clients.json
+      com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+      java.io.File f = new java.io.File("./data/clients.json");
+      java.util.List<org.coms4156.tars.model.Client> clients = mapper.readValue(
+          f, new com.fasterxml.jackson.core.type.TypeReference<java.util.List<org.coms4156.tars.model.Client>>() {});
+      if (!clients.isEmpty()) {
+        cachedClientKey = clients.get(0).getApiKey();
+        return cachedClientKey;
+      }
+    } catch (Exception ignored) {}
+    // Fallback to a known test key if data file missing
+    cachedClientKey = "clientkey000000000000000000000000";
+    return cachedClientKey;
   }
 }

@@ -78,6 +78,21 @@ public class ClientService {
   }
 
   /**
+   * Find a client by its API key.
+   * Returns null if not found or if apiKey is null/blank.
+   */
+  public synchronized Client findByApiKey(String apiKey) {
+    if (apiKey == null || apiKey.isBlank()) {
+      return null;
+    }
+    for (Client c : clients) {
+      if (c != null && apiKey.equals(c.getApiKey())) {
+        return c;
+      }
+    }
+    return null;
+  }
+  /**
    * {@code generateApiKey} Generates a new API key for a client.
    *
    * @return the generated API key as a String
@@ -208,6 +223,39 @@ public class ClientService {
       if (client.getClientId() == clientId) {
         return copyClient(client);
       }
+    }
+    return null;
+  }
+
+  /**
+   * {@code setRateLimit} Updates the per-minute rate limit for a client and persists the change.
+   *
+   * @param clientId the client identifier
+   * @param limit the new limit, must be positive
+   * @return updated Client copy or null if not found/invalid
+   */
+  public synchronized Client setRateLimit(long clientId, int limit) {
+    if (limit <= 0) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("setRateLimit: invalid limit {} for client {}", limit, clientId);
+      }
+      return null;
+    }
+    if (clients == null) {
+      clients = loadData();
+    }
+    for (Client c : clients) {
+      if (c.getClientId() != null && c.getClientId() == clientId) {
+        c.setRateLimitPerMinute(limit);
+        saveData();
+        if (logger.isInfoEnabled()) {
+          logger.info("Rate limit updated for client id={} limit={}", clientId, limit);
+        }
+        return copyClient(c);
+      }
+    }
+    if (logger.isWarnEnabled()) {
+      logger.warn("setRateLimit: client not found id={}", clientId);
     }
     return null;
   }

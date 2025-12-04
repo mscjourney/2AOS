@@ -240,6 +240,88 @@ public class RouteController {
   }
 
   /**
+   * Rotates the API key for a given client and returns the new key.
+   * Request Method: POST
+   *
+   * @param clientId the ID of the client whose key is to be rotated
+   * @return 200 with JSON containing the new key; 404 if client not found
+   */
+  @PostMapping({"/clients/{clientId}/rotateKey"})
+  public ResponseEntity<Map<String, String>> rotateClientApiKey(@PathVariable("clientId") long clientId) {
+    if (logger.isInfoEnabled()) {
+      logger.info("POST /clients/{}/rotateKey invoked", clientId);
+    }
+    Client existing = clientService.getClient(clientId);
+    if (existing == null) {
+      if (logger.isWarnEnabled()) {
+        logger.warn("POST /clients/{}/rotateKey failed: client not found", clientId);
+      }
+      throw new NotFoundException("Client not found.");
+    }
+
+    String newKey = clientService.rotateApiKey(clientId);
+    if (newKey == null || newKey.isBlank()) {
+      if (logger.isErrorEnabled()) {
+        logger.error("POST /clients/{}/rotateKey internal error: rotate returned null/blank", clientId);
+      }
+      throw new RuntimeException("Failed to rotate API key.");
+    }
+
+    Map<String, String> body = new java.util.HashMap<>();
+    body.put("clientId", String.valueOf(clientId));
+    body.put("apiKey", newKey);
+    if (logger.isInfoEnabled()) {
+      logger.info("POST /clients/{}/rotateKey success (key suffix={})", clientId, newKey.substring(newKey.length() - 4));
+    }
+    return ResponseEntity.ok(body);
+  }
+
+  /**
+   * Updates a client's per-minute rate limit.
+   * Request Method: POST
+   * Body: { "limit": <positive integer> }
+   *
+   * @param clientId client identifier
+   * @param body JSON containing new limit
+   * @return 200 with updated client DTO; 400 for invalid input; 404 if client not found
+   */
+  @PostMapping({"/clients/{clientId}/setRateLimit"})
+  public ResponseEntity<ClientDto> setClientRateLimit(
+      @PathVariable("clientId") long clientId,
+      @RequestBody(required = false) Map<String, Object> body) {
+    if (logger.isInfoEnabled()) {
+      logger.info("POST /clients/{}/setRateLimit invoked", clientId);
+    }
+
+    Client existing = clientService.getClient(clientId);
+    if (existing == null) {
+      throw new NotFoundException("Client not found.");
+    }
+    if (body == null || !body.containsKey("limit")) {
+      throw new BadRequestException("Missing 'limit'.");
+    }
+    Object limitObj = body.get("limit");
+    int limit;
+    try {
+      limit = Integer.parseInt(String.valueOf(limitObj));
+    } catch (NumberFormatException nfe) {
+      throw new BadRequestException("Invalid 'limit'.");
+    }
+    if (limit <= 0 || limit > 10000) {
+      throw new BadRequestException("'limit' must be between 1 and 10000.");
+    }
+
+    Client updated = clientService.setRateLimit(clientId, limit);
+    if (updated == null) {
+      throw new RuntimeException("Failed to update rate limit.");
+    }
+    if (logger.isInfoEnabled()) {
+      logger.info("POST /clients/{}/setRateLimit success newLimit={}", clientId, limit);
+    }
+    return ResponseEntity.ok(DtoMapper.toClientDto(updated));
+  }
+
+  /**
    * Handles POST requests to create a user for a specific client.
    * Pass new user information in the request body as a JSON object.
    *
