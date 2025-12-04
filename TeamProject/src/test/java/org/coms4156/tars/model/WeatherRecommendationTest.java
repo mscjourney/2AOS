@@ -122,29 +122,4 @@ public class WeatherRecommendationTest {
             "Message should indicate no match for temperature preferences"
     );
   }
-
-  @Test
-  public void testGetUserRecDaysWithInvalidCity() {
-    UserPreference user = new UserPreference(
-            42L,
-            List.of("clear"),
-            List.of("10", "20"),  // reasonable Celsius temps
-            List.of("InvalidCity")
-    );
-
-    String invalidCity = "NonExistentCityXYZ999";
-
-    WeatherRecommendation recommendation =
-            WeatherModel.getUserRecDays(invalidCity, 7, user);
-
-    assertNotNull(recommendation);
-    assertEquals(invalidCity, recommendation.getCity(), "City should match input even if invalid");
-
-    assertTrue(
-            recommendation.getMessage().contains("Error")
-                    || recommendation.getMessage().contains("Could not find")
-                    || recommendation.getMessage().contains("Error processing forecast"),
-            "Should indicate error for invalid city"
-    );
-  }
 }

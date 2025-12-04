@@ -36,7 +36,7 @@ public class WeatherModel {
       int latIndex = body.indexOf("\"latitude\":");
       int lonIndex = body.indexOf("\"longitude\":");
       if (latIndex == -1 || lonIndex == -1) {
-        return "Could not find coordinates for city: " + city;
+        return "City Not Found";
       }
 
       double latitude = Double.parseDouble(body.substring(latIndex + 11,
@@ -70,9 +70,25 @@ public class WeatherModel {
   /**
    * Calls getWeatherForCity() and returns the days for clear skies
    * as a WeatherRecommendation Object.
+   *
+   * @param city the city that we are generating recommendation for
+   * @param days the range of days taken into consideration. Must be in range [1, 14] inclusively
+   * @return a WeatherRecommendation Object on success. Throws IllegalArgumentException if
+   *      city does not exist (based on external API) or days out of range. Throws RuntimeException
+   *      on API failure or if parsing failed due to malformed json body.
    */
   public static WeatherRecommendation getRecommendedDays(String city, int days) {
+    if (days <= 0 || days > 14) {
+      throw new IllegalArgumentException("Days out of range");
+    }
+    
     String forecast = getWeatherForCity(city, days);
+
+    if (forecast.equals("City Not Found")) { // Handle Invalid City Cases
+      throw new IllegalArgumentException("City Not Found");
+    } else if (forecast.contains("Error fetching weather data:")) {
+      throw new RuntimeException("API Failure");
+    }
     List<String> niceDays = new ArrayList<>();
 
     try {
@@ -130,19 +146,35 @@ public class WeatherModel {
       return new WeatherRecommendation(city, niceDays, message, absoluteMinTemp, absoluteMaxTemp);
 
     } catch (Exception e) {
-      return new WeatherRecommendation(city, List.of(),
-              "Error processing forecast: " + e.getMessage());
+      throw new RuntimeException("Parsing Failure"); // API returned malformed body.
     }
   }
 
   /**
    * Calls getWeatherForCity() and returns the days for clear skies
-   * and prefered temperature as a WeatherRecommendation Object.
+   * and preferred temperature as a WeatherRecommendation Object for a specific user.
+   *
+   * @param city the city that we are generating recommendation for
+   * @param days the range of days taken into consideration. Must be in range [1, 14] inclusively
+   * @param user the user who we are generating for using their temperature preferences.
+   *      Can never be called with null UserPreference.
+   * @return a WeatherRecommendation Object on success. Throws IllegalArgumentException if
+   *      city does not exist (based on external API) or days out of range. Throws RuntimeException
+   *      on API failure or if parsing failed due to malformed json body.
    */
-  public static WeatherRecommendation getUserRecDays(
-          String city, int days, UserPreference user) {
-
+  public static WeatherRecommendation getUserRecDays(String city, int days, UserPreference user) {
+    if (days <= 0 || days > 14) {
+      throw new IllegalArgumentException("Days out of range");
+    }
+    
     String forecast = getWeatherForCity(city, days);
+
+    if (forecast.equals("City Not Found")) { // Handle Invalid City Cases
+      throw new IllegalArgumentException("City Not Found");
+    } else if (forecast.contains("Error fetching weather data:")) {
+      throw new RuntimeException("API Failure");
+    }
+
     List<String> niceDays = new ArrayList<>();
 
     try {
@@ -207,19 +239,14 @@ public class WeatherModel {
       }
 
       String message = niceDays.isEmpty()
-              ? "No days meet your preferences for user " + user.getId()
-              + " in " + city + " over the next " + days + " days."
+              ? "No days meet your preferences in " + city + " over the next " + days + " days."
               : "Recommended days for user " + user.getId()
               + " based on clear weather and temperature preferences!";
 
       return new WeatherRecommendation(city, niceDays, message, absoluteMinTemp, absoluteMaxTemp);
 
     } catch (Exception e) {
-      return new WeatherRecommendation(
-              city,
-              List.of(),
-              "Error processing forecast for user " + user.getId() + ": " + e.getMessage()
-      );
+      throw new RuntimeException("Parsing Failure"); // API returned malformed body.
     }
   }
 

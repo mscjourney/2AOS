@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
  *          testGetWeatherAlertsWithEmptyCityName,
  *          testGetWeatherAlertsWithWhitespaceOnlyCity
  *
- * <p>Equivalence Partition 2: Valid coordinates only shouldIf return a WeatherAlert
+ * <p>Equivalence Partition 2: Valid coordinates only should return a WeatherAlert
  * with coordinate location.
  *   Tests: testGetWeatherAlertsWithValidCoordinates,
  *          testGetWeatherAlertsWithNullCityButValidCoordinates,

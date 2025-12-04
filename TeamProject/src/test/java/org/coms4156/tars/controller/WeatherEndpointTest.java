@@ -1,6 +1,7 @@
 package org.coms4156.tars.controller;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -41,6 +42,7 @@ import org.springframework.test.web.servlet.MockMvc;
  *    GET /recommendation/weather?city={city}&days={days}
  *    GET /alert/weather?city={city}&lat={lat}&lon={lon}
  *    GET /alert/weather/user/{userId}
+ *    GET /recommendation/weather/user/{userId}?city={city}&days={days}
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -109,7 +111,7 @@ public class WeatherEndpointTest {
   /**
    * {@code testGetWeatherRecommendationWithValidCityAndDays}
    * Equivalence Partition 1: city is valid and days is in the range [1, 14] (inclusive).
-   * The valid cases are mocked since API will return real time values which differ everyday.
+   *    The valid cases are mocked since API return real time values which differ everyday.
    */
   @Test
   public void testGetWeatherRecommendationWithValidCityAndDays() throws Exception {
@@ -127,7 +129,7 @@ public class WeatherEndpointTest {
       mockedModel.when(() -> WeatherModel.getRecommendedDays("New York", 7))
           .thenReturn(recommendation);
 
-      mockMvc.perform(get("/recommendation/weather/")
+      mockMvc.perform(get("/recommendation/weather")
           .param("city", "New York")
           .param("days", "7"))
           .andExpect(status().isOk())
@@ -152,7 +154,7 @@ public class WeatherEndpointTest {
       mockedModel.when(() -> WeatherModel.getRecommendedDays("Boston", 14))
           .thenReturn(recommendation);
 
-      mockMvc.perform(get("/recommendation/weather/")
+      mockMvc.perform(get("/recommendation/weather")
           .param("city", "Boston")
           .param("days", "14"))
           .andExpect(status().isOk())
@@ -165,7 +167,7 @@ public class WeatherEndpointTest {
       mockedModel.when(() -> WeatherModel.getRecommendedDays("Boston", 1))
           .thenReturn(recommendation);
       // RecommendedDays is at most one since we are only looking at one day range.
-      mockMvc.perform(get("/recommendation/weather/")
+      mockMvc.perform(get("/recommendation/weather")
           .param("city", "Boston")
           .param("days", "1"))
           .andExpect(status().isOk())
@@ -186,7 +188,7 @@ public class WeatherEndpointTest {
       mockedModel.when(() -> WeatherModel.getRecommendedDays("San Francisco", 5))
           .thenReturn(recommendation);
 
-      mockMvc.perform(get("/recommendation/weather/")
+      mockMvc.perform(get("/recommendation/weather")
           .param("city", "San Francisco")
           .param("days", "5")
           .contentType(MediaType.APPLICATION_JSON))
@@ -199,63 +201,68 @@ public class WeatherEndpointTest {
   /**
    * {@code}
    * Equivalence Partition 2: An invalid city is passed in with valid days range.
-   * Will return OK but will contain an error message instead of proper data.
+   *    Will return BAD_REQUEST status with an error message
    */
   @Test
   public void testGetWeatherRecommendationInvalidCityValidDays() throws Exception {
-    mockMvc.perform(get("/recommendation/weather/")
+    mockMvc.perform(get("/recommendation/weather")
         .param("city", "109123")
         .param("days", "1"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.message", containsString("Error processing forecast")));
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string("City could not be found."));
 
-    mockMvc.perform(get("/recommendation/weather/")
+    mockMvc.perform(get("/recommendation/weather")
         .param("city", "asdasdsad")
         .param("days", "14"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.message", containsString("Error processing forecast")));
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string("City could not be found."));
 
-    mockMvc.perform(get("/recommendation/weather/")
+    mockMvc.perform(get("/recommendation/weather")
         .param("city", "!!!")
         .param("days", "7"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.message", containsString("Error processing forecast")));
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string("City could not be found."));
   }
   
   /**
    * {@code testGetWeatherRecommendationWithInvalidDays}
    * Equivalence Partition 3: days is not in the specified range.
-   * In this case, we do not care about the validity of the city because entry point will return
-   * BAD_REQUEST regardless of the validity of city.
+   *    In this case, we do not care about the validity of the city because entry point will return
+   *    BAD_REQUEST regardless of the validity of city.
    */
-
   @Test
   public void testGetWeatherRecommendationWithInvalidDays() throws Exception {
-    mockMvc.perform(get("/recommendation/weather/")
+    mockMvc.perform(get("/recommendation/weather")
         .param("city", "Boston")
         .param("days", "0"))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string("Days must be in the range [0, 14], inclusively."));
 
-    mockMvc.perform(get("/recommendation/weather/")
+    mockMvc.perform(get("/recommendation/weather")
         .param("city", "Boston")
         .param("days", "15"))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string("Days must be in the range [0, 14], inclusively."));
 
-    mockMvc.perform(get("/recommendation/weather/")
+    mockMvc.perform(get("/recommendation/weather")
         .param("city", "Boston")
         .param("days", "-5"))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string("Days must be in the range [0, 14], inclusively."));
+
   }
 
-  /* ======= /recommendation/weather/user Equivalence Partitions ======= */
+  /* ========= /recommendation/weather/user/{userId} Equivalence Partitions ======= */
 
   /**
-   * {@code testRecommendationUserValidCityAndDays}
-   * Equivalence Partition 1: city is valid and days is in the range [1, 14] (inclusive).
-   * The valid cases are mocked since API will return real time values which differ everyday.
+   * {@code testGetUserRecommendationValidCityAndDays}
+   * Equivalence Partition 1: userId is non-negative and TarsUser associated with userId exist 
+   *    with preferences set. days is in the range [1, 14] (inclusive) and city is valid.
+   *    Considers preferences being empty.
+   *    The valid cases are mocked since API return real time values which differ everyday.
    */
   @Test
-  public void testRecommendationUserValidCityAndDays() throws Exception {
+  public void testGetUserRecommendationValidCityAndDays() throws Exception {
     // Days within range
     List<String> recommendedDays = new ArrayList<>();
     recommendedDays.add("2024-01-15");
@@ -267,14 +274,14 @@ public class WeatherEndpointTest {
     );
 
     try (MockedStatic<WeatherModel> mockedModel = Mockito.mockStatic(WeatherModel.class)) {
+      when(tarsUserService.findById(2L)).thenReturn(new TarsUser()); // Mocking TarsUser existence
       when(tarsService.getUserPreference(2L)).thenReturn(mockUser);
 
       mockedModel.when(() -> WeatherModel.getUserRecDays("New York", 7, mockUser))
               .thenReturn(recommendation);
 
-      mockMvc.perform(get("/recommendation/weather/user")
+      mockMvc.perform(get("/recommendation/weather/user/2")
                       .param("city", "New York")
-                      .param("userId", "2")
                       .param("days", "7"))
               .andExpect(status().isOk())
               .andExpect(jsonPath("$.city").value("New York"))
@@ -295,13 +302,13 @@ public class WeatherEndpointTest {
     );
 
     try (MockedStatic<WeatherModel> mockedModel = Mockito.mockStatic(WeatherModel.class)) {
+      when(tarsUserService.findById(2L)).thenReturn(new TarsUser()); // Mocking TarsUser existence
       when(tarsService.getUserPreference(2L)).thenReturn(mockUser);
       mockedModel.when(() -> WeatherModel.getUserRecDays("Boston", 14, mockUser))
               .thenReturn(recommendation);
 
-      mockMvc.perform(get("/recommendation/weather/user")
+      mockMvc.perform(get("/recommendation/weather/user/2")
                       .param("city", "Boston")
-                      .param("userId", "2")
                       .param("days", "14"))
               .andExpect(status().isOk())
               .andExpect(jsonPath("$.city").value("Boston"))
@@ -310,13 +317,13 @@ public class WeatherEndpointTest {
 
     // Lower Boundary of days range
     try (MockedStatic<WeatherModel> mockedModel = Mockito.mockStatic(WeatherModel.class)) {
+      when(tarsUserService.findById(2L)).thenReturn(new TarsUser()); // Mocking TarsUser existence
       when(tarsService.getUserPreference(2L)).thenReturn(mockUser);
       mockedModel.when(() -> WeatherModel.getUserRecDays("Boston", 1, mockUser))
               .thenReturn(recommendation);
       // RecommendedDays is at most one since we are only looking at one day range.
-      mockMvc.perform(get("/recommendation/weather/user")
+      mockMvc.perform(get("/recommendation/weather/user/2")
                       .param("city", "Boston")
-                      .param("userId", "2")
                       .param("days", "1"))
               .andExpect(status().isOk())
               .andExpect(jsonPath("$.city").value("Boston"))
@@ -333,111 +340,144 @@ public class WeatherEndpointTest {
     );
 
     try (MockedStatic<WeatherModel> mockedModel = Mockito.mockStatic(WeatherModel.class)) {
+      when(tarsUserService.findById(2L)).thenReturn(new TarsUser()); // Mocking TarsUser existence
       when(tarsService.getUserPreference(2L)).thenReturn(mockUser);
       mockedModel.when(() -> WeatherModel.getUserRecDays("San Francisco", 5, mockUser))
               .thenReturn(recommendation);
 
-      mockMvc.perform(get("/recommendation/weather/user")
+      mockMvc.perform(get("/recommendation/weather/user/2")
                       .param("city", "San Francisco")
-                      .param("userId", "2")
                       .param("days", "5")
                       .contentType(MediaType.APPLICATION_JSON))
               .andExpect(status().isOk())
               .andExpect(jsonPath("$.city").value("San Francisco"))
               .andExpect(jsonPath("$.recommendedDays").isArray());
     }
+
+    // Testing with EmptyPreferences
+    when(tarsUserService.findById(2L)).thenReturn(new TarsUser()); // Mocking TarsUser existence
+    UserPreference emptyPreference = new UserPreference(2L, List.of(), List.of(), List.of());
+    when(tarsService.getUserPreference(2L)).thenReturn(emptyPreference);
+
+    mockMvc.perform(get("/recommendation/weather/user/2")
+                    .param("city", "Austin")
+                    .param("days", "10")
+                    .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.city").value("Austin"))
+            .andExpect(jsonPath("$.recommendedDays", hasSize(0)))
+            .andExpect(jsonPath("message")
+                .value("No days meet your preferences in Austin over the next 10 days."));
   }
 
   /**
-   * {@code testUserRecInvalidCityValidDays}
-   * Equivalence Partition 2: An invalid city is passed in with valid days range.
-   * Will return OK but will contain an error message instead of proper data.
+   * {@code testGetUserRecommendationNoUserPreference}
+   * Equivalence Partition 2: userId is non-negative and TarsUser associated with userId exist 
+   *    but NO preferences exist. days is in the range [1, 14] (inclusive) and city is valid.
+   * 
+   */
+  public void testGetUserRecommendationNoUserPreference() throws Exception {
+    when(tarsUserService.findById(2L)).thenReturn(new TarsUser()); // Mocking TarsUser existence
+
+    mockMvc.perform(get("/recommendation/weather/user/2")
+                    .param("city", "New York")
+                    .param("days", "7"))
+            .andExpect(status().isNotFound())
+            .andExpect(content().string("User Preferences could not be found."));
+  }
+
+  /**
+   * {@code testGetUserRecWithNonExistentUserId}
+   * Equivalence Partition 3: userId is non-negative but there does NOT exist a TarsUser
+   *      associated with the userId. days is in the range [1, 14] (inclusive) and city is valid. 
    */
   @Test
-  public void testUserRecInvalidCityValidDays() throws Exception {
+  public void testGetUserRecWithNonExistentUserId() throws Exception {
+    mockMvc.perform(get("/recommendation/weather/user/999")
+                    .param("city", "Boston")
+                    .param("days", "5"))
+            .andExpect(status().isNotFound());
+    
+    mockMvc.perform(get("/recommendation/weather/user/0")
+                    .param("city", "Boston")
+                    .param("days", "7"))
+            .andExpect(status().isNotFound());
+  }
+
+  /**
+   * {@code testGetUserRecInvalidCityValidDays}
+   * Equivalence Partition 4: userId is non-negative and days is in the range [1, 14] (inclusive)
+   *      but city is invalid. 
+   */
+  @Test
+  public void testGetUserRecInvalidCityValidDays() throws Exception {
+    when(tarsUserService.findById(2L)).thenReturn(new TarsUser()); // Mocking TarsUser existence
     when(tarsService.getUserPreference(2L)).thenReturn(mockUser);
 
-    mockMvc.perform(get("/recommendation/weather/user")
+    mockMvc.perform(get("/recommendation/weather/user/2")
                     .param("city", "109123")
-                    .param("userId", "2")
                     .param("days", "1"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.message", containsString("Error processing forecast")));
+            .andExpect(status().isBadRequest())
+            .andExpect(content().string("City could not be found."));
 
-    mockMvc.perform(get("/recommendation/weather/user")
+    mockMvc.perform(get("/recommendation/weather/user/2")
                     .param("city", "asdasdsad")
-                    .param("userId", "2")
                     .param("days", "14"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.message", containsString("Error processing forecast")));
+            .andExpect(status().isBadRequest())
+            .andExpect(content().string("City could not be found."));
 
-    mockMvc.perform(get("/recommendation/weather/user")
+    mockMvc.perform(get("/recommendation/weather/user/2")
                     .param("city", "!!!")
-                    .param("userId", "2")
                     .param("days", "7"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.message", containsString("Error processing forecast")));
+            .andExpect(status().isBadRequest())
+            .andExpect(content().string("City could not be found."));
   }
 
   /**
    * {@code testGetUserRecWithInvalidDays}
-   * Equivalence Partition 3: days is not in the specified range.
-   * In this case, we do not care about the validity of the city because entry point will return
-   * BAD_REQUEST regardless of the validity of city.
+   * Equivalence Partition 5: userId is non-negative but days is out of range.
    */
   @Test
   public void testGetUserRecWithInvalidDays() throws Exception {
     when(tarsService.getUserPreference(2L)).thenReturn(mockUser);
 
-    mockMvc.perform(get("/recommendation/weather/user")
+    mockMvc.perform(get("/recommendation/weather/user/2")
                     .param("city", "Boston")
-                    .param("userId", "2")
                     .param("days", "0"))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isBadRequest())
+            .andExpect(content().string("Days must be in the range [0, 14], inclusively."));
 
-    mockMvc.perform(get("/recommendation/weather/user")
+    mockMvc.perform(get("/recommendation/weather/user/2")
                     .param("city", "Boston")
-                    .param("userId", "2")
                     .param("days", "15"))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isBadRequest())
+            .andExpect(content().string("Days must be in the range [0, 14], inclusively."));
 
-    mockMvc.perform(get("/recommendation/weather/user")
+    mockMvc.perform(get("/recommendation/weather/user/2")
                     .param("city", "Boston")
-                    .param("userId", "2")
                     .param("days", "-5"))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isBadRequest())
+            .andExpect(content().string("Days must be in the range [0, 14], inclusively."));
   }
-
-  /**
-   * {@code testGetUserRecWithNonExistentUserId}
-   * Equivalence Partition 4: userId refers to a user that does not exist.
-   * Expected: 404 NOT_FOUND.
-   */
-  @Test
-  public void testGetUserRecWithNonExistentUserId() throws Exception {
-    when(tarsService.getUserPreference(999L)).thenReturn(null);
-
-    mockMvc.perform(get("/recommendation/weather/user")
-                    .param("city", "Boston")
-                    .param("userId", "999")
-                    .param("days", "5"))
-            .andExpect(status().isNotFound());
-  }
-
+  
   /**
    * {@code testGetUserRecWithNegativeUserId}
-   * Equivalence Partition 5: userId is negative.
-   * Expected: 400 BAD_REQUEST.
+   * Equivalence Partition 6: userId is negative.
+   * 
    */
   @Test
   public void testGetUserRecWithNegativeUserId() throws Exception {
-    when(tarsService.getUserPreference(-1L)).thenReturn(null);
-
-    mockMvc.perform(get("/recommendation/weather/user")
+    mockMvc.perform(get("/recommendation/weather/user/-1")
                     .param("city", "Boston")
-                    .param("userId", "-1")
                     .param("days", "5"))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isBadRequest())
+            .andExpect(content().string("User Id cannot be negative."));
+
+    mockMvc.perform(get("/recommendation/weather/user/-1234")
+                    .param("city", "Los Angeles")
+                    .param("days", "13"))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().string("User Id cannot be negative."));
   }
 
   /* ======= /alert/weather?city={city}&lat={lat}&lon={lon} Equivalence Partitions ======= */
@@ -714,7 +754,7 @@ public class WeatherEndpointTest {
     try (LoggerTestUtil.CapturedLogger cap =
              LoggerTestUtil.capture(RouteController.class, Level.WARN)) {
 
-      mockMvc.perform(get("/recommendation/weather/")
+      mockMvc.perform(get("/recommendation/weather")
         .param("city", "New York")
         .param("days", "13"))
           .andExpect(status().isOk());
@@ -782,7 +822,7 @@ public class WeatherEndpointTest {
     try (LoggerTestUtil.CapturedLogger cap =
              LoggerTestUtil.capture(RouteController.class, Level.ERROR)) {
       
-      mockMvc.perform(get("/recommendation/weather/")
+      mockMvc.perform(get("/recommendation/weather")
         .param("city", "New York")
         .param("days", "20"))
           .andExpect(status().isBadRequest());

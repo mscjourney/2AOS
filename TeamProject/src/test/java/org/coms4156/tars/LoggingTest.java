@@ -164,7 +164,7 @@ public class LoggingTest {
   public void testWeatherRecommendationLogging() throws Exception {
     listAppender.list.clear();
 
-    mockMvc.perform(get("/recommendation/weather/")
+    mockMvc.perform(get("/recommendation/weather")
         .param("city", "New York")
         .param("days", "7"))
         .andExpect(status().isOk());
