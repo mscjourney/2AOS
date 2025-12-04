@@ -239,11 +239,12 @@ class TarsApiClient {
 
   /**
    * Get weather recommendation for a user based on their preferences (getUserRec)
+   * userId is now a path variable for consistency
    */
   async getUserWeatherRecommendation(city, userId, days) {
     try {
-      const response = await axios.get(`${this.baseUrl}/recommendation/weather/user`, {
-        params: { city, userId, days }
+      const response = await axios.get(`${this.baseUrl}/recommendation/weather/user/${userId}`, {
+        params: { city, days }
       });
       return response.data;
     } catch (error) {

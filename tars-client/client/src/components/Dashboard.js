@@ -264,10 +264,9 @@ function Dashboard() {
       // Get recommendations for each city in user's preferences
       for (const city of userPreferences.cityPreferences) {
         try {
-          const response = await axios.get(`${API_BASE}/getUserRec`, {
+          const response = await axios.get(`${API_BASE}/getUserRec/${loggedInUser.userId}`, {
             params: {
               city: city,
-              userId: loggedInUser.userId,
               days: 7 // Default to 7 days
             }
           });
