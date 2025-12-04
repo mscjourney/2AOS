@@ -27,7 +27,41 @@ import org.junit.jupiter.api.Test;
  * ======== {@code Map<String, Object> extractCurrentConditions(String weatherJson)} =========
  * ======== {@code double parseValue(String json, String key)} ============
  * ======== {@code WeatherAlert getWeatherAlerts(String city, Double lat, Double lon)} =========
- * ======== {@code List<WeatherAlert> getUserAlerts(UserPreference user)} ==========
+ * Equivalence Partition 1: Invalid parameter combinations should throw IllegalArgumentException.
+ *   Tests: testGetWeatherAlertsWithNoParameters,
+ *          testGetWeatherAlertsWithOnlyLatitude,
+ *          testGetWeatherAlertsWithOnlyLongitude,
+ *          testGetWeatherAlertsWithEmptyCityName,
+ *          testGetWeatherAlertsWithWhitespaceOnlyCity
+ *
+ * <p>Equivalence Partition 2: Valid coordinates only should return a WeatherAlert
+ * with coordinate location.
+ *   Tests: testGetWeatherAlertsWithValidCoordinates,
+ *          testGetWeatherAlertsWithNullCityButValidCoordinates,
+ *          testGetWeatherAlertsWithNegativeCoordinates,
+ *          testGetWeatherAlertsWithExtremeCoordinateValues
+ *
+ * <p>Equivalence Partition 3: Valid city only should return a WeatherAlert using the city.
+ *   Test: testGetWeatherAlertsWithCityParameter
+ *
+ * <p>Equivalence Partition 4: Both city and coordinates provided should prioritize
+ * coordinates.
+ *   Test: testGetWeatherAlertsWithCityAndCoordinates
+ *
+ * <p>Equivalence Partition 5: Boundary or near-boundary coordinate values should produce
+ * distinct results.
+ *   Test: testGetWeatherAlertsBoundaryConditions
+ *
+ * <p>======== {@code List<WeatherAlert> getUserAlerts(UserPreference user)} ==========
+ * Equivalence Partition 1: Null user should throw IllegalArgumentException.
+ *   Test: testGetUserAlertsWithNullUser
+ *
+ * <p>Equivalence Partition 2: User with empty city preferences should return an empty list.
+ *   Test: testGetUserAlertsWithEmptyCityPreferences
+ *
+ * <p>Equivalence Partition 3: User with valid city list should return one WeatherAlert per city.
+ *   Tests: testGetUserAlertsWithValidUser,
+ *          testGetUserAlertsWithMultipleCities
  */
 public class WeatherAlertModelTest {
 
