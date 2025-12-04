@@ -689,7 +689,7 @@ public class RouteController {
    * @return a ResponseEntity containing the recommended days for the city if successful,
    *      BAD_REQUEST on invalid params, or INTERNAL FAILURE on API Failure.
    */
-  @GetMapping("/recommendation/weather/")
+  @GetMapping("/recommendation/weather")
   public ResponseEntity<?> getWeatherRecommendation(
       @RequestParam String city,
       @RequestParam int days) {
@@ -792,7 +792,7 @@ public class RouteController {
       if (logger.isErrorEnabled()) {
         logger.error("Error generating recommendation city={} days={}", city, days, e);
       }
-      return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+      return new ResponseEntity<>("API Failure.", HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 

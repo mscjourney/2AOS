@@ -6,8 +6,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.ArrayList;
 import java.util.List;
+
 import org.coms4156.tars.controller.RouteController;
 import org.coms4156.tars.model.TarsUser;
 import org.coms4156.tars.model.UserPreference;
@@ -18,6 +20,7 @@ import org.coms4156.tars.service.TarsUserService;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
@@ -86,11 +89,30 @@ public class RouteControllerExceptionTest {
       mockedModel.when(() -> WeatherModel.getRecommendedDays("InvalidCity", 7))
           .thenThrow(new RuntimeException("API error"));
 
-      mockMvc.perform(get("/recommendation/weather/")
+      mockMvc.perform(get("/recommendation/weather")
           .param("city", "InvalidCity")
           .param("days", "7")
           .contentType(MediaType.APPLICATION_JSON))
-          .andExpect(status().isInternalServerError());
+          .andExpect(status().isInternalServerError())
+          .andExpect(content().string("API Failure."));
+    }
+  }
+
+  @Test
+  public void testGetUserWeatherRecommendationExceptionHandling() throws Exception {
+    try (MockedStatic<WeatherModel> mockedModel = Mockito.mockStatic(WeatherModel.class)) {
+      mockedModel.when(() -> WeatherModel.getUserRecDays("InvalidCity", 7, new UserPreference()))
+          .thenThrow(new RuntimeException("API error"));
+
+      when(tarsUserService.findById(2L)).thenReturn(new TarsUser());
+      when(tarsService.getUserPreference(2L)).thenReturn(new UserPreference());
+      
+      mockMvc.perform(get("/recommendation/weather/user/2")
+          .param("city", "InvalidCity")
+          .param("days", "7")
+          .contentType(MediaType.APPLICATION_JSON))
+          .andExpect(status().isInternalServerError())
+          .andExpect(content().string("API Failure."));
     }
   }
 

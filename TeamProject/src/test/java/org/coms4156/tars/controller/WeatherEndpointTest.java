@@ -129,7 +129,7 @@ public class WeatherEndpointTest {
       mockedModel.when(() -> WeatherModel.getRecommendedDays("New York", 7))
           .thenReturn(recommendation);
 
-      mockMvc.perform(get("/recommendation/weather/")
+      mockMvc.perform(get("/recommendation/weather")
           .param("city", "New York")
           .param("days", "7"))
           .andExpect(status().isOk())
@@ -154,7 +154,7 @@ public class WeatherEndpointTest {
       mockedModel.when(() -> WeatherModel.getRecommendedDays("Boston", 14))
           .thenReturn(recommendation);
 
-      mockMvc.perform(get("/recommendation/weather/")
+      mockMvc.perform(get("/recommendation/weather")
           .param("city", "Boston")
           .param("days", "14"))
           .andExpect(status().isOk())
@@ -167,7 +167,7 @@ public class WeatherEndpointTest {
       mockedModel.when(() -> WeatherModel.getRecommendedDays("Boston", 1))
           .thenReturn(recommendation);
       // RecommendedDays is at most one since we are only looking at one day range.
-      mockMvc.perform(get("/recommendation/weather/")
+      mockMvc.perform(get("/recommendation/weather")
           .param("city", "Boston")
           .param("days", "1"))
           .andExpect(status().isOk())
@@ -188,7 +188,7 @@ public class WeatherEndpointTest {
       mockedModel.when(() -> WeatherModel.getRecommendedDays("San Francisco", 5))
           .thenReturn(recommendation);
 
-      mockMvc.perform(get("/recommendation/weather/")
+      mockMvc.perform(get("/recommendation/weather")
           .param("city", "San Francisco")
           .param("days", "5")
           .contentType(MediaType.APPLICATION_JSON))
@@ -205,19 +205,19 @@ public class WeatherEndpointTest {
    */
   @Test
   public void testGetWeatherRecommendationInvalidCityValidDays() throws Exception {
-    mockMvc.perform(get("/recommendation/weather/")
+    mockMvc.perform(get("/recommendation/weather")
         .param("city", "109123")
         .param("days", "1"))
         .andExpect(status().isBadRequest())
         .andExpect(content().string("City could not be found."));
 
-    mockMvc.perform(get("/recommendation/weather/")
+    mockMvc.perform(get("/recommendation/weather")
         .param("city", "asdasdsad")
         .param("days", "14"))
         .andExpect(status().isBadRequest())
         .andExpect(content().string("City could not be found."));
 
-    mockMvc.perform(get("/recommendation/weather/")
+    mockMvc.perform(get("/recommendation/weather")
         .param("city", "!!!")
         .param("days", "7"))
         .andExpect(status().isBadRequest())
@@ -232,19 +232,19 @@ public class WeatherEndpointTest {
    */
   @Test
   public void testGetWeatherRecommendationWithInvalidDays() throws Exception {
-    mockMvc.perform(get("/recommendation/weather/")
+    mockMvc.perform(get("/recommendation/weather")
         .param("city", "Boston")
         .param("days", "0"))
         .andExpect(status().isBadRequest())
         .andExpect(content().string("Days must be in the range [0, 14], inclusively."));
 
-    mockMvc.perform(get("/recommendation/weather/")
+    mockMvc.perform(get("/recommendation/weather")
         .param("city", "Boston")
         .param("days", "15"))
         .andExpect(status().isBadRequest())
         .andExpect(content().string("Days must be in the range [0, 14], inclusively."));
 
-    mockMvc.perform(get("/recommendation/weather/")
+    mockMvc.perform(get("/recommendation/weather")
         .param("city", "Boston")
         .param("days", "-5"))
         .andExpect(status().isBadRequest())
@@ -754,7 +754,7 @@ public class WeatherEndpointTest {
     try (LoggerTestUtil.CapturedLogger cap =
              LoggerTestUtil.capture(RouteController.class, Level.WARN)) {
 
-      mockMvc.perform(get("/recommendation/weather/")
+      mockMvc.perform(get("/recommendation/weather")
         .param("city", "New York")
         .param("days", "13"))
           .andExpect(status().isOk());
@@ -822,7 +822,7 @@ public class WeatherEndpointTest {
     try (LoggerTestUtil.CapturedLogger cap =
              LoggerTestUtil.capture(RouteController.class, Level.ERROR)) {
       
-      mockMvc.perform(get("/recommendation/weather/")
+      mockMvc.perform(get("/recommendation/weather")
         .param("city", "New York")
         .param("days", "20"))
           .andExpect(status().isBadRequest());
