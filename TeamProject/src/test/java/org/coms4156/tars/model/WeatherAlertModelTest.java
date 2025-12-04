@@ -16,16 +16,8 @@ import org.junit.jupiter.api.Test;
  * Comprehensive tests for WeatherAlertModel.
  * Includes parameter validation, basic functionality, edge cases, boundary conditions,
  * and error handling.
- * 
- * <p>FOCUS ON PUBLIC METHODS FIRST
- * Equivalence Partitions for WeatherAlertModel methods.
- * ======== {@code Map<String, Double> geocodeCity(String city)} =============
- * ======== {@code String fetchWeatherData(double latitude, double longitude)} ==========
- * ======== {@code List<Map<String, String>> generateAlerts(String weatherJson)} ==========
- * ======== {@code List<String> generateRecommendations(String weatherJson)} ==========
- * ======== {@code Map<String, Object> extractCurrentConditions(String weatherJson)} ========
- * ======== {@code Map<String, Object> extractCurrentConditions(String weatherJson)} =========
- * ======== {@code double parseValue(String json, String key)} ============
+ *
+ * <p>Equivalence Partitions for WeatherAlertModel methods.
  * ======== {@code WeatherAlert getWeatherAlerts(String city, Double lat, Double lon)} =========
  * Equivalence Partition 1: Invalid parameter combinations should throw IllegalArgumentException.
  *   Tests: testGetWeatherAlertsWithNoParameters,
