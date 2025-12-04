@@ -123,12 +123,12 @@ cd ..
    ```bash
    cd tars-client
    
-   # Foreground mode (for testing/debugging)
    ./start-server.sh
    # Press Ctrl+C to stop
+
    
-   # OR Background mode (for production)
    ./start-server-background.sh
+
    # Use ./stop-server.sh to stop
    ```
    
@@ -137,23 +137,6 @@ cd ..
    - Set `PORT` to `3001`
    - Check dependencies and start the server
    
-   **Option B: Manual Start**
-   
-   ```bash
-   cd tars-client
-   npm start
-   ```
-   - For GCP, you'll need to set environment variables:
-     ```bash
-     export BACKEND_URL=http://34.75.80.228:8080
-     export PORT=3001
-     npm start
-     ```
-   - For local development:
-     ```bash
-     export BACKEND_URL=http://localhost:8080
-     npm start
-     ```
 
 5. **Access the Application**:
    - **Local Development**: `http://localhost:3001`
@@ -180,74 +163,12 @@ cd tars-client
 # Make scripts executable (first time only)
 chmod +x start-server.sh start-server-background.sh stop-server.sh
 
-# Start in foreground (for testing/debugging)
 ./start-server.sh
 # Press Ctrl+C to stop
 
-# OR start in background (for production)
 ./start-server-background.sh
 # Server runs detached - use ./stop-server.sh to stop
 ```
-
-#### What the Scripts Do
-
-The startup scripts automatically:
-- ✅ Set `BACKEND_URL` environment variable:
-  - Default: `http://34.75.80.228:8080` (GCP)
-  - Can be overridden: `BACKEND_URL=http://localhost:8080 ./start-server.sh`
-- ✅ Set `PORT` environment variable (default: `3001`)
-- ✅ Change to the correct directory
-- ✅ Check and install dependencies if needed
-- ✅ Start the server with proper configuration
-
-#### Viewing Logs (Background Mode)
-
-```bash
-# View real-time logs
-tail -f server.log
-
-# View last 50 lines
-tail -50 server.log
-```
-
-#### Customizing Backend URL
-
-You can override the default backend URL:
-
-```bash
-# For local development
-BACKEND_URL=http://localhost:8080 ./start-server.sh
-
-# For custom GCP setup
-BACKEND_URL=http://your-ip:8080 ./start-server.sh
-```
-
-### Development Mode (with Hot Reload)
-
-For development with automatic code reloading:
-
-1. **Start Java Backend** (same as above):
-```bash
-cd TeamProject
-mvn spring-boot:run
-```
-
-2. **Start React Dev Server** (Terminal 1):
-```bash
-cd client
-npm start
-```
-This starts React on `http://localhost:3000` with hot reload
-
-3. **Start Node.js API Server** (Terminal 2):
-```bash
-npm run dev
-```
-This starts the Express server on `http://localhost:3001` with nodemon (auto-reload)
-
-4. **Access the Application**:
-   - React dev server: `http://localhost:3000`
-   - The React app will proxy API requests to `http://localhost:3001/api`
 
 ### Quick Start Commands
 
@@ -285,7 +206,7 @@ npm run build                # Build React app for production
 
 **Note**: The Node.js server (port 3001) acts as a proxy - it forwards all `/api/*` requests to the Java backend (port 8080). Users typically only interact with port 3001.
 
-## Running Multiple Clients Simultaneously
+## Running Multiple Clients Simultaneously on Local
 
 You can run multiple client instances on different ports to simulate different users accessing the system simultaneously. This is useful for testing multi-user scenarios, admin functionality, and concurrent access patterns.
 
@@ -419,7 +340,6 @@ The client includes comprehensive end-to-end tests that exercise the full client
    cd ../TeamProject
    mvn spring-boot:run
    ```
-   The service should be accessible at `http://localhost:8080`
 
 2. **Install test dependencies**
    ```bash
@@ -428,7 +348,6 @@ The client includes comprehensive end-to-end tests that exercise the full client
 
 ### Running Tests
 
-#### Automated (Recommended)
 
 ```bash
 npm test
