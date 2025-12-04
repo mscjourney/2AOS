@@ -38,7 +38,7 @@ public class ClientService {
   }
 
   private static final FileMover DEFAULT_FILE_MOVER =
-      (src, dest, opts) -> java.nio.file.Files.move(src, dest, opts);
+      (src, dest, opts) -> Files.move(src, dest, opts);
 
   /**
    * Constructor with path injected from application properties.
