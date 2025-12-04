@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE } from '../config';
 import './AdminDashboard.css';
-
-const API_BASE = 'http://localhost:3001/api';
 
 function AdminDashboard() {
   const navigate = useNavigate();

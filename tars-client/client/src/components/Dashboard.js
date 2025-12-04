@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE } from '../config';
 import './Dashboard.css';
-
-const API_BASE = 'http://localhost:3001/api';
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -34,21 +33,28 @@ function Dashboard() {
   const [alertLat, setAlertLat] = useState('');
   const [alertLon, setAlertLon] = useState('');
   
-  // City summary state
-  const [citySummary, setCitySummary] = useState(null);
-  const [summaryCity, setSummaryCity] = useState('New York');
-  const [summaryState, setSummaryState] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  
   // Country summary state
   const [countrySummary, setCountrySummary] = useState(null);
   const [summaryCountry, setSummaryCountry] = useState('United States');
+  
+  // Personal alerts state
+  const [personalAlerts, setPersonalAlerts] = useState([]);
+  const [loadingAlerts, setLoadingAlerts] = useState(false);
+  const [userRecommendations, setUserRecommendations] = useState([]);
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
   
   useEffect(() => {
     initializeClient();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Auto-fetch personal alerts when user is logged in and tab is active
+  useEffect(() => {
+    if (activeTab === 'personal-alerts' && loggedInUser && loggedInUser.userId) {
+      handleGetPersonalAlerts();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, loggedInUser]);
 
   const initializeClient = async () => {
     try {
@@ -166,20 +172,6 @@ function Dashboard() {
     }
   };
 
-  const handleGetCitySummary = async () => {
-    try {
-      setError(null);
-      const params = {};
-      if (startDate) params.startDate = startDate;
-      if (endDate) params.endDate = endDate;
-      if (summaryState) params.state = summaryState;
-      const response = await axios.get(`${API_BASE}/summary/${encodeURIComponent(summaryCity)}`, { params });
-      setCitySummary(response.data);
-    } catch (err) {
-      setError(err.response?.data?.error || err.message);
-    }
-  };
-
   const handleGetCountrySummary = async () => {
     try {
       setError(null);
@@ -228,6 +220,74 @@ function Dashboard() {
             : err.response.data)
         : err.message;
       setError(errorMsg || 'Failed to fetch country summary');
+    }
+  };
+
+  const handleGetPersonalAlerts = async () => {
+    if (!loggedInUser || !loggedInUser.userId) {
+      setError('Please log in to view your personal alerts');
+      return;
+    }
+    
+    try {
+      setError(null);
+      setLoadingAlerts(true);
+      const response = await axios.get(`${API_BASE}/alert/weather/user/${loggedInUser.userId}`);
+      // Response is an array of WeatherAlert objects
+      setPersonalAlerts(Array.isArray(response.data) ? response.data : []);
+    } catch (err) {
+      console.error('Error getting personal alerts:', err);
+      const errorMsg = err.response?.data?.error || err.message;
+      setError(errorMsg);
+      setPersonalAlerts([]);
+    } finally {
+      setLoadingAlerts(false);
+    }
+  };
+
+  const handleGetUserRecommendations = async () => {
+    if (!loggedInUser || !loggedInUser.userId) {
+      setError('Please log in to view your personal recommendations');
+      return;
+    }
+
+    if (!userPreferences || !userPreferences.cityPreferences || userPreferences.cityPreferences.length === 0) {
+      setError('Please add city preferences to your profile to get recommendations');
+      return;
+    }
+    
+    try {
+      setError(null);
+      setLoadingRecommendations(true);
+      const recommendations = [];
+      
+      // Get recommendations for each city in user's preferences
+      for (const city of userPreferences.cityPreferences) {
+        try {
+          const response = await axios.get(`${API_BASE}/getUserRec/${loggedInUser.userId}`, {
+            params: {
+              city: city,
+              days: 7 // Default to 7 days
+            }
+          });
+          recommendations.push({
+            city: city,
+            ...response.data
+          });
+        } catch (err) {
+          console.error(`Error getting recommendation for ${city}:`, err);
+          // Continue with other cities even if one fails
+        }
+      }
+      
+      setUserRecommendations(recommendations);
+    } catch (err) {
+      console.error('Error getting user recommendations:', err);
+      const errorMsg = err.response?.data?.error || err.message;
+      setError(errorMsg);
+      setUserRecommendations([]);
+    } finally {
+      setLoadingRecommendations(false);
     }
   };
 
@@ -331,17 +391,19 @@ function Dashboard() {
           Weather
         </button>
         <button 
-          className={activeTab === 'city' ? 'tab active' : 'tab'}
-          onClick={() => setActiveTab('city')}
-        >
-          City Summary
-        </button>
-        <button 
           className={activeTab === 'country' ? 'tab active' : 'tab'}
           onClick={() => setActiveTab('country')}
         >
           Country Summary
         </button>
+        {loggedInUser && (
+          <button 
+            className={activeTab === 'personal-alerts' ? 'tab active' : 'tab'}
+            onClick={() => setActiveTab('personal-alerts')}
+          >
+            Personal Alerts
+          </button>
+        )}
       </div>
 
       <div className="tab-content">
@@ -455,7 +517,7 @@ function Dashboard() {
               <ul style={{ listStyle: 'none', padding: 0 }}>
                 <li style={{ padding: '0.5rem 0', color: '#4a5568' }}>✓ Get crime statistics and summaries</li>
                 <li style={{ padding: '0.5rem 0', color: '#4a5568' }}>✓ Get weather recommendations and alerts</li>
-                <li style={{ padding: '0.5rem 0', color: '#4a5568' }}>✓ View comprehensive city summaries</li>
+                <li style={{ padding: '0.5rem 0', color: '#4a5568' }}>✓ View comprehensive country summaries</li>
               </ul>
               {localStorage.getItem('loggedInUser') && (
                 <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '2px solid #e2e8f0' }}>
@@ -715,188 +777,6 @@ function Dashboard() {
           </div>
         )}
 
-        {activeTab === 'city' && (
-          <div className="city-summary">
-            <div className="card">
-              <h2>City Summary</h2>
-              <div className="form-group">
-                <label>City:</label>
-                <input
-                  type="text"
-                  value={summaryCity}
-                  onChange={(e) => setSummaryCity(e.target.value)}
-                  className="form-control"
-                  placeholder="e.g., New York"
-                />
-              </div>
-              <div className="form-group">
-                <label>State (optional, for US cities to get crime data):</label>
-                <input
-                  type="text"
-                  value={summaryState}
-                  onChange={(e) => setSummaryState(e.target.value)}
-                  className="form-control"
-                  placeholder="e.g., New York or NY"
-                />
-              </div>
-              <div className="form-group">
-                <label>Date Range (optional):</label>
-                <div className="form-row">
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="form-control"
-                    placeholder="Start Date"
-                  />
-                  <input
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="form-control"
-                    placeholder="End Date"
-                  />
-                </div>
-              </div>
-              <button onClick={handleGetCitySummary} className="btn-primary">Get City Summary</button>
-              {citySummary && (
-                <div className="result">
-                  <h3>Summary for {citySummary.city}</h3>
-                  <p className="summary-message">{citySummary.message}</p>
-                  
-                  {citySummary.weatherRecommendation && (
-                    <div className="summary-section">
-                      <h4>Weather Recommendation</h4>
-                      <p><strong>City:</strong> {citySummary.weatherRecommendation.city}</p>
-                      <p>{citySummary.weatherRecommendation.message}</p>
-                      {citySummary.weatherRecommendation.recommendedDays && 
-                       citySummary.weatherRecommendation.recommendedDays.length > 0 && (
-                        <div>
-                          <strong>Recommended Days:</strong>
-                          <ul>
-                            {citySummary.weatherRecommendation.recommendedDays.map((day, idx) => (
-                              <li key={idx}>{day}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  
-                  {citySummary.weatherAlert && (
-                    <div className="summary-section">
-                      <h4>Weather Alerts</h4>
-                      <p><strong>Location:</strong> {citySummary.weatherAlert.location || summaryCity}</p>
-                      {citySummary.weatherAlert.timestamp && (
-                        <p><strong>Timestamp:</strong> {citySummary.weatherAlert.timestamp}</p>
-                      )}
-                      {citySummary.weatherAlert.alerts && citySummary.weatherAlert.alerts.length > 0 && (
-                        <div>
-                          <strong>Active Alerts:</strong>
-                          {citySummary.weatherAlert.alerts.map((alertItem, idx) => (
-                            <div key={idx} className="alert-item">
-                              {Object.entries(alertItem).map(([key, value]) => (
-                                <p key={key}><strong>{key}:</strong> {String(value)}</p>
-                              ))}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      {citySummary.weatherAlert.recommendations && citySummary.weatherAlert.recommendations.length > 0 && (
-                        <div>
-                          <strong>Recommendations:</strong>
-                          <ul>
-                            {citySummary.weatherAlert.recommendations.map((rec, idx) => (
-                              <li key={idx}>{rec}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      {citySummary.weatherAlert.currentConditions && Object.keys(citySummary.weatherAlert.currentConditions).length > 0 && (
-                        <div>
-                          <strong>Current Conditions:</strong>
-                          <div className="current-conditions">
-                            {Object.entries(citySummary.weatherAlert.currentConditions).map(([key, value]) => (
-                              <p key={key}><strong>{key}:</strong> {String(value)}</p>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  
-                  {citySummary.travelAdvisory && (
-                    <div className="summary-section">
-                      <h4>Travel Advisory</h4>
-                      {citySummary.travelAdvisory.country && (
-                        <p><strong>Country:</strong> {citySummary.travelAdvisory.country}</p>
-                      )}
-                      {citySummary.travelAdvisory.level && (
-                        <p><strong>Advisory Level:</strong> <span style={{ 
-                          color: citySummary.travelAdvisory.level.includes('Level 4') ? '#e53e3e' :
-                                 citySummary.travelAdvisory.level.includes('Level 3') ? '#dd6b20' :
-                                 citySummary.travelAdvisory.level.includes('Level 2') ? '#d69e2e' : '#38a169',
-                          fontWeight: '600'
-                        }}>{citySummary.travelAdvisory.level}</span></p>
-                      )}
-                      {citySummary.travelAdvisory.riskIndicators && citySummary.travelAdvisory.riskIndicators.length > 0 && (
-                        <div>
-                          <strong>Risk Indicators:</strong>
-                          <ul>
-                            {citySummary.travelAdvisory.riskIndicators.map((risk, idx) => (
-                              <li key={idx}>{risk}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  
-                  {citySummary.crimeSummary && (
-                    <div className="summary-section">
-                      <h4>Crime Data</h4>
-                      {citySummary.crimeSummary.state && (
-                        <p><strong>State:</strong> {citySummary.crimeSummary.state}</p>
-                      )}
-                      {citySummary.crimeSummary.month && citySummary.crimeSummary.year && (
-                        <p><strong>Period:</strong> {citySummary.crimeSummary.month}/{citySummary.crimeSummary.year}</p>
-                      )}
-                      {citySummary.crimeSummary.message && (
-                        <div className="current-conditions">
-                          <p>{citySummary.crimeSummary.message}</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  
-                  {citySummary.interestedUsers && citySummary.interestedUsers.length > 0 && (
-                    <div className="summary-section">
-                      <h4>Interested Users ({citySummary.interestedUsers.length})</h4>
-                      <div className="user-list">
-                        {citySummary.interestedUsers.map((user) => (
-                          <div key={user.id} className="user-item">
-                            <p><strong>User ID:</strong> {user.id}</p>
-                            <p><strong>Client ID:</strong> {user.clientId}</p>
-                            {user.cityPreferences && user.cityPreferences.length > 0 && (
-                              <p><strong>Cities:</strong> {user.cityPreferences.join(', ')}</p>
-                            )}
-                            {user.weatherPreferences && user.weatherPreferences.length > 0 && (
-                              <p><strong>Weather:</strong> {user.weatherPreferences.join(', ')}</p>
-                            )}
-                            {user.temperaturePreferences && user.temperaturePreferences.length > 0 && (
-                              <p><strong>Temperature:</strong> {user.temperaturePreferences.join(', ')}</p>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
         {activeTab === 'country' && (
           <div className="country-summary">
             <div className="card">
@@ -961,6 +841,222 @@ function Dashboard() {
                     </div>
                   )}
                 </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'personal-alerts' && (
+          <div className="personal-alerts">
+            <div className="card">
+              <h2>Personal Weather Alerts & Recommendations</h2>
+              <p style={{ color: '#718096', marginBottom: '1.5rem' }}>
+                Weather alerts and personalized recommendations for all cities in your preferences
+              </p>
+              
+              {!loggedInUser ? (
+                <div className="alert" style={{ background: '#fff3cd', borderLeft: '4px solid #ffc107', padding: '1rem' }}>
+                  <strong>Please log in</strong> to view your personal weather alerts and recommendations based on your city preferences.
+                </div>
+              ) : (
+                <>
+                  <button 
+                    onClick={handleGetPersonalAlerts} 
+                    className="btn-primary"
+                    disabled={loadingAlerts}
+                    style={{ marginBottom: '1.5rem' }}
+                  >
+                    {loadingAlerts ? 'Loading...' : 'Refresh Alerts'}
+                  </button>
+                  
+                  {loadingAlerts && (
+                    <div style={{ marginTop: '1rem', textAlign: 'center', color: '#718096' }}>
+                      Loading your alerts...
+                    </div>
+                  )}
+                  
+                  {!loadingAlerts && personalAlerts.length === 0 && (
+                    <div className="alert" style={{ marginTop: '1.5rem', background: '#e6fffa', borderLeft: '4px solid #38a169', padding: '1rem' }}>
+                      <strong>No alerts found.</strong> Make sure you have city preferences set in your profile.
+                    </div>
+                  )}
+                  
+                  {!loadingAlerts && personalAlerts.length > 0 && (
+                    <div style={{ marginTop: '2rem' }}>
+                      <h3 style={{ marginBottom: '1.5rem', color: '#2d3748' }}>
+                        {personalAlerts.length} Alert{personalAlerts.length !== 1 ? 's' : ''} Found
+                      </h3>
+                      {personalAlerts.map((alert, idx) => (
+                        <div key={idx} className="result" style={{ marginBottom: '2rem', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '1.5rem' }}>
+                          <h3 style={{ color: '#667eea', marginBottom: '1rem' }}>
+                            {alert.location || `Alert ${idx + 1}`}
+                          </h3>
+                          
+                          {alert.timestamp && (
+                            <p style={{ marginBottom: '0.5rem', color: '#718096' }}>
+                              <strong>Timestamp:</strong> {alert.timestamp}
+                            </p>
+                          )}
+                          
+                          {alert.alerts && alert.alerts.length > 0 && (
+                            <div style={{ marginTop: '1rem' }}>
+                              <h4 style={{ color: '#e53e3e', marginBottom: '0.75rem' }}>⚠️ Active Alerts:</h4>
+                              {alert.alerts.map((alertItem, alertIdx) => (
+                                <div key={alertIdx} className="alert-item" style={{ 
+                                  background: '#fed7d7', 
+                                  padding: '1rem', 
+                                  borderRadius: '6px', 
+                                  marginBottom: '0.75rem',
+                                  borderLeft: '4px solid #e53e3e'
+                                }}>
+                                  {Object.entries(alertItem).map(([key, value]) => (
+                                    <p key={key} style={{ margin: '0.25rem 0' }}>
+                                      <strong>{key}:</strong> {String(value)}
+                                    </p>
+                                  ))}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          
+                          {alert.recommendations && alert.recommendations.length > 0 && (
+                            <div style={{ marginTop: '1rem' }}>
+                              <h4 style={{ color: '#38a169', marginBottom: '0.75rem' }}>💡 Recommendations:</h4>
+                              <ul style={{ paddingLeft: '1.5rem' }}>
+                                {alert.recommendations.map((rec, recIdx) => (
+                                  <li key={recIdx} style={{ marginBottom: '0.5rem', color: '#4a5568' }}>
+                                    {rec}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          
+                          {alert.currentConditions && Object.keys(alert.currentConditions).length > 0 && (
+                            <div style={{ marginTop: '1rem' }}>
+                              <h4 style={{ marginBottom: '0.75rem', color: '#2d3748' }}>Current Conditions:</h4>
+                              <div className="current-conditions" style={{ 
+                                display: 'grid', 
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+                                gap: '0.75rem',
+                                background: '#f7fafc',
+                                padding: '1rem',
+                                borderRadius: '6px'
+                              }}>
+                                {Object.entries(alert.currentConditions).map(([key, value]) => (
+                                  <p key={key} style={{ margin: 0 }}>
+                                    <strong>{key}:</strong> {String(value)}
+                                  </p>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Get Recommendations Button - Moved to bottom after alerts */}
+                  <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '2px solid #e2e8f0' }}>
+                    <button 
+                      onClick={handleGetUserRecommendations} 
+                      className="btn-primary"
+                      disabled={loadingRecommendations}
+                      style={{ background: '#38a169' }}
+                    >
+                      {loadingRecommendations ? 'Loading...' : 'Get Personalized Recommendations'}
+                    </button>
+                  </div>
+
+                  {/* User Recommendations Section */}
+                  <div style={{ marginTop: '2rem' }}>
+                    <h3 style={{ marginBottom: '1rem', color: '#2d3748' }}>🌤️ Personalized Weather Recommendations</h3>
+                    <p style={{ color: '#718096', marginBottom: '1.5rem' }}>
+                      Weather recommendations tailored to your preferences for each city you follow
+                    </p>
+
+                    {loadingRecommendations && (
+                      <div style={{ textAlign: 'center', color: '#718096', padding: '2rem' }}>
+                        Loading recommendations...
+                      </div>
+                    )}
+
+                    {!loadingRecommendations && userRecommendations.length === 0 && (
+                      <div className="alert" style={{ background: '#e6fffa', borderLeft: '4px solid #38a169', padding: '1rem' }}>
+                        <strong>No recommendations yet.</strong> Click "Get Recommendations" to see personalized weather recommendations for your cities.
+                      </div>
+                    )}
+
+                    {!loadingRecommendations && userRecommendations.length > 0 && (
+                      <div>
+                        <h4 style={{ marginBottom: '1.5rem', color: '#2d3748' }}>
+                          {userRecommendations.length} Recommendation{userRecommendations.length !== 1 ? 's' : ''} Found
+                        </h4>
+                        {userRecommendations.map((rec, idx) => (
+                          <div key={idx} className="result" style={{ 
+                            marginBottom: '2rem', 
+                            border: '1px solid #c6f6d5', 
+                            borderRadius: '8px', 
+                            padding: '1.5rem',
+                            background: '#f0fff4'
+                          }}>
+                            <h3 style={{ color: '#38a169', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              🌍 {rec.city || `City ${idx + 1}`}
+                            </h3>
+                            
+                            {rec.message && (
+                              <p style={{ marginBottom: '1rem', color: '#2d3748', fontSize: '1.1rem', fontWeight: '500' }}>
+                                {rec.message}
+                              </p>
+                            )}
+
+                            {rec.recommendedDays && rec.recommendedDays.length > 0 && (
+                              <div style={{ marginTop: '1rem' }}>
+                                <h4 style={{ color: '#38a169', marginBottom: '0.75rem' }}>📅 Recommended Days:</h4>
+                                <div style={{ 
+                                  display: 'flex', 
+                                  flexWrap: 'wrap', 
+                                  gap: '0.5rem',
+                                  marginTop: '0.5rem'
+                                }}>
+                                  {rec.recommendedDays.map((day, dayIdx) => (
+                                    <span 
+                                      key={dayIdx}
+                                      style={{
+                                        background: '#38a169',
+                                        color: 'white',
+                                        padding: '0.5rem 1rem',
+                                        borderRadius: '6px',
+                                        fontWeight: '500',
+                                        fontSize: '0.9rem'
+                                      }}
+                                    >
+                                      {day}
+                                    </span>
+                                  ))}
+                                </div>
+                                <p style={{ marginTop: '1rem', color: '#718096', fontSize: '0.9rem' }}>
+                                  <strong>{rec.recommendedDays.length}</strong> day{rec.recommendedDays.length !== 1 ? 's' : ''} match your weather and temperature preferences
+                                </p>
+                              </div>
+                            )}
+
+                            {(!rec.recommendedDays || rec.recommendedDays.length === 0) && (
+                              <div className="alert" style={{ 
+                                background: '#fff3cd', 
+                                borderLeft: '4px solid #ffc107', 
+                                padding: '1rem',
+                                marginTop: '1rem'
+                              }}>
+                                <strong>No matching days found</strong> in the next 7 days for your preferences in {rec.city}.
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </>
               )}
             </div>
           </div>

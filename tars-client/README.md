@@ -5,13 +5,14 @@ A standalone Node.js client application for the TARS API with a React dashboard 
 ## Features
 
 - **Persistent Client ID**: Each Node.js instance stores its `clientId` locally in `client-config.json`
-- **React Dashboard**: Modern web UI accessible at `http://localhost:3001/dashboard`
+- **React Dashboard**: Modern web UI accessible at `http://localhost:3001/dashboard` (local) or `http://34.75.80.228:3001/dashboard` (GCP)
 - **Multiple Instance Support**: Each Node.js instance is a separate client that can connect simultaneously
 - **Full API Coverage**: Access to all TARS API endpoints through the dashboard
 - **Admin Dashboard**: User management interface for administrators
 - **Crime Summary**: Access to FBI crime statistics
 - **Weather Services**: Weather recommendations and alerts
 - **City Summaries**: Comprehensive city information
+- **Easy Startup Scripts**: Pre-configured scripts for quick deployment (`start-server.sh`, `start-server-background.sh`)
 
 ## Architecture
 
@@ -30,15 +31,16 @@ The application consists of three main components:
 ### 2. API Client (`src/tarsApiClient.js`)
 - **Purpose**: Wraps the Java TARS API endpoints and manages client ID persistence
 - **Responsibilities**:
-  - Communicates with the Java backend running on `http://localhost:8080`
+  - Communicates with the Java backend running on `http://localhost:8080` (local) or `http://34.75.80.228:8080` (GCP)
   - Manages persistent client ID storage in `client-config.json`
   - Provides methods for all TARS API operations (users, weather, crime, etc.)
   - Handles error responses and converts them to user-friendly messages
+  - Backend URL is configurable via `BACKEND_URL` environment variable
 
 ### 3. React Frontend (`client/`)
 - **Purpose**: Modern web-based user interface
 - **Components**:
-  - `Dashboard.js`: Main dashboard with tabs for Crime Summary, Weather, and City Summary
+  - `Dashboard.js`: Main dashboard with tabs for Crime Summary, Weather, and Country Summary
   - `AdminDashboard.js`: Admin-only interface for user management
   - `Login.js`: User authentication
   - `UserProfile.js`: User profile and preferences management
@@ -113,51 +115,72 @@ cd ..
    This creates an optimized production build in `client/build/`
 
 4. **Start the Node.js Server**:
-   - In a new terminal, navigate to the `tars-client` directory:
+
+   **Option A: Using Startup Scripts (Recommended for GCP/Production)**
+   
+   The easiest way to start the server with proper configuration:
+   
    ```bash
    cd tars-client
-   npm start
+   
+   ./start-server.sh
+   # Press Ctrl+C to stop
+
+   
+   ./start-server-background.sh
+
+   # Use ./stop-server.sh to stop
    ```
-   - You should see: `TARS Client Server running on http://localhost:3001`
+   
+   The scripts automatically:
+   - Set `BACKEND_URL` to `http://34.75.80.228:8080` (GCP) or `http://localhost:8080` (local)
+   - Set `PORT` to `3001`
+   - Check dependencies and start the server
+   
 
 5. **Access the Application**:
-   - Open your browser and go to: `http://localhost:3001`
+   - **Local Development**: `http://localhost:3001`
+   - **GCP Production**: `http://34.75.80.228:3001`
    - You'll be redirected to the login page
    - Use admin credentials to access the admin dashboard
    - Regular users can access the main dashboard
 
-### Development Mode (with Hot Reload)
+### Using Startup Scripts (Recommended)
 
-For development with automatic code reloading:
+The project includes convenient startup scripts that automatically configure the server for both local development and GCP deployment.
 
-1. **Start Java Backend** (same as above):
+#### Available Scripts
+
+- **`start-server.sh`**: Runs server in foreground (see logs in terminal)
+- **`start-server-background.sh`**: Runs server in background (detached)
+- **`stop-server.sh`**: Stops a background server
+
+#### Quick Start with Scripts
+
 ```bash
-cd TeamProject
-mvn spring-boot:run
-```
+cd tars-client
 
-2. **Start React Dev Server** (Terminal 1):
-```bash
-cd client
-npm start
-```
-This starts React on `http://localhost:3000` with hot reload
+# Make scripts executable (first time only)
+chmod +x start-server.sh start-server-background.sh stop-server.sh
 
-3. **Start Node.js API Server** (Terminal 2):
-```bash
-npm run dev
-```
-This starts the Express server on `http://localhost:3001` with nodemon (auto-reload)
+./start-server.sh
+# Press Ctrl+C to stop
 
-4. **Access the Application**:
-   - React dev server: `http://localhost:3000`
-   - The React app will proxy API requests to `http://localhost:3001/api`
+./start-server-background.sh
+# Server runs detached - use ./stop-server.sh to stop
+```
 
 ### Quick Start Commands
 
 ```bash
-# Production mode (recommended)
+# Using startup scripts (recommended)
+./start-server.sh            # Foreground mode - see logs in terminal
+./start-server-background.sh # Background mode - runs detached
+./stop-server.sh             # Stop background server
+
+# Manual start
 npm start                    # Start Node.js server (after building React app)
+                             # Requires BACKEND_URL environment variable for GCP
 
 # Development mode
 npm run dev                  # Start Node.js server with auto-reload
@@ -167,7 +190,92 @@ cd client && npm start        # Start React dev server (separate terminal)
 npm run build                # Build React app for production
 ```
 
-## How Multiple Instances Work
+### URLs and Access Points
+
+**Local Development:**
+- Frontend/UI: `http://localhost:3001`
+- Backend API: `http://localhost:8080`
+- Login Page: `http://localhost:3001/login`
+- Dashboard: `http://localhost:3001/dashboard`
+
+**GCP Production:**
+- Frontend/UI: `http://34.75.80.228:3001`
+- Backend API: `http://34.75.80.228:8080`
+- Login Page: `http://34.75.80.228:3001/login`
+- Dashboard: `http://34.75.80.228:3001/dashboard`
+
+**Note**: The Node.js server (port 3001) acts as a proxy - it forwards all `/api/*` requests to the Java backend (port 8080). Users typically only interact with port 3001.
+
+## Running Multiple Clients Simultaneously on Local
+
+You can run multiple client instances on different ports to simulate different users accessing the system simultaneously. This is useful for testing multi-user scenarios, admin functionality, and concurrent access patterns.
+
+### Setup for Multiple Clients
+
+1. **Build the React Frontend** (one time, shared by all instances):
+```bash
+cd client
+npm run build
+cd ..
+```
+
+2. **Start the Java Backend** (required for all clients):
+```bash
+cd ../TeamProject
+mvn spring-boot:run
+```
+
+3. **Start First Client Instance** (Terminal 1 - Default port 3001):
+```bash
+cd tars-client
+PORT=3001 ./start-server.sh
+# OR
+PORT=3001 BACKEND_URL=http://localhost:8080 ./start-server.sh
+```
+- Access at: `http://localhost:3001` (local) or `http://34.75.80.228:3001` (GCP)
+- Example: **Alice (Admin)** - Use admin credentials to log in
+
+4. **Start Second Client Instance** (Terminal 2 - Port 3002):
+```bash
+cd tars-client
+PORT=3002 BACKEND_URL=http://localhost:8080 ./start-server.sh
+```
+- Access at: `http://localhost:3002` (local) or `http://34.75.80.228:3002` (GCP)
+- Example: **Charlie (Regular User)** - Use regular user credentials to log in
+
+### Example: Running Alice (Admin) and Charlie (Regular User)
+
+**Terminal 1 - Alice (Admin on port 3001):**
+```bash
+cd tars-client
+PORT=3001 npm start
+```
+- Open browser: `http://localhost:3001`
+- Login as: **Alice** (admin user)
+- Access: Admin dashboard for user management
+
+**Terminal 2 - Charlie (Regular User on port 3002):**
+```bash
+cd tars-client
+PORT=3002 npm start
+```
+- Open browser: `http://localhost:3002`
+- Login as: **Charlie** (regular user)
+- Access: Regular dashboard with personal alerts, preferences, etc.
+
+### Important Notes
+
+- **Each client instance maintains its own `clientId`**: Each instance stores its client ID in `client-config.json` in the `tars-client` directory. If you want separate client IDs for each instance, you can:
+  - Run each instance from a different directory, OR
+  - Manually edit `client-config.json` between runs
+
+
+- **Independent Sessions**: Each browser tab/window maintains its own login session. You can have:
+  - Alice logged in on `http://localhost:3001` (admin)
+  - Charlie logged in on `http://localhost:3002` (regular user)
+  - Both accessing the system simultaneously
+
+-
 
 
 
@@ -210,10 +318,9 @@ npm run build                # Build React app for production
   - Retrieve weather alerts by city or coordinates
   - Configure forecast days (1-14)
 
-- **City Summary Tab**:
-  - Get comprehensive city summaries
-  - View weather recommendations, alerts, and travel advisories
-  - See crime data and travel safety information
+- **Country Summary Tab**:
+  - Get comprehensive country summaries
+  - View travel advisories and safety information
 
 ### Admin Dashboard (Admin Users Only)
 
@@ -233,7 +340,6 @@ The client includes comprehensive end-to-end tests that exercise the full client
    cd ../TeamProject
    mvn spring-boot:run
    ```
-   The service should be accessible at `http://localhost:8080`
 
 2. **Install test dependencies**
    ```bash
@@ -242,7 +348,6 @@ The client includes comprehensive end-to-end tests that exercise the full client
 
 ### Running Tests
 
-#### Automated (Recommended)
 
 ```bash
 npm test

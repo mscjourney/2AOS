@@ -1,0 +1,40 @@
+=== PMD Analysis Report - BEFORE FIXES ===
+Found 8 violations
+
+<?xml version="1.0" encoding="UTF-8"?>
+<pmd xmlns="http://pmd.sourceforge.net/report/2.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pmd.sourceforge.net/report/2.0.0 http://pmd.sourceforge.net/report_2_0_0.xsd" version="6.55.0" timestamp="2025-12-04T07:50:59.720">
+<file name="/home/anyakhatri/project/2AOS/TeamProject/src/main/java/org/coms4156/tars/config/PersistenceConfig.java">
+<violation beginline="3" endline="3" begincolumn="1" endcolumn="32" rule="UnnecessaryImport" ruleset="Code Style" package="org.coms4156.tars.config" class="PersistenceConfig" externalInfoUrl="https://pmd.github.io/pmd-6.55.0/pmd_rules_java_codestyle.html#unnecessaryimport" priority="4">
+Unused import 'java.nio.file.CopyOption'
+</violation>
+<violation beginline="5" endline="5" begincolumn="1" endcolumn="26" rule="UnnecessaryImport" ruleset="Code Style" package="org.coms4156.tars.config" class="PersistenceConfig" externalInfoUrl="https://pmd.github.io/pmd-6.55.0/pmd_rules_java_codestyle.html#unnecessaryimport" priority="4">
+Unused import 'java.nio.file.Path'
+</violation>
+</file>
+<file name="/home/anyakhatri/project/2AOS/TeamProject/src/main/java/org/coms4156/tars/model/CountryModel.java">
+<violation beginline="7" endline="7" begincolumn="1" endcolumn="27" rule="UnnecessaryImport" ruleset="Code Style" package="org.coms4156.tars.model" class="CountryModel" externalInfoUrl="https://pmd.github.io/pmd-6.55.0/pmd_rules_java_codestyle.html#unnecessaryimport" priority="4">
+Unused import 'java.util.ArrayList'
+</violation>
+</file>
+<file name="/home/anyakhatri/project/2AOS/TeamProject/src/main/java/org/coms4156/tars/model/WeatherModel.java">
+<violation beginline="202" endline="202" begincolumn="28" endcolumn="49" rule="UselessParentheses" ruleset="Code Style" package="org.coms4156.tars.model" class="WeatherModel" method="getUserRecDays" externalInfoUrl="https://pmd.github.io/pmd-6.55.0/pmd_rules_java_codestyle.html#uselessparentheses" priority="4">
+Useless parentheses.
+</violation>
+</file>
+<file name="/home/anyakhatri/project/2AOS/TeamProject/src/main/java/org/coms4156/tars/service/ClientService.java">
+<violation beginline="8" endline="8" begincolumn="1" endcolumn="27" rule="UnnecessaryImport" ruleset="Code Style" package="org.coms4156.tars.service" class="ClientService" externalInfoUrl="https://pmd.github.io/pmd-6.55.0/pmd_rules_java_codestyle.html#unnecessaryimport" priority="4">
+Unused import 'java.nio.file.Files'
+</violation>
+<violation beginline="41" endline="41" begincolumn="28" endcolumn="51" rule="UnnecessaryFullyQualifiedName" ruleset="Code Style" package="org.coms4156.tars.service" class="ClientService" externalInfoUrl="https://pmd.github.io/pmd-6.55.0/pmd_rules_java_codestyle.html#unnecessaryfullyqualifiedname" priority="4">
+Unnecessary use of fully qualified name 'java.nio.file.Files.move' due to existing import 'java.nio.file.Files'
+</violation>
+</file>
+<file name="/home/anyakhatri/project/2AOS/TeamProject/src/main/java/org/coms4156/tars/service/TarsUserService.java">
+<violation beginline="383" endline="388" begincolumn="9" endcolumn="9" rule="CollapsibleIfStatements" ruleset="Design" package="org.coms4156.tars.service" class="TarsUserService" method="existsByClientIdAndUsername" externalInfoUrl="https://pmd.github.io/pmd-6.55.0/pmd_rules_java_design.html#collapsibleifstatements" priority="3">
+These nested if statements could be combined
+</violation>
+<violation beginline="412" endline="417" begincolumn="9" endcolumn="9" rule="CollapsibleIfStatements" ruleset="Design" package="org.coms4156.tars.service" class="TarsUserService" method="existsByClientIdAndUserEmail" externalInfoUrl="https://pmd.github.io/pmd-6.55.0/pmd_rules_java_design.html#collapsibleifstatements" priority="3">
+These nested if statements could be combined
+</violation>
+</file>
+</pmd>

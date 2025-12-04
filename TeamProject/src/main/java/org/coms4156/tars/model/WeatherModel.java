@@ -231,7 +231,7 @@ public class WeatherModel {
         }
 
         int code = Integer.parseInt(codes[i].trim());
-        boolean isClear = (code >= 0 && code <= 3);
+        boolean isClear = code >= 0 && code <= 3;
 
         if (isClear && tempMatches) {
           niceDays.add(dates[i].trim());
