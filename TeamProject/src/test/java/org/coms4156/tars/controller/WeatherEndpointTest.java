@@ -407,6 +407,39 @@ public class WeatherEndpointTest {
                     .param("days", "-5"))
             .andExpect(status().isBadRequest());
   }
+
+  /**
+   * {@code testGetUserRecWithNonExistentUserId}
+   * Equivalence Partition 4: userId refers to a user that does not exist.
+   * Expected: 404 NOT_FOUND.
+   */
+  @Test
+  public void testGetUserRecWithNonExistentUserId() throws Exception {
+    when(tarsService.getUserPreference(999L)).thenReturn(null);
+
+    mockMvc.perform(get("/recommendation/weather/user")
+                    .param("city", "Boston")
+                    .param("userId", "999")
+                    .param("days", "5"))
+            .andExpect(status().isNotFound());
+  }
+
+  /**
+   * {@code testGetUserRecWithNegativeUserId}
+   * Equivalence Partition 5: userId is negative.
+   * Expected: 400 BAD_REQUEST.
+   */
+  @Test
+  public void testGetUserRecWithNegativeUserId() throws Exception {
+    when(tarsService.getUserPreference(-1L)).thenReturn(null);
+
+    mockMvc.perform(get("/recommendation/weather/user")
+                    .param("city", "Boston")
+                    .param("userId", "-1")
+                    .param("days", "5"))
+            .andExpect(status().isBadRequest());
+  }
+
   /* ======= /alert/weather?city={city}&lat={lat}&lon={lon} Equivalence Partitions ======= */
   
   /** 

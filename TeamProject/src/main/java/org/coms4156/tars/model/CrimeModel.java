@@ -99,7 +99,7 @@ public class CrimeModel {
       }
 
     } catch (IOException | InterruptedException e) {
-      return "Error fetching data: " + e.getMessage();
+      throw new RuntimeException("API call failed: " + e.getMessage());
     }
   }
 
