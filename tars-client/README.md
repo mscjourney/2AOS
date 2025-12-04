@@ -167,7 +167,74 @@ cd client && npm start        # Start React dev server (separate terminal)
 npm run build                # Build React app for production
 ```
 
-## How Multiple Instances Work
+## Running Multiple Clients Simultaneously
+
+You can run multiple client instances on different ports to simulate different users accessing the system simultaneously. This is useful for testing multi-user scenarios, admin functionality, and concurrent access patterns.
+
+### Setup for Multiple Clients
+
+1. **Build the React Frontend** (one time, shared by all instances):
+```bash
+cd client
+npm run build
+cd ..
+```
+
+2. **Start the Java Backend** (required for all clients):
+```bash
+cd ../TeamProject
+mvn spring-boot:run
+```
+
+3. **Start First Client Instance** (Terminal 1 - Default port 3001):
+```bash
+cd tars-client
+PORT=3001 npm start
+```
+- Access at: `http://localhost:3001`
+- Example: **Alice (Admin)** - Use admin credentials to log in
+
+4. **Start Second Client Instance** (Terminal 2 - Port 3002):
+```bash
+cd tars-client
+PORT=3002 npm start
+```
+- Access at: `http://localhost:3002`
+- Example: **Charlie (Regular User)** - Use regular user credentials to log in
+
+### Example: Running Alice (Admin) and Charlie (Regular User)
+
+**Terminal 1 - Alice (Admin on port 3001):**
+```bash
+cd tars-client
+PORT=3001 npm start
+```
+- Open browser: `http://localhost:3001`
+- Login as: **Alice** (admin user)
+- Access: Admin dashboard for user management
+
+**Terminal 2 - Charlie (Regular User on port 3002):**
+```bash
+cd tars-client
+PORT=3002 npm start
+```
+- Open browser: `http://localhost:3002`
+- Login as: **Charlie** (regular user)
+- Access: Regular dashboard with personal alerts, preferences, etc.
+
+### Important Notes
+
+- **Each client instance maintains its own `clientId`**: Each instance stores its client ID in `client-config.json` in the `tars-client` directory. If you want separate client IDs for each instance, you can:
+  - Run each instance from a different directory, OR
+  - Manually edit `client-config.json` between runs
+
+
+- **Independent Sessions**: Each browser tab/window maintains its own login session. You can have:
+  - Alice logged in on `http://localhost:3001` (admin)
+  - Charlie logged in on `http://localhost:3002` (regular user)
+  - Both accessing the system simultaneously
+
+-
 
 
 
