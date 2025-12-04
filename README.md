@@ -16,13 +16,13 @@
 
 # Travel Alert and Recommendation Service (TARS)
 
-TARS is a Spring Boot REST API that lets clients:
-- Register users with preference profiles (weather types, temperature ranges, favorite cities).
-- Retrieve stored user profiles.
-- Get weather recommendations (best upcoming days).
-- Get real-time weather alerts for a location or for a user's saved cities.
-- Fetch basic crime summary info for a state/offense.
-- Create client accounts and provision tenant-scoped application users.
+TARS is a Spring Boot REST API providing multi-tenant travel alerting and recommendations. Core capabilities:
+- Multi-tenant client management with API key authentication
+- User preference storage per client (weather types, temperature ranges, favorite cities)
+- Weather recommendations (best upcoming days) by city and window
+- Real-time weather alerts by city or coordinates
+- Aggregated alerts using a user’s saved city preferences
+- Crime summary info for state/offense/month/year
 
 ---
 
@@ -48,7 +48,7 @@ Property | Purpose | Default
 -------- | ------- | -------
 `tars.data.path` | Filesystem path for legacy user preferences JSON (`User` objects) | `./data/userPreferences.json`
 `tars.users.path` | Path for multi-tenant `TarsUser` entities | `./data/users.json`
-(Clients are stored via `ClientService` in `./data/clients.json` internally; currently not configurable by property.)
+(Clients are stored via `ClientService` in `./data/clients.json` internally.)
 
 Override in `src/main/resources/application.properties`:
 ```properties
@@ -107,8 +107,7 @@ Directories are created automatically if missing.
 }
 ```
 - `name` must be unique (case-insensitive) across all clients.
-- `apiKey` is generated (cryptographically secure hex) and NOT returned in the create response (delivered out-of-band).
-- Current implementation returns portal guidance instead of exposing the key directly.
+- `apiKey` is generated (cryptographically secure hex). Admin endpoints can rotate or retrieve keys; clients use the value in requests.
 
 ### WeatherRecommendation
 ```json
@@ -151,9 +150,9 @@ Directories are created automatically if missing.
 ## Multi-Tenant Client & User Management
 
 ### Client Lifecycle
-- Create a client with unique name.
-- API key is generated internally and withheld from response.
-- Retrieval/rotation endpoints are planned (design placeholder); current model assumes secure out-of-band delivery (email/admin portal).
+- Create a client with a unique name.
+- API key is generated automatically and stored; clients authenticate requests using this key.
+- Admins can list clients, view by id, and rotate API keys.
 
 ### TarsUser Lifecycle
 - Created in context of a client (`clientId` required).
@@ -165,13 +164,13 @@ Component | File | Atomic Writes | Uniqueness/Validation
 --------- | ---- | ------------- | ---------------------
 Legacy Users (`User`) | `userPreferences.json` | Non-atomic (legacy) | Unique id on add
 Tars Users (`TarsUser`) | `users.json` | Yes (temp then atomic move) | Username per client
-Clients | `clients.json` | Currently non-atomic | Name uniqueness, key generation
+Clients | `clients.json` | Non-atomic | Name uniqueness, key generation
 
 Atomic write is recommended to be added to `ClientService` for consistency (future enhancement).
 
 ---
 
-## Endpoints
+## Endpoints (Overview)
 
 Base path: `http://localhost:8080`
 
@@ -193,8 +192,8 @@ Response (201):
 {
   "clientId": 4,
   "name": "AcmeCorp",
-  "message": "Client created successfully. Log in to the admin portal to retrieve your API key.",
-  "portalUrl": "https://admin.tars.example.com/clients/4/credentials"
+  "message": "Client created successfully.",
+  "next": "Use admin endpoints to view or rotate the API key."
 }
 ```
 Errors:
@@ -224,7 +223,7 @@ Errors:
 
 ### User Preferences
 
-PUT `/setPreference/{id}`
+PUT `/setPreference/{id}` (Authenticated)
 
 Description: Adds/updates the preferences of the TarUser by id.
 
@@ -244,7 +243,7 @@ Response:
 - `400 Bad Request`: Error message if `id` was negative or `@PathVariable id` does not match JSON `id`.
 - `404 Not Found`: TarsUser with the specified Id does not exist.
 
-GET `/clearPreference/{id}`
+GET `/clearPreference/{id}` (Authenticated)
 
 Description: Removes the preferences of the TarUser by id.
 
@@ -257,7 +256,7 @@ Response:
 - `400 BAD_REQUEST`: Error message if `id` was negative or TarsUser with `id` did not have any existing preferences.
 - `404 Not Found`: A TarsUser with the specified Id does not exist.
 
-GET `/retrievePreference/{id}`
+GET `/retrievePreference/{id}` (Authenticated)
 
 Description: Gets the preferences of the TarUser by id.
 
@@ -270,7 +269,7 @@ Response:
 - `400 BAD_REQUEST`: Error message if `id` was negative or TarsUser with `id` did not have any existing preferences.
 - `404 Not Found`: A TarsUser with the specified Id does not exist.
 
-GET `/userPreferenceList`
+GET `/userPreferenceList` (Authenticated)
 
 Description: Retrieves a list of all existing preferences for all TarUsers.
 
@@ -282,8 +281,7 @@ Response:
 - `200 OK`: Returns a list of `UserPreference` objects.
 
 ### Weather Recommendation
-
-GET `/recommendation/weather?city={city}&days={days}`
+GET `/recommendation/weather?city={city}&days={days}` (Authenticated)
 
 Query params:
 - `city` (required)
@@ -300,10 +298,9 @@ GET /recommendation/weather?city=Raleigh&days=5
 ```
 
 ### Weather Alerts
-
-GET `/alert/weather?city={city}`  
+GET `/alert/weather?city={city}` (Authenticated)  
 OR  
-GET `/alert/weather?lat={lat}&lon={lon}`
+GET `/alert/weather?lat={lat}&lon={lon}` (Authenticated)
 
 Rules:
 - Either `city` OR both `lat` and `lon` must be provided.
@@ -314,8 +311,7 @@ Responses:
 - `500 INTERNAL SERVER ERROR` – unexpected failure
 
 ### Weather Alerts (User Preferences)
-
-GET `/alert/weather/user/{userId}`
+GET `/alert/weather/user/{userId}` (Authenticated)
 
 Uses the user's `cityPreferences` to aggregate alerts.
 
@@ -326,8 +322,7 @@ Responses:
 - `500 INTERNAL SERVER ERROR` – unexpected failure
 
 ### Crime Summary
-
-GET `/crime/summary?state={state}&offense={offense}&month={MM}&year={YYYY}`
+GET `/crime/summary?state={state}&offense={offense}&month={MM}&year={YYYY}` (Authenticated)
 
 Parameters:
 - `state`: US state abbreviation (e.g., `NC`, `CA`)
@@ -345,7 +340,7 @@ GET /crime/summary?state=NC&offense=ASS&month=10&year=2025
 ```
 
 ### Country Alerts
-GET `/country/{country}`
+GET `/country/{country}` (Authenticated)
 
 Generates a Travel Advisory Message for the provided country
 
@@ -363,6 +358,37 @@ Responses:
 - `400 BAD REQUEST` - illegal argument (null / empty/whitespace string)
 - `404 NOT FOUND` - no such country
 - `500 INTERNAL SERVER ERROR` - failure
+
+---
+
+## Authentication
+
+All protected endpoints require an API key in the request header.
+
+- Header name: `X-API-Key` (configurable via `security.apiKey.header`)
+- Two classes of keys:
+  - Client API keys: issued per client, authorize standard endpoints.
+  - Admin API keys: configured in `security.adminApiKeys`, grant access to `/clients/**` and admin actions.
+
+Include the header in requests:
+
+```bash
+curl -H "X-API-Key: <client-api-key>" \
+  "http://localhost:8080/recommendation/weather?city=Boston&days=5"
+
+curl -H "X-API-Key: <client-api-key>" \
+  "http://localhost:8080/alert/weather?lat=40.7128&lon=-74.0060"
+
+# Admin-only example: list clients
+curl -H "X-API-Key: <admin-api-key>" \
+  "http://localhost:8080/clients"
+
+# Admin-only example: rotate a client API key
+curl -X POST -H "X-API-Key: <admin-api-key>" \
+  "http://localhost:8080/clients/4/rotateKey"
+```
+
+Public paths (no key required): `/`, `/index`, `/health`, `/login` (configurable).
 
 ---
 
@@ -396,8 +422,22 @@ curl -X POST http://localhost:8080/client/create \
 ```bash
 curl -X POST http://localhost:8080/client/createUser \
   -H "Content-Type: application/json" \
+  -H "X-API-Key: <admin-api-key>" \
   -d '{"clientId":4,"username":"jdoe","role":"ADMIN"}'
 ```
+
+### Authenticated Requests (Client Key)
+```bash
+curl -H "X-API-Key: <client-api-key>" \
+  "http://localhost:8080/retrievePreference/1"
+
+curl -H "X-API-Key: <client-api-key>" \
+  "http://localhost:8080/recommendation/weather?city=Raleigh&days=5"
+```
+
+### Project Structure & Documentation
+- This root README provides high-level overview, setup, and quick usage.
+- See `TeamProject/README.md` for detailed backend security, configuration, and admin endpoint documentation.
 
 ### Duplicate Client Name (Expect 409)
 ```bash
