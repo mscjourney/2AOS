@@ -238,6 +238,20 @@ class TarsApiClient {
   }
 
   /**
+   * Get weather recommendation for a user based on their preferences (getUserRec)
+   */
+  async getUserWeatherRecommendation(city, userId, days) {
+    try {
+      const response = await axios.get(`${this.baseUrl}/recommendation/weather/user`, {
+        params: { city, userId, days }
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to get user weather recommendation: ${error.response?.data || error.message}`);
+    }
+  }
+
+  /**
    * Get weather alerts by city
    */
   async getWeatherAlertsByCity(city) {

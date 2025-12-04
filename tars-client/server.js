@@ -290,6 +290,25 @@ app.get('/api/recommendation/weather', async (req, res) => {
   }
 });
 
+// Get weather recommendation for a user based on their preferences (getUserRec)
+app.get('/api/getUserRec', async (req, res) => {
+  try {
+    const { city, userId, days } = req.query;
+    if (!city || !userId || !days) {
+      return res.status(400).json({ error: 'city, userId, and days parameters are required' });
+    }
+    const recommendation = await apiClient.getUserWeatherRecommendation(
+      city, 
+      parseInt(userId), 
+      parseInt(days)
+    );
+    res.json(recommendation);
+  } catch (error) {
+    console.error('Error getting user weather recommendation:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Get weather alerts by city
 app.get('/api/alert/weather', async (req, res) => {
   try {

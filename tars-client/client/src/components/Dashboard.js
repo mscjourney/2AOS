@@ -40,6 +40,8 @@ function Dashboard() {
   // Personal alerts state
   const [personalAlerts, setPersonalAlerts] = useState([]);
   const [loadingAlerts, setLoadingAlerts] = useState(false);
+  const [userRecommendations, setUserRecommendations] = useState([]);
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false);
   
   useEffect(() => {
     initializeClient();
@@ -240,6 +242,53 @@ function Dashboard() {
       setPersonalAlerts([]);
     } finally {
       setLoadingAlerts(false);
+    }
+  };
+
+  const handleGetUserRecommendations = async () => {
+    if (!loggedInUser || !loggedInUser.userId) {
+      setError('Please log in to view your personal recommendations');
+      return;
+    }
+
+    if (!userPreferences || !userPreferences.cityPreferences || userPreferences.cityPreferences.length === 0) {
+      setError('Please add city preferences to your profile to get recommendations');
+      return;
+    }
+    
+    try {
+      setError(null);
+      setLoadingRecommendations(true);
+      const recommendations = [];
+      
+      // Get recommendations for each city in user's preferences
+      for (const city of userPreferences.cityPreferences) {
+        try {
+          const response = await axios.get(`${API_BASE}/getUserRec`, {
+            params: {
+              city: city,
+              userId: loggedInUser.userId,
+              days: 7 // Default to 7 days
+            }
+          });
+          recommendations.push({
+            city: city,
+            ...response.data
+          });
+        } catch (err) {
+          console.error(`Error getting recommendation for ${city}:`, err);
+          // Continue with other cities even if one fails
+        }
+      }
+      
+      setUserRecommendations(recommendations);
+    } catch (err) {
+      console.error('Error getting user recommendations:', err);
+      const errorMsg = err.response?.data?.error || err.message;
+      setError(errorMsg);
+      setUserRecommendations([]);
+    } finally {
+      setLoadingRecommendations(false);
     }
   };
 
@@ -801,14 +850,14 @@ function Dashboard() {
         {activeTab === 'personal-alerts' && (
           <div className="personal-alerts">
             <div className="card">
-              <h2>Personal Weather Alerts</h2>
+              <h2>Personal Weather Alerts & Recommendations</h2>
               <p style={{ color: '#718096', marginBottom: '1.5rem' }}>
-                Weather alerts for all cities in your preferences
+                Weather alerts and personalized recommendations for all cities in your preferences
               </p>
               
               {!loggedInUser ? (
                 <div className="alert" style={{ background: '#fff3cd', borderLeft: '4px solid #ffc107', padding: '1rem' }}>
-                  <strong>Please log in</strong> to view your personal weather alerts based on your city preferences.
+                  <strong>Please log in</strong> to view your personal weather alerts and recommendations based on your city preferences.
                 </div>
               ) : (
                 <>
@@ -816,6 +865,7 @@ function Dashboard() {
                     onClick={handleGetPersonalAlerts} 
                     className="btn-primary"
                     disabled={loadingAlerts}
+                    style={{ marginBottom: '1.5rem' }}
                   >
                     {loadingAlerts ? 'Loading...' : 'Refresh Alerts'}
                   </button>
@@ -906,6 +956,107 @@ function Dashboard() {
                       ))}
                     </div>
                   )}
+
+                  {/* Get Recommendations Button - Moved to bottom after alerts */}
+                  <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '2px solid #e2e8f0' }}>
+                    <button 
+                      onClick={handleGetUserRecommendations} 
+                      className="btn-primary"
+                      disabled={loadingRecommendations}
+                      style={{ background: '#38a169' }}
+                    >
+                      {loadingRecommendations ? 'Loading...' : 'Get Personalized Recommendations'}
+                    </button>
+                  </div>
+
+                  {/* User Recommendations Section */}
+                  <div style={{ marginTop: '2rem' }}>
+                    <h3 style={{ marginBottom: '1rem', color: '#2d3748' }}>🌤️ Personalized Weather Recommendations</h3>
+                    <p style={{ color: '#718096', marginBottom: '1.5rem' }}>
+                      Weather recommendations tailored to your preferences for each city you follow
+                    </p>
+
+                    {loadingRecommendations && (
+                      <div style={{ textAlign: 'center', color: '#718096', padding: '2rem' }}>
+                        Loading recommendations...
+                      </div>
+                    )}
+
+                    {!loadingRecommendations && userRecommendations.length === 0 && (
+                      <div className="alert" style={{ background: '#e6fffa', borderLeft: '4px solid #38a169', padding: '1rem' }}>
+                        <strong>No recommendations yet.</strong> Click "Get Recommendations" to see personalized weather recommendations for your cities.
+                      </div>
+                    )}
+
+                    {!loadingRecommendations && userRecommendations.length > 0 && (
+                      <div>
+                        <h4 style={{ marginBottom: '1.5rem', color: '#2d3748' }}>
+                          {userRecommendations.length} Recommendation{userRecommendations.length !== 1 ? 's' : ''} Found
+                        </h4>
+                        {userRecommendations.map((rec, idx) => (
+                          <div key={idx} className="result" style={{ 
+                            marginBottom: '2rem', 
+                            border: '1px solid #c6f6d5', 
+                            borderRadius: '8px', 
+                            padding: '1.5rem',
+                            background: '#f0fff4'
+                          }}>
+                            <h3 style={{ color: '#38a169', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              🌍 {rec.city || `City ${idx + 1}`}
+                            </h3>
+                            
+                            {rec.message && (
+                              <p style={{ marginBottom: '1rem', color: '#2d3748', fontSize: '1.1rem', fontWeight: '500' }}>
+                                {rec.message}
+                              </p>
+                            )}
+
+                            {rec.recommendedDays && rec.recommendedDays.length > 0 && (
+                              <div style={{ marginTop: '1rem' }}>
+                                <h4 style={{ color: '#38a169', marginBottom: '0.75rem' }}>📅 Recommended Days:</h4>
+                                <div style={{ 
+                                  display: 'flex', 
+                                  flexWrap: 'wrap', 
+                                  gap: '0.5rem',
+                                  marginTop: '0.5rem'
+                                }}>
+                                  {rec.recommendedDays.map((day, dayIdx) => (
+                                    <span 
+                                      key={dayIdx}
+                                      style={{
+                                        background: '#38a169',
+                                        color: 'white',
+                                        padding: '0.5rem 1rem',
+                                        borderRadius: '6px',
+                                        fontWeight: '500',
+                                        fontSize: '0.9rem'
+                                      }}
+                                    >
+                                      {day}
+                                    </span>
+                                  ))}
+                                </div>
+                                <p style={{ marginTop: '1rem', color: '#718096', fontSize: '0.9rem' }}>
+                                  <strong>{rec.recommendedDays.length}</strong> day{rec.recommendedDays.length !== 1 ? 's' : ''} match your weather and temperature preferences
+                                </p>
+                              </div>
+                            )}
+
+                            {(!rec.recommendedDays || rec.recommendedDays.length === 0) && (
+                              <div className="alert" style={{ 
+                                background: '#fff3cd', 
+                                borderLeft: '4px solid #ffc107', 
+                                padding: '1rem',
+                                marginTop: '1rem'
+                              }}>
+                                <strong>No matching days found</strong> in the next 7 days for your preferences in {rec.city}.
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </>
               )}
             </div>
