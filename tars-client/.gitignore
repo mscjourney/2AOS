@@ -11,8 +11,8 @@ client/.pnp.js
 client-config.json
 test-client-config.json
 
-# Test coverage
-coverage/
+# Test coverage (uncommented to allow committing coverage reports)
+# coverage/
 .nyc_output/
 
 # Logs
