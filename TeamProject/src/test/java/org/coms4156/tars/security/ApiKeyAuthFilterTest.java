@@ -18,19 +18,24 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 /**
  * Integration test for API key authentication filter.
  */
 @SpringBootTest
 @TestPropertySource(properties = "security.enabled=true")
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = true)
+@Import(org.coms4156.tars.security.SecurityConfig.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ApiKeyAuthFilterTest {
 
-  @Autowired
+  @Autowired private WebApplicationContext context;
+  @Autowired private org.coms4156.tars.security.ApiKeyAuthFilter apiKeyAuthFilter;
   private MockMvc mockMvc;
 
   private static final String DATA_PATH = "./data/clients.json";
@@ -73,6 +78,16 @@ public class ApiKeyAuthFilterTest {
       clients.add(c);
     }
     MAPPER.writeValue(file, clients);
+  }
+
+  /**
+   * Sets up MockMvc with the API key auth filter before each test.
+   */
+  @org.junit.jupiter.api.BeforeEach
+  public void setupMockMvc() {
+    this.mockMvc = MockMvcBuilders.webAppContextSetup(context)
+        .addFilters(apiKeyAuthFilter)
+        .build();
   }
 
   @Test

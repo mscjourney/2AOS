@@ -19,7 +19,10 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 /**
  * Integration test for admin access control and rate limiting functionality.
@@ -29,11 +32,13 @@ import org.springframework.test.web.servlet.MockMvc;
   "security.adminApiKeys=adminkey000000000000000000000000",
   "security.apiKey.header=X-API-Key"
 }, classes = org.coms4156.tars.TarsApplication.class)
-@AutoConfigureMockMvc
+@AutoConfigureMockMvc(addFilters = true)
+@Import(org.coms4156.tars.security.SecurityConfig.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class AdminAndRateLimitTest {
 
-  @Autowired
+  @Autowired private WebApplicationContext context;
+  @Autowired private org.coms4156.tars.security.ApiKeyAuthFilter apiKeyAuthFilter;
   private MockMvc mockMvc;
 
   private static final String DATA_PATH = "./data/clients.json";
@@ -70,6 +75,16 @@ public class AdminAndRateLimitTest {
     CLIENT_ID = first.getClientId();
     CLIENT_KEY = first.getApiKey();
     MAPPER.writeValue(f, clients);
+  }
+
+  /**
+   * Sets up MockMvc with the API key auth filter before each test.
+   */
+  @org.junit.jupiter.api.BeforeEach
+  public void setupMockMvc() {
+    this.mockMvc = MockMvcBuilders.webAppContextSetup(context)
+        .addFilters(apiKeyAuthFilter)
+        .build();
   }
 
   @Test
