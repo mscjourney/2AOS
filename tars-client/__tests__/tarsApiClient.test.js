@@ -356,37 +356,6 @@ describe('TarsApiClient', () => {
     });
   });
 
-  describe('getCitySummary', () => {
-    test('should get city summary without parameters', async () => {
-      const mockSummary = { city: 'NYC', message: 'Summary' };
-      axios.get.mockResolvedValue({ data: mockSummary });
-      const result = await apiClient.getCitySummary('NYC');
-      expect(result).toEqual(mockSummary);
-      expect(axios.get).toHaveBeenCalledWith(`${mockBaseUrl}/summary/NYC`, expect.anything());
-    });
-
-    test('should get city summary with all parameters', async () => {
-      const mockSummary = { city: 'NYC' };
-      axios.get.mockResolvedValue({ data: mockSummary });
-      const result = await apiClient.getCitySummary('NYC', '2024-01-01', '2024-01-31', 'NY');
-      expect(result).toEqual(mockSummary);
-      expect(axios.get).toHaveBeenCalledWith(
-        `${mockBaseUrl}/summary/NYC`,
-        expect.objectContaining({
-          params: expect.objectContaining({
-            startDate: '2024-01-01',
-            endDate: '2024-01-31',
-            state: 'NY'
-          })
-        })
-      );
-    });
-
-    test('should handle error', async () => {
-      axios.get.mockRejectedValue(new Error('Network error'));
-      await expect(apiClient.getCitySummary('NYC')).rejects.toThrow();
-    });
-  });
 
   describe('getCountrySummary', () => {
     test('should get country summary', async () => {

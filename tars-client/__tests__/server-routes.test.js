@@ -28,7 +28,6 @@ const mockApiClient = {
   getUserWeatherAlerts: jest.fn(),
   getCrimeSummary: jest.fn(),
   getCountryAdvisory: jest.fn(),
-  getCitySummary: jest.fn(),
   getCountrySummary: jest.fn(),
   loadClientId: jest.fn()
 };
@@ -414,30 +413,6 @@ describe('Express Server Routes', () => {
     });
   });
 
-  describe('GET /api/summary/:city', () => {
-    test('should get city summary', async () => {
-      const mockSummary = { city: 'New York', message: 'Summary' };
-      mockApiClient.getCitySummary.mockResolvedValue(mockSummary);
-
-      const response = await request(app)
-        .get('/api/summary/New York')
-        .expect(200);
-
-      expect(response.body).toEqual(mockSummary);
-    });
-
-    test('should get city summary with query parameters', async () => {
-      const mockSummary = { city: 'New York' };
-      mockApiClient.getCitySummary.mockResolvedValue(mockSummary);
-
-      const response = await request(app)
-        .get('/api/summary/New York?state=NY&startDate=2024-01-01&endDate=2024-01-31')
-        .expect(200);
-
-      expect(response.body).toEqual(mockSummary);
-      expect(mockApiClient.getCitySummary).toHaveBeenCalledWith('New York', '2024-01-01', '2024-01-31', 'NY');
-    });
-  });
 
   describe('GET /api/countrySummary/:country', () => {
     test('should get country summary', async () => {
@@ -605,15 +580,6 @@ describe('Express Server Routes', () => {
       expect(response.body).toHaveProperty('error');
     });
 
-    test('should handle getCitySummary errors', async () => {
-      mockApiClient.getCitySummary.mockRejectedValue(new Error('Service error'));
-
-      const response = await request(app)
-        .get('/api/summary/InvalidCity')
-        .expect(500);
-
-      expect(response.body).toHaveProperty('error');
-    });
 
     test('should handle getCountrySummary errors', async () => {
       mockApiClient.getCountrySummary.mockRejectedValue(new Error('Service error'));
