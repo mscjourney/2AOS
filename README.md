@@ -9,7 +9,24 @@
 | Anya Khatri | ak***9 |
 | Osarobo Omokaro | oo***3 |
 
+
+## GCP Production Links
+
+`http://34.75.80.228:8080` - Server
+`http://34.75.80.228:3001/login` - Client
+
+
+
+## Local links
+
+`http://localhost:8080` - Server
+`http://localhost:3001` - Client
+
+
+
 ## Language and Platform
+
+
 
 **Programming Language:**  Java  
 **Platform:**  Linux  
