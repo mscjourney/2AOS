@@ -299,6 +299,27 @@ Example:
 GET /recommendation/weather?city=Raleigh&days=5
 ```
 
+### Weather Recommendation (User Preference)
+
+GET `/recommendation/weather/user/{userId}?city={city}&days={days}`
+
+Path Variable:
+- `userId` (required)
+
+Query params:
+- `city` (required)
+- `days` (required, 1–14)
+
+Responses:
+- `200 OK` – `WeatherRecommendation`
+- `400 BAD REQUEST` – invalid `days` range (≤0 or >14)
+- `500 INTERNAL SERVER ERROR` – unexpected failure
+
+Example:
+```
+GET /recommendation/weather/user/1?city=New York&days=10
+```
+
 ### Weather Alerts
 
 GET `/alert/weather?city={city}`  
@@ -533,5 +554,6 @@ Run PMD manually (from `TeamProject`):
 ```bash
 pmd check -d './' -R rulesets/java/quickstart.xml -r pmd.txt
 ```
+
 
 ---
