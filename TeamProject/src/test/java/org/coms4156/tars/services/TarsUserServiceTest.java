@@ -1,0 +1,1767 @@
+package org.coms4156.tars.services;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import org.coms4156.tars.model.TarsUser;
+import org.coms4156.tars.service.TarsUserService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.slf4j.LoggerFactory;
+
+/**
+ * {@code TarsUserServiceTest} Unit tests for {@link TarsUserService}.
+ * Each test method documents the branch or behavior under validation.
+ * 
+ * <p>Equivalence Partition Testing for TarsUserService Methods.
+ * =========== {@code List<TarsUser> listUsers()} ================
+ * Equivalence Partiton 1: There is one or more TarsUsers that exist.
+ *    - Test Cases: listUsersReturnsCorrectCountTest
+ * Equivalence Partition 2: There are no TarsUsers that exist.
+ *    - Test Cases: testCreateUserNullParameterCombinations
+ * 
+ * <p>=========== {@code List<TarsUser> listUsersByClientId(Long clientId)} ============
+ * Equivalence Partition 1: clientId is not null.
+ *    - Test Cases: listUsersByClientIdValidTest
+ * Equivalence Partition 2: clientId is null.
+ *    - Test Cases: listUsersByClientIdNullTest
+ * 
+ * <p>=========== {@code TarsUser findById(Long userId)} ============
+ * Equivalence Partiton 1: userId is not null. TarsUser associated with userId exists.
+ * Equivalence Partition 2: userId is not null. TarsUser associated with userId does NOT exist.
+ * Equivalence Partition 3: userId is null.
+ *    - Test Cases: getUserByIdTest (tests all partitions)
+ * 
+ * <p>== {@code TarsUser createUser(Long clientId, String username, String email, String role)} ===
+ * Equivalence Partition 1: All params are valid.
+ *    - Test Cases: createValidUserTest, createUserWithWhitespaceTrimmingTest
+ * Equivalence Partition 2: Any of the params passed is invalid. An invalid param is null,
+ *    or just whitespace.
+ *    - Test Cases: createNullUserTest, createUserWithLimitedDataTest, 
+ *        createUserWithBlankUsernameTest, createUserWithBlankEmailTest, 
+ *        createUserWithBlankRoleTest
+ * 
+ * <p>=========== {@code boolean deactivateUser(Long userId)} ===========
+ * Equivalence Partition 1: userId is not null. There exists a TarsUser specified by userId.
+ *    - Test Cases:  deactivateUserSuccessTest
+ * Equivalence Partition 2: userId is not null, There does NOT exist a TarsUser specified by userId.
+ *    - Test Cases: deactivateNonExistentUserTest
+ * Equivalence Partition 3: userId is null.
+ *    - Test Cases: deactivateUserWithNullIdTest
+ * 
+ * <p>=========== {@code boolean updateLastLogin(Long userId)} ==========
+ * Equivalence Partition 1: userId is not null. There exists a TarsUser specified by userId.
+ *    - Test Cases: updateLastLoginSuccessTest
+ * Equivalence Partition 2: userId is not null, There does NOT exist a TarsUser specified by userId.
+ *    - Test Cases: updateLastLoginNonExistentUserTest
+ * Equivalence Partition 3: userId is null.
+ *    - Test Cases: updateLastLoginNullIdTest
+ * 
+ * <p>====== {@code boolean existsByClientIdAndUsername(Long clientId, String username)} ========
+ * Equivalence Partition 1: clientId and username are not null. There does NOT exist a TarsUser with
+ *    the specified username under the specified client.
+ *    - Test Cases: existsByClientIdAndUsernameNotFoundTest,
+ *        existsByClientIdAndUsernameDifferentClientTest
+ * Equivalence Partition 2: clientId and username are not null. There DOES exist a TarsUser with
+ *    the specified username under the specified client.
+ *    - Test Cases: existsByClientIdAndUsernameFoundTest, 
+ *          existsByClientIdAndUsernameCaseInsensitiveTest
+ * Equivalence Partition 3: clientId and/or username are null.
+ *    - Test Cases: existsByClientIdAndUsernameNullParamsTest
+ * 
+ * <p>======= {@code boolean existsByClientIdAndUserEmail(Long clientId, String email)} =========
+ * Equivalence Partition 1: clientId and email are not null. There does NOT exist a TarsUser with
+ *    the specified email under the specified client. We do not check if the client exists because
+ *    the caller of this function will have guaranteed that.
+ *    - Test Cases: existsByClientIdAndUserEmailNotFoundTest,
+ *        existsByClientIdAndUserEmailDifferentClientTest
+ * Equivalence Partition 2: clientId and email are not null. There DOES exist a TarsUser with
+ *    the specified email under the specified client.
+ *    - Test Cases: existsByClientIdAndUserEmailFoundTest, 
+ *        existsByClientIdAndUserEmailCaseInsensitiveTest
+ * Equivalence Partition 3: clientId and/or email are null.
+ *    - Test Cases: existsByClientIdAndUserEmailNullParamsTest
+ * 
+ * <p>=========== {@code TarsUser deleteUser(Long userId)} ===========
+ * Equivalence Partition 1: userId is not null and there exists a TarsUser associated with userId.
+ *    - Test Cases: deleteUserSuccessTest
+ * Equivalence Partition 2: userId is not null but there does NOT exist a TarsUser associated with
+ *    userId.
+ *    - Test Cases: deleteUserNotFoundTest
+ * Equivalence Partition 3: userId is null.
+ *    - Test Cases: deleteUserWithNullIdTest
+ */
+public class TarsUserServiceTest {
+
+  private TarsUserService userService;
+  private Path tempTestDataFile;
+
+  /**
+   * Initializes a fresh {@link TarsUserService} using classpath test data
+   * before each test. Ensures isolation and predictable user list baseline.
+   */
+  @BeforeEach
+  void setUp() throws IOException {
+    // Copy classpath resource to temp file since service expects file path
+    try (InputStream resourceStream = getClass()
+        .getClassLoader()
+        .getResourceAsStream("test-data/test-data-users.json")) {
+      assertNotNull(resourceStream, "Fixture missing: test-data-users.json");
+      tempTestDataFile = Files.createTempFile("test-users", ".json");
+      Files.copy(resourceStream, tempTestDataFile, StandardCopyOption.REPLACE_EXISTING);
+    }
+    
+    userService = new TarsUserService(tempTestDataFile.toString(), null);
+  }
+
+  /**
+   * Cleanup temporary test file after each test.
+   */
+  @org.junit.jupiter.api.AfterEach
+  void tearDown() throws IOException {
+    if (tempTestDataFile != null && Files.exists(tempTestDataFile)) {
+      Files.deleteIfExists(tempTestDataFile);
+    }
+  }
+
+  /**
+   * {@code persistentFileLoggingIntegrationTest} Verifies Logback writes to a rolling file
+   * when LOG_PATH is provided via system properties. Asserts file creation and content.
+   */
+  @Test
+  public void persistentFileLoggingIntegrationTest() throws Exception {
+    Path logDir = Files.createTempDirectory("tars-log-test");
+    try {
+      System.setProperty("LOG_PATH", logDir.toString());
+      System.setProperty("LOG_LEVEL", "DEBUG");
+
+      // Reload Logback configuration to pick up new properties
+      ch.qos.logback.classic.LoggerContext ctx =
+          (ch.qos.logback.classic.LoggerContext) LoggerFactory.getILoggerFactory();
+      ctx.reset();
+      ch.qos.logback.classic.joran.JoranConfigurator configurator =
+          new ch.qos.logback.classic.joran.JoranConfigurator();
+      configurator.setContext(ctx);
+      java.net.URL cfgUrl = getClass().getClassLoader().getResource("logback-spring.xml");
+      assertNotNull(cfgUrl, "logback-spring.xml should be on test classpath");
+      configurator.doConfigure(cfgUrl);
+
+      // Trigger a few log messages through service operations
+      userService.createUser(5L, "", "test_user@client5.com", "user"); // WARN: blank username
+      userService.updateLastLogin(1L); // INFO
+
+      // Allow appender to flush
+      Thread.sleep(150);
+
+      Path logFile = logDir.resolve("Tars.log");
+      assertTrue(Files.exists(logFile),
+          "Expected persistent log file to be created at LOG_PATH");
+
+      String content = Files.readString(logFile);
+      assertTrue(content.contains("TarsUserService"),
+          "Log file should contain service logger entries");
+      assertTrue(content.contains("Updated lastLogin for user id=1"),
+          "Log file should contain lastLogin update message");
+    } finally {
+      System.clearProperty("LOG_PATH");
+      System.clearProperty("LOG_LEVEL");
+      // Best-effort cleanup
+      Files.walk(logDir)
+          .sorted((a, b) -> b.getNameCount() - a.getNameCount())
+          .forEach(p -> {
+            try {
+              Files.deleteIfExists(p);
+            } catch (IOException ignored) {
+              // Ignore cleanup errors
+            }
+          });
+    }
+  }
+
+  /**
+   * {@code userServiceInitializationTest} Verifies initial load yields first user
+   * with expected id and username.
+   */
+  @Test
+  public void userServiceInitializationTest() {
+    assertNotNull(userService, "UserService should be initialized");
+    List<TarsUser> tarsUsers = userService.listUsers();
+    TarsUser user1 = tarsUsers.get(0);
+    assertEquals(
+        1L,
+        user1.getUserId(),
+        "First user's ID should be 1"
+    );
+    assertEquals(
+        "test_alice",
+        user1.getUsername(),
+        "First user's username should be 'test_alice'"
+    );
+  }
+
+  /**
+   * {@code getUserByIdTest} Exercises lookup by null, missing, and existing id to
+   * confirm correct returns.
+   */
+  @Test
+  public void getUserByIdTest() {
+    TarsUser user2 = userService.findById(null);
+    assertNull(user2, "Fetching user with null ID should return null");
+    TarsUser user3 = userService.findById(999L);
+    assertNull(user3, "Fetching non-existent user should return null");
+    TarsUser user1 = userService.findById(1L);
+    assertNotNull(
+        user1,
+        "Fetching existing user should not return null"
+    );
+    assertEquals(
+        "test_alice",
+        user1.getUsername(),
+        "Fetched user's username should be 'test_alice'"
+    );
+  }
+
+  /**
+   * {@code createNullUserTest} Ensures createUser rejects completely null input
+   * returning null safely.
+   */
+  @Test
+  public void createNullUserTest() {
+    TarsUser result = userService.createUser(null, null, null, null);
+    assertNull(result, "Creating a null user should return null");
+  }
+
+  /**
+   * {@code createUserWithLimitedDataTest} Validates rejection when required
+   * fields (username, role) are absent.
+   */
+  @Test
+  public void createUserWithLimitedDataTest() {
+    TarsUser user = userService.createUser(5L, null, "test_user@client5.com", null);
+    assertNull(user, "Creating user with limited data should return null");
+  }
+
+  /**
+   * {@code createValidUserTest} Confirms a properly formed user is persisted,
+   * assigned next id, and retrievable.
+   */
+  @Test
+  public void createValidUserTest() {
+    final int initialSize = userService.listUsers().size();
+    TarsUser user = userService.createUser(
+        5L,
+        "test_eve",
+        "test_eve@client5.com",
+        "user"
+    );
+    assertNotNull(
+        user,
+        "Creating a valid user should not return null"
+    );
+    user.toString(); // Exercise toString (no assertion needed)
+    // ID should be max existing ID (4) + 1 = 5
+    assertEquals(
+        5L,
+        user.getUserId(),
+        "Created user's ID should be 5"
+    );
+    assertEquals(
+        "test_eve",
+        user.getUsername(),
+        "Created user's username should be 'test_eve'"
+    );
+    assertEquals(
+        user.toString(),
+        userService.findById(5L).toString(),
+        "Fetched user should match the created user"
+    );
+    assertEquals(
+        initialSize + 1,
+        userService.listUsers().size(),
+        "User list size should increase by 1"
+    );
+  }
+
+  /**
+   * {@code deactivateUserSuccessTest} Verifies an active user becomes inactive
+   * and operation signals success.
+   */
+  @Test
+  public void deactivateUserSuccessTest() {
+    boolean result = userService.deactivateUser(1L);
+    assertTrue(result, "Deactivating existing user should succeed");
+    TarsUser deactivatedUser = userService.findById(1L);
+    assertNotNull(deactivatedUser);
+    assertFalse(
+        deactivatedUser.getActive(),
+        "User should be inactive"
+    );
+  }
+
+  /**
+   * {@code deactivateNonExistentUserTest} Checks deactivation gracefully fails
+   * for an unknown user id.
+   */
+  @Test
+  public void deactivateNonExistentUserTest() {
+    boolean result = userService.deactivateUser(999L);
+    assertFalse(result, "Deactivating non-existent user should fail");
+  }
+
+  /**
+   * {@code deactivateUserWithNullIdTest} Ensures null id input produces a false
+   * result (no exception thrown).
+   */
+  @Test
+  public void deactivateUserWithNullIdTest() {
+    boolean result = userService.deactivateUser(null);
+    assertFalse(result, "Deactivating user with null ID should fail");
+  }
+
+  /**
+   * {@code updateLastLoginSuccessTest} Confirms timestamp refresh occurs for an
+   * existing user and is non-empty.
+   */
+  @Test
+  public void updateLastLoginSuccessTest() throws InterruptedException {
+    TarsUser userBefore = userService.findById(1L);
+    assertNotNull(userBefore, "User should exist before update");
+    String loginBefore = userBefore.getLastLogin();
+    
+    // Add small delay to ensure timestamp difference
+    Thread.sleep(2);
+    
+    boolean result = userService.updateLastLogin(1L);
+    assertTrue(result, "Updating last login for existing user should succeed");
+    TarsUser userAfter = userService.findById(1L);
+    String loginAfter = userAfter.getLastLogin();
+    assertNotEquals(
+        loginBefore,
+        loginAfter,
+        "Last login should be updated"
+    );
+    assertFalse(
+        loginAfter.isEmpty(),
+        "Last login should not be empty"
+    );
+  }
+
+  /**
+   * {@code updateLastLoginNonExistentUserTest} Validates update fails cleanly
+   * when user id does not exist.
+   */
+  @Test
+  public void updateLastLoginNonExistentUserTest() {
+    boolean result = userService.updateLastLogin(999L);
+    assertFalse(result, "Updating last login for non-existent user should fail");
+  }
+
+  /**
+   * {@code updateLastLoginNullIdTest} Ensures null id yields false without
+   * throwing or mutating state.
+   */
+  @Test
+  public void updateLastLoginNullIdTest() {
+    boolean result = userService.updateLastLogin(null);
+    assertFalse(result, "Updating last login with null ID should fail");
+  }
+
+  /**
+   * {@code existsByClientIdAndUserEmailFoundTest} Confirms email presence is
+   * detected for matching client.
+   */
+  @Test
+  public void existsByClientIdAndUserEmailFoundTest() {
+    boolean exists = userService.existsByClientIdAndUserEmail(1L, "test_alice@gmail.com");
+    assertTrue(exists, "Existing email for client should be found");
+  }
+
+  /**
+   * {@code existsByClientIdAndUserEmailCaseInsensitiveTest} Verifies email match
+   * ignoring case differences.
+   */
+  @Test
+  public void existsByClientIdAndUserEmailCaseInsensitiveTest() {
+    boolean exists = userService.existsByClientIdAndUserEmail(1L, "TEST_ALICE@GMAIL.COM");
+    assertTrue(exists, "Email check should be case-insensitive");
+  }
+
+  /**
+   * {@code existsByClientIdAndUserEmailNotFoundTest} Asserts a non-existent
+   * email returns false for client.
+   */
+  @Test
+  public void existsByClientIdAndUserEmailNotFoundTest() {
+    boolean exists = userService.existsByClientIdAndUserEmail(1L, "nonexistent@test.com");
+    assertFalse(exists, "Non-existent email should not be found");
+  }
+
+  /**
+   * {@code existsByClientIdAndUserEmailDifferentClientTest} Ensures an email on
+   * another client is not reported.
+   */
+  @Test
+  public void existsByClientIdAndUserEmailDifferentClientTest() {
+    boolean exists = userService.existsByClientIdAndUserEmail(999L, "test_alice@gmail.com");
+    assertFalse(exists, "Email from different client should not be found");
+  }
+
+  /**
+   * {@code existsByClientIdAndUserEmailNullParamsTest} Validates null client or
+   * email short-circuits to false.
+   */
+  @Test
+  public void existsByClientIdAndUserEmailNullParamsTest() {
+    assertFalse(userService.existsByClientIdAndUserEmail(null, "test@test.com"));
+    assertFalse(userService.existsByClientIdAndUserEmail(1L, null));
+    assertFalse(userService.existsByClientIdAndUserEmail(null, null));
+  }
+
+  /**
+   * {@code createUserWithBlankUsernameTest} Rejects creation when trimmed
+   * username is empty whitespace.
+   */
+  @Test
+  public void createUserWithBlankUsernameTest() {
+    TarsUser user = userService.createUser(5L, "  ", "test@test.com", "user");
+    assertNull(user, "Creating user with blank username should return null");
+  }
+
+  /**
+   * {@code createUserWithBlankEmailTest} Rejects creation when trimmed email
+   * value is empty whitespace.
+   */
+  @Test
+  public void createUserWithBlankEmailTest() {
+    TarsUser user = userService.createUser(5L, "testuser", "  ", "user");
+    assertNull(user, "Creating user with blank email should return null");
+  }
+
+  /**
+   * {@code createUserWithBlankRoleTest} Ensures blank role causes createUser to
+   * return null (validation path).
+   */
+  @Test
+  public void createUserWithBlankRoleTest() {
+    TarsUser user = userService.createUser(5L, "testuser", "test@test.com", "  ");
+    assertNull(user, "Creating user with blank role should return null");
+  }
+
+  /**
+   * {@code createUserWithWhitespaceTrimmingTest} Confirms leading/trailing
+   * whitespace is trimmed for all fields.
+   */
+  @Test
+  public void createUserWithWhitespaceTrimmingTest() {
+    TarsUser user = userService.createUser(
+        5L,
+        "  testuser  ",
+        "  test@test.com  ",
+        "  admin  "
+    );
+    assertNotNull(
+        user,
+        "Creating user with whitespace should succeed"
+    );
+    assertEquals(
+        "testuser",
+        user.getUsername(),
+        "Username should be trimmed"
+    );
+    assertEquals(
+        "test@test.com",
+        user.getEmail(),
+        "Email should be trimmed"
+    );
+    assertEquals(
+        "admin",
+        user.getRole(),
+        "Role should be trimmed"
+    );
+  }
+
+  /**
+   * {@code existsByClientIdAndUsernameFoundTest} Asserts existing username is
+   * detected for given client id.
+   */
+  @Test
+  public void existsByClientIdAndUsernameFoundTest() {
+    boolean exists = userService.existsByClientIdAndUsername(1L, "test_alice");
+    assertTrue(exists, "Existing username for client should be found");
+  }
+
+  /**
+   * {@code existsByClientIdAndUsernameCaseInsensitiveTest} Verifies username
+   * matching ignores letter case.
+   */
+  @Test
+  public void existsByClientIdAndUsernameCaseInsensitiveTest() {
+    boolean exists = userService.existsByClientIdAndUsername(1L, "TEST_ALICE");
+    assertTrue(exists, "Username check should be case-insensitive");
+  }
+
+  /**
+   * {@code existsByClientIdAndUsernameNotFoundTest} Ensures false returned when
+   * username absent for client.
+   */
+  @Test
+  public void existsByClientIdAndUsernameNotFoundTest() {
+    boolean exists = userService.existsByClientIdAndUsername(1L, "nonexistent");
+    assertFalse(exists, "Non-existent username should not be found");
+  }
+
+  /**
+   * {@code existsByClientIdAndUsernameDifferentClientTest} Confirms identical
+   * username on other client not counted.
+   */
+  @Test
+  public void existsByClientIdAndUsernameDifferentClientTest() {
+    boolean exists = userService.existsByClientIdAndUsername(999L, "test_alice");
+    assertFalse(exists, "Username from different client should not be found");
+  }
+
+  /**
+   * {@code existsByClientIdAndUsernameNullParamsTest} Validates null client or
+   * username yields false immediately.
+   */
+  @Test
+  public void existsByClientIdAndUsernameNullParamsTest() {
+    assertFalse(userService.existsByClientIdAndUsername(null, "test"));
+    assertFalse(userService.existsByClientIdAndUsername(1L, null));
+    assertFalse(userService.existsByClientIdAndUsername(null, null));
+  }
+
+  /**
+   * {@code listUsersReturnsCorrectCountTest} Ensures fixture loads expected
+   * number of initial users.
+   */
+  @Test
+  public void listUsersReturnsCorrectCountTest() {
+    List<TarsUser> users = userService.listUsers();
+    assertEquals(4, users.size(), "Should return 4 test users");
+  }
+
+  /**
+   * {@code listUsersReturnsUnmodifiableListTest} Confirms returned list cannot
+   * be structurally modified.
+   */
+  @Test
+  public void listUsersReturnsUnmodifiableListTest() {
+    List<TarsUser> users = userService.listUsers();
+    assertThrows(
+        UnsupportedOperationException.class,
+        () -> users.add(new TarsUser(99L, "hacker", "hacker@test.com", "admin")),
+        "Returned list should be unmodifiable"
+    );
+  }
+
+  /**
+   * {@code userIdAutoIncrementTest} Verifies sequential creations get strictly
+   * increasing assigned ids.
+   */
+  @Test
+  public void userIdAutoIncrementTest() {
+    TarsUser user1 = userService.createUser(5L, "user1", "user1@test.com", "user");
+    TarsUser user2 = userService.createUser(5L, "user2", "user2@test.com", "user");
+    assertNotNull(user1);
+    assertNotNull(user2);
+    assertTrue(
+        user2.getUserId() > user1.getUserId(),
+        "User IDs should auto-increment"
+    );
+  }
+
+  /**
+   * {@code userAttributesSetCorrectlyTest} Asserts defaults (active, timestamps,
+   * lastLogin) are initialized correctly.
+   */
+  @Test
+  public void userAttributesSetCorrectlyTest() {
+    TarsUser user = userService.createUser(
+        5L,
+        "newuser",
+        "newuser@test.com",
+        "admin"
+    );
+    assertNotNull(
+        user.getUserId(),
+        "User ID should be set"
+    );
+    assertTrue(
+        user.getActive(),
+        "New user should be active"
+    );
+    assertNotNull(
+        user.getSignUpDate(),
+        "Sign up date should be set"
+    );
+    assertFalse(
+        user.getSignUpDate().isEmpty(),
+        "Sign up date should not be empty"
+    );
+    assertNotNull(
+        user.getLastLogin(),
+        "Last login should be initialized"
+    );
+    assertEquals(
+        "",
+        user.getLastLogin(),
+        "Last login should be empty string initially"
+    );
+  }
+
+  /**
+   * {@code listUsersByClientIdValidTest} Lists the users under the specified client.
+   */
+  @Test
+  public void listUsersByClientIdValidTest() {
+    // Users under an existing client
+    List<TarsUser> userList = userService.listUsersByClientId(1L);
+    assertNotNull(userList);
+    assertEquals(userList.size(), 1);
+    assertEquals(userList.get(0).getUsername(), "test_alice");
+
+    userList = userService.listUsersByClientId(930L);
+    assertNotNull(userList);
+    assertTrue(userList.isEmpty());
+    
+    userList = userService.listUsersByClientId(0L);
+    assertNotNull(userList);
+    assertTrue(userList.isEmpty());
+  }
+
+  /**
+   * {@code listUsersByClientIdValidTest} null userId returns an empty ArrayList.
+   */
+  @Test
+  public void listUsersByClientIdNullTest() {
+    List<TarsUser> userList = userService.listUsersByClientId(null);
+    assertNotNull(userList);
+    assertTrue(userList.isEmpty());
+  }
+
+  /**
+   * {@code serviceCreatesFileWhenMissingTest} Ensures a new data file is
+   * created when none exists and starts empty.
+   */
+  @Test
+  public void serviceCreatesFileWhenMissingTest() throws IOException {
+    Path tempDir = Files.createTempDirectory("tars-test");
+    Path testFile = tempDir.resolve("new-users.json");
+    TarsUserService service = new TarsUserService(testFile.toString(), null);
+    assertTrue(Files.exists(testFile), "File should be created");
+    List<TarsUser> users = service.listUsers();
+    assertEquals(0, users.size(), "New file should have empty user list");
+    Files.deleteIfExists(testFile);
+    Files.deleteIfExists(tempDir);
+  }
+
+  /**
+   * {@code loadHandlesCorruptedFileTest} Confirms corrupt JSON input degrades
+   * safely to empty list without exception.
+   */
+  @Test
+  public void loadHandlesCorruptedFileTest() throws IOException {
+    Path tempFile = Files.createTempFile("corrupt-users", ".json");
+    Files.writeString(tempFile, "{ invalid json [[[");
+    TarsUserService service = new TarsUserService(tempFile.toString(), null);
+    List<TarsUser> users = service.listUsers();
+    assertEquals(0, users.size(), "Corrupted file should return empty list");
+    Files.deleteIfExists(tempFile);
+  }
+
+  /**
+   * {@code ensureFileLogsInfoOnCreationTest} Verifies info log emitted upon
+   * successful initialization of missing store.
+   */
+  @Test
+  public void ensureFileLogsInfoOnCreationTest() throws IOException {
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+    listAppender.start();
+    logger.addAppender(listAppender);
+
+    Path tempDir = Files.createTempDirectory("tars-log-test");
+    Path testFile = tempDir.resolve("new-file.json");
+
+    new TarsUserService(testFile.toString(), null);
+
+    List<ILoggingEvent> logsList = listAppender.list;
+    assertTrue(
+        logsList.stream().anyMatch(event ->
+            event.getLevel() == Level.INFO
+                && event.getFormattedMessage().contains("Created user store at")),
+        "Should log INFO when file created"
+    );
+
+    logger.detachAppender(listAppender);
+    Files.deleteIfExists(testFile);
+    Files.deleteIfExists(tempDir);
+  }
+
+  /**
+   * {@code ensureFileLogsErrorOnIoExceptionTest} Simulates creation failure to
+   * confirm error logging branch executes.
+   */
+  @Test
+  public void ensureFileLogsErrorOnIoExceptionTest() throws IOException {
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+    listAppender.start();
+    logger.addAppender(listAppender);
+
+    Path tempDir = Files.createTempDirectory("readonly-test");
+    Path conflictPath = tempDir.resolve("conflict.json");
+    Files.createDirectory(conflictPath); // Create as directory, not file
+    
+    new TarsUserService(conflictPath.toString(), null);
+
+    List<ILoggingEvent> logsList = listAppender.list;
+    assertTrue(
+        logsList.stream().anyMatch(event ->
+            event.getLevel() == Level.ERROR
+                && event.getFormattedMessage().contains("Failed to initialize user store")),
+        "Should log ERROR when ensureFile fails"
+    );
+
+    logger.detachAppender(listAppender);
+    Files.deleteIfExists(conflictPath);
+    Files.deleteIfExists(tempDir);
+  }
+
+  /**
+   * {@code loadLogsErrorOnIoExceptionTest} Forces read failure to assert error
+   * log emission and fallback behavior.
+   */
+  @Test
+  public void loadLogsErrorOnIoExceptionTest() throws IOException {
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+    listAppender.start();
+    logger.addAppender(listAppender);
+
+    Path tempFile = Files.createTempFile("corrupt-for-log", ".json");
+    Files.writeString(tempFile, "{ corrupt json }");
+
+    new TarsUserService(tempFile.toString(), null);
+
+    List<ILoggingEvent> logsList = listAppender.list;
+    assertTrue(
+        logsList.stream().anyMatch(event ->
+            event.getLevel() == Level.ERROR
+                && event.getFormattedMessage().contains("Failed to read users file")),
+        "Should log ERROR when load fails"
+    );
+
+    logger.detachAppender(listAppender);
+    Files.deleteIfExists(tempFile);
+  }
+
+  /**
+   * {@code persistSuccessPathTest} Confirms created user is durably written and
+   * visible after service reload.
+   */
+  @Test
+  public void persistSuccessPathTest() throws IOException {
+    Path testDir = Files.createTempDirectory("persist-test");
+    Path testFile = testDir.resolve("persist-users.json");
+    
+    // Copy classpath resource to temp file since service expects file path
+    try (InputStream resourceStream = getClass()
+        .getClassLoader()
+        .getResourceAsStream("test-data/test-data-users.json")) {
+      assertNotNull(resourceStream, "Fixture missing: test-data-users.json");
+      Files.copy(resourceStream, testFile);
+    }
+     
+    TarsUserService service = new TarsUserService(testFile.toString(), null);
+    TarsUser user = service.createUser(10L, "persist_test", "persist@test.com", "user");
+    assertNotNull(user, "User should be created successfully");
+    Long userId = user.getUserId();
+
+    // Verify file contains new email before reload (diagnostic robustness)
+    String immediateJson = Files.readString(testFile);
+    assertTrue(
+        immediateJson.contains("\"persist@test.com\""),
+        "Persisted file should contain new user's email before reload"
+    );
+    assertTrue(
+        immediateJson.contains("\"userId\""),
+        "Persisted JSON should include userId fields"
+    );
+    ObjectMapper om = new ObjectMapper();
+    List<TarsUser> parsed = om.readValue(
+        immediateJson,
+        new TypeReference<List<TarsUser>>() {}
+    );
+    assertTrue(
+        parsed.stream().anyMatch(u -> userId.equals(u.getUserId())),
+        "Parsed JSON should contain new user's userId=" + userId
+    );
+ 
+    TarsUserService reloadedService = new TarsUserService(testFile.toString(), null);
+    TarsUser retrieved = reloadedService.findById(userId);
+    assertNotNull(retrieved, "Persisted user should be retrievable after reload");
+    assertEquals("persist_test", retrieved.getUsername(), "Persisted data should match");
+    assertEquals("persist@test.com", retrieved.getEmail(), "Persisted email should match");
+
+    assertTrue(
+        service.listUsers().stream().anyMatch(u -> userId.equals(u.getUserId())),
+        "In-memory list should contain newly created user id=" + userId
+    );
+    Files.deleteIfExists(testFile);
+    Files.deleteIfExists(testDir);
+  }
+
+  /**
+   * Test ID counter when userId is null in loaded users.
+   */
+  @Test
+  public void testIdCounterSkipsNullUserIds() throws IOException {
+    final Path testDir = Files.createTempDirectory("id-null-test");
+    
+    // Create users with null userId and a valid one
+    TarsUser user1 = new TarsUser();
+    user1.setUserId(null);  // null userId
+    user1.setClientId(1L);
+    user1.setUsername("null_id_user");
+    user1.setEmail("null@test.com");
+    user1.setRole("user");
+    user1.setActive(true);
+    
+    TarsUser user2 = new TarsUser();
+    user2.setUserId(5L);  // Max userId is 5
+    user2.setClientId(1L);
+    user2.setUsername("max_id_user");
+    user2.setEmail("max@test.com");
+    user2.setRole("user");
+    user2.setActive(true);
+    
+    java.util.List<TarsUser> existingUsers = new java.util.ArrayList<>();
+    existingUsers.add(user1);
+    existingUsers.add(user2);
+    
+    ObjectMapper om = new ObjectMapper();
+    Path testFile = testDir.resolve("users.json");
+    om.writeValue(testFile.toFile(), existingUsers);
+    
+    TarsUserService service = new TarsUserService(testFile.toString(), null);
+    
+    // Create new user should get ID 6 (skipping null)
+    TarsUser newUser = service.createUser(1L, "new_user", "new@test.com", "user");
+    assertEquals(6L, newUser.getUserId(), 
+        "ID counter should skip null userIds and use max valid ID");
+  }
+
+  /**
+   * Test ensureFile when parent directory is null (root path).
+   */
+  @Test
+  public void testEnsureFileWithNullParent() throws IOException {
+    // Create a file path with no parent (e.g., a temp file in root)
+    java.io.File tempRoot = java.io.File.listRoots()[0];
+    java.io.File testFile = new java.io.File(tempRoot, "tars-test-" 
+        + System.currentTimeMillis() + ".json");
+    
+    try {
+      // This tests the parent == null branch
+      TarsUserService service = new TarsUserService(testFile.toString(), null);
+      
+      // Service should initialize successfully even without parent dir
+      assertNotNull(service.listUsers(), "Service should initialize with root-level file");
+    } finally {
+      if (testFile.exists()) {
+        testFile.delete();
+      }
+    }
+  }
+
+  /**
+   * Test persist when parent directory already exists.
+   */
+  @Test
+  public void testPersistWhenParentExists() throws IOException {
+    Path testDir = Files.createTempDirectory("parent-exists-test");
+    Path subDir = testDir.resolve("existing-subdir");
+    Files.createDirectories(subDir);  // Parent already exists
+    Path testFile = subDir.resolve("users.json");
+    
+    TarsUserService service = new TarsUserService(testFile.toString(), null);
+    TarsUser user = service.createUser(1L, "test_user", "test@test.com", "user");
+    
+    // Persist should work fine when parent exists
+    assertNotNull(user, "User should be created successfully");
+    assertTrue(Files.exists(testFile), "Users file should be persisted");
+  }
+
+  /**
+   * Test existsByClientIdAndUsername with null existingClientId.
+   */
+  @Test
+  public void testExistsByClientIdAndUsernameNullClientId() throws IOException {
+    Path testDir = Files.createTempDirectory("null-clientid-test");
+    Path testFile = testDir.resolve("users.json");
+    
+    TarsUserService service = new TarsUserService(testFile.toString(), null);
+    
+    // Create user with valid clientId
+    service.createUser(5L, "test_user", "test@test.com", "user");
+    
+    // This should not match because we're checking against different clientId
+    boolean exists = service.existsByClientIdAndUsername(10L, "test_user");
+    assertFalse(exists, "Should return false when clientIds don't match");
+  }
+
+  /**
+   * Test existsByClientIdAndUsername with null existingUsername.
+   */
+  @Test
+  public void testExistsByClientIdAndUsernameNullUsername() throws IOException {
+    final Path testDir = Files.createTempDirectory("null-username-test");
+    
+    // Create users.json with user having null username
+    TarsUser user = new TarsUser();
+    user.setUserId(1L);
+    user.setClientId(5L);
+    user.setUsername(null);  // null username
+    user.setEmail("test@test.com");
+    user.setRole("user");
+    user.setActive(true);
+    java.util.List<TarsUser> users = new java.util.ArrayList<>();
+    users.add(user);
+    
+    ObjectMapper om = new ObjectMapper();
+    Path testFile = testDir.resolve("users.json");
+    om.writeValue(testFile.toFile(), users);
+    
+    TarsUserService service = new TarsUserService(testFile.toString(), null);
+    
+    boolean exists = service.existsByClientIdAndUsername(5L, "some_user");
+    assertFalse(exists, 
+        "Should return false when existing user has null username");
+  }
+
+  /**
+   * Test existsByClientIdAndUserEmail with null existingClientId.
+   */
+  @Test
+  public void testExistsByClientIdAndUserEmailNullClientId() throws IOException {
+    Path testDir = Files.createTempDirectory("null-clientid-email-test");
+    Path testFile = testDir.resolve("users.json");
+    
+    TarsUserService service = new TarsUserService(testFile.toString(), null);
+    
+    // Create user with valid clientId
+    service.createUser(5L, "test_user", "test@test.com", "user");
+    
+    // Check with different clientId
+    boolean exists = service.existsByClientIdAndUserEmail(10L, "test@test.com");
+    assertFalse(exists, "Should return false when clientIds don't match");
+  }
+
+  /**
+   * Test existsByClientIdAndUserEmail with null existingEmail.
+   */
+  @Test
+  public void testExistsByClientIdAndUserEmailNullEmail() throws IOException {
+    final Path testDir = Files.createTempDirectory("null-email-test");
+    
+    // Create users.json with user having null email
+    TarsUser user = new TarsUser();
+    user.setUserId(1L);
+    user.setClientId(5L);
+    user.setUsername("test_user");
+    user.setEmail(null);  // null email
+    user.setRole("user");
+    user.setActive(true);
+    java.util.List<TarsUser> users = new java.util.ArrayList<>();
+    users.add(user);
+    
+    ObjectMapper om = new ObjectMapper();
+    Path testFile = testDir.resolve("users.json");
+    om.writeValue(testFile.toFile(), users);
+    
+    TarsUserService service = new TarsUserService(testFile.toString(), null);
+    
+    boolean exists = service.existsByClientIdAndUserEmail(5L, "some@test.com");
+    assertFalse(exists, 
+        "Should return false when existing user has null email");
+  }
+
+  /**
+   * Test createUser with various null parameter combinations.
+   */
+  @Test
+  public void testCreateUserNullParameterCombinations() throws IOException {
+    Path testDir = Files.createTempDirectory("null-params-test");
+    Path testFile = testDir.resolve("users.json");
+    
+    TarsUserService service = new TarsUserService(testFile.toString(), null);
+    
+    // Test null username only
+    TarsUser result1 = service.createUser(5L, null, "test@test.com", "user");
+    assertNull(result1, "Should return null with null username");
+    
+    // Test null email only
+    TarsUser result2 = service.createUser(5L, "testuser", null, "user");
+    assertNull(result2, "Should return null with null email");
+    
+    // Test null role only
+    TarsUser result3 = service.createUser(5L, "testuser", "test@test.com", null);
+    assertNull(result3, "Should return null with null role");
+    
+    // All combinations are now tested
+    assertEquals(0, service.listUsers().size(), 
+        "No users should be created with null parameters");
+  }
+
+  /**
+   * {@code persistCleansUpTempFileOnFailureTest} Ensures no leftover .tmp files
+   * remain after multiple persists.
+   */
+  @Test
+  public void persistCleansUpTempFileOnFailureTest() throws IOException {
+    Path tempDir = Files.createTempDirectory("temp-cleanup-test");
+    Path testFile = tempDir.resolve("users.json");
+    
+    TarsUserService service = new TarsUserService(testFile.toString(), null);
+    
+    for (int i = 0; i < 5; i++) {
+      service.createUser(100L + i, "user" + i, "user" + i + "@test.com", "user");
+    }
+    
+    long tmpFileCount = Files.list(tempDir)
+        .filter(p -> p.getFileName().toString().endsWith(".tmp"))
+        .count();
+    
+    assertEquals(
+        0,
+        tmpFileCount,
+        "No temporary files should remain after successful persists"
+    );
+    
+    Files.deleteIfExists(testFile);
+    Files.deleteIfExists(tempDir);
+  }
+
+  /**
+   * {@code deactivateUserLogsWarnOnNotFoundTest} Validates warn log emitted when
+   * deactivation targets missing id.
+   */
+  @Test
+  public void deactivateUserLogsWarnOnNotFoundTest() {
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+    listAppender.start();
+    logger.addAppender(listAppender);
+
+    userService.deactivateUser(999L);
+
+    List<ILoggingEvent> logsList = listAppender.list;
+    assertTrue(
+        logsList.stream().anyMatch(event ->
+            event.getLevel() == Level.WARN
+                && event.getFormattedMessage().contains("deactivateUser: user not found")),
+        "Should log WARN when user not found"
+    );
+
+    logger.detachAppender(listAppender);
+  }
+
+  /**
+   * {@code createUserLogsInfoOnSuccessTest} Confirms info log produced upon
+   * successful user creation operation.
+   */
+  @Test
+  public void createUserLogsInfoOnSuccessTest() {
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+    listAppender.start();
+    logger.addAppender(listAppender);
+
+    userService.createUser(99L, "logtest", "log@test.com", "user");
+
+    List<ILoggingEvent> logsList = listAppender.list;
+    assertTrue(
+        logsList.stream().anyMatch(event ->
+            event.getLevel() == Level.INFO
+                && event.getFormattedMessage().contains("Created TarsUser")),
+        "Should log INFO on user creation"
+    );
+
+    logger.detachAppender(listAppender);
+  }
+
+  /**
+   * {@code persistAtomicMoveNotSupportedFallsBackTest} Verifies fallback to
+   * non-atomic move when atomic operations are unsupported.
+   */
+  @Test
+  public void persistAtomicMoveNotSupportedFallsBackTest() throws IOException {
+    Path testDir = Files.createTempDirectory("atomic-fallback-test");
+    Path testFile = testDir.resolve("users.json");
+    
+    // Mock FileMover that throws AtomicMoveNotSupportedException on first call
+    final AtomicInteger moveCount = new AtomicInteger(0);
+    final TarsUserService.FileMover mockMover = (source, target, options) -> {
+      int count = moveCount.incrementAndGet();
+      if (count == 1) {
+        // First attempt with atomic flags
+        throw new AtomicMoveNotSupportedException(
+            source.toString(), 
+            target.toString(), 
+            "Atomic move not supported in test"
+        );
+      }
+      // Second attempt succeeds (non-atomic fallback)
+      Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
+    };
+    
+    try (InputStream resourceStream = getClass()
+        .getClassLoader()
+        .getResourceAsStream("test-data/test-data-users.json")) {
+      assertNotNull(resourceStream, "Fixture missing");
+      Files.copy(resourceStream, testFile);
+    }
+    
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+    listAppender.start();
+    logger.addAppender(listAppender);
+    
+    TarsUserService service = new TarsUserService(testFile.toString(), mockMover);
+    TarsUser created = service.createUser(200L, "atomic_test", "atomic@test.com", "user");
+    assertNotNull(created, "User should be created");
+    Long userId = created.getUserId();
+    
+    // Verify both move attempts occurred
+    assertEquals(2, moveCount.get(), "Should attempt move twice");
+    
+    // Verify WARN log for atomic fallback
+    List<ILoggingEvent> logsList = listAppender.list;
+    assertTrue(
+        logsList.stream().anyMatch(event ->
+            event.getLevel() == Level.WARN
+                && event.getFormattedMessage().contains("Atomic move not supported")
+                && event.getFormattedMessage().contains("non-atomic fallback")),
+        "Should log WARN when atomic move fails"
+    );
+    
+    // Verify data persisted successfully
+    TarsUserService reloaded = new TarsUserService(testFile.toString(), null);
+    TarsUser retrieved = reloaded.findById(userId);
+    assertNotNull(retrieved, "User should persist after atomic fallback");
+    assertEquals("atomic@test.com", retrieved.getEmail());
+    
+    // Verify no temp files remain
+    long tmpCount = Files.list(testDir)
+        .filter(p -> p.getFileName().toString().endsWith(".tmp"))
+        .count();
+    assertEquals(0, tmpCount, "Temp files should be cleaned up");
+    
+    logger.detachAppender(listAppender);
+    Files.deleteIfExists(testFile);
+    Files.deleteIfExists(testDir);
+  }
+
+  /**
+   * {@code persistFirstMoveFailsFallsBackTest} Validates recovery when first
+   * move attempt fails with generic IOException.
+   */
+  @Test
+  public void persistFirstMoveFailsFallsBackTest() throws IOException {
+    Path testDir = Files.createTempDirectory("move-fallback-test");
+    Path testFile = testDir.resolve("users.json");
+    
+    // Mock FileMover that fails first attempt, succeeds second
+    final AtomicInteger moveCount = new AtomicInteger(0);
+    final TarsUserService.FileMover mockMover = (source, target, options) -> {
+      int count = moveCount.incrementAndGet();
+      if (count == 1) {
+        throw new IOException("Simulated first move failure");
+      }
+      Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
+    };
+    
+    try (InputStream resourceStream = getClass()
+        .getClassLoader()
+        .getResourceAsStream("test-data/test-data-users.json")) {
+      assertNotNull(resourceStream, "Fixture missing");
+      Files.copy(resourceStream, testFile);
+    }
+    
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+    listAppender.start();
+    logger.addAppender(listAppender);
+    
+    TarsUserService service = new TarsUserService(testFile.toString(), mockMover);
+    TarsUser created = service.createUser(201L, "fallback_test", "fallback@test.com", "user");
+    assertNotNull(created, "User should be created");
+    Long userId = created.getUserId();
+    
+    assertEquals(2, moveCount.get(), "Should attempt move twice");
+    
+    // Verify WARN log for first failure
+    List<ILoggingEvent> logsList = listAppender.list;
+    assertTrue(
+        logsList.stream().anyMatch(event ->
+            event.getLevel() == Level.WARN
+                && event.getFormattedMessage().contains("Atomic move failed")
+                && event.getFormattedMessage().contains("non-atomic fallback succeeded")),
+        "Should log WARN on first move failure"
+    );
+    
+    // Verify successful persistence
+    TarsUserService reloaded = new TarsUserService(testFile.toString(), null);
+    TarsUser retrieved = reloaded.findById(userId);
+    assertNotNull(retrieved, "User should persist after fallback");
+    assertEquals("fallback@test.com", retrieved.getEmail());
+    
+    logger.detachAppender(listAppender);
+    Files.deleteIfExists(testFile);
+    Files.deleteIfExists(testDir);
+  }
+
+  /**
+   * {@code persistBothMovesFailTest} Confirms error logging and temp
+   * cleanup occurs when all move attempts fail.
+   */
+  @Test
+  public void persistBothMovesFailTest() throws IOException {
+    Path testDir = Files.createTempDirectory("both-moves-fail-test");
+    Path testFile = testDir.resolve("users.json");
+    
+    // Mock FileMover that fails both attempts
+    final AtomicInteger moveCount = new AtomicInteger(0);
+    final TarsUserService.FileMover mockMover = (source, target, options) -> {
+      moveCount.incrementAndGet();
+      throw new IOException("Simulated move failure");
+    };
+    
+    try (InputStream resourceStream = getClass()
+        .getClassLoader()
+        .getResourceAsStream("test-data/test-data-users.json")) {
+      assertNotNull(resourceStream, "Fixture missing");
+      Files.copy(resourceStream, testFile);
+    }
+    
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+    listAppender.start();
+    logger.addAppender(listAppender);
+    
+    TarsUserService service = new TarsUserService(testFile.toString(), mockMover);
+    
+    // Persist will fail but won't throw exception - it keeps in-memory state
+    TarsUser created = service.createUser(202L, "fail_test", "fail@test.com", "user");
+    assertNotNull(created, "User should be created in memory even if persist fails");
+    
+    assertEquals(2, moveCount.get(), "Should attempt move twice before giving up");
+    
+    // Verify ERROR log for move failure
+    List<ILoggingEvent> logsList = listAppender.list;
+    assertTrue(
+        logsList.stream().anyMatch(event ->
+            event.getLevel() == Level.ERROR
+                && event.getFormattedMessage().contains("Persist move failed")),
+        "Should log ERROR when both moves fail"
+    );
+    
+    // Verify WARN log for persist not completing
+    assertTrue(
+        logsList.stream().anyMatch(event ->
+            event.getLevel() == Level.WARN
+                && event.getFormattedMessage().contains("Persist did not move new users file")),
+        "Should log WARN when persist doesn't complete"
+    );
+    
+    // Verify temp files cleaned up even on failure
+    long tmpCount = Files.list(testDir)
+        .filter(p -> p.getFileName().toString().endsWith(".tmp"))
+        .count();
+    assertEquals(0, tmpCount, "Temp files should be cleaned up even on failure");
+    
+    logger.detachAppender(listAppender);
+    Files.deleteIfExists(testFile);
+    Files.deleteIfExists(testDir);
+  }
+
+  /**
+   * {@code persistCreatesParentDirectoriesTest} Validates parent directory
+   * creation when persist target path includes non-existent directories.
+   */
+  @Test
+  public void persistCreatesParentDirectoriesTest() throws IOException {
+    final Path testDir = Files.createTempDirectory("parent-dir-test");
+    final Path nestedDir = testDir.resolve("level1").resolve("level2").resolve("level3");
+    final Path testFile = nestedDir.resolve("users.json");
+    
+    // Parent directories don't exist yet
+    assertFalse(Files.exists(nestedDir), "Nested directories should not exist yet");
+    
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+    listAppender.start();
+    logger.addAppender(listAppender);
+    
+    TarsUserService service = new TarsUserService(testFile.toString(), null);
+    TarsUser created = service.createUser(203L, "nested_test", "nested@test.com", "user");
+    assertNotNull(created, "User should be created");
+    final Long userId = created.getUserId();
+    
+    // Verify parent directories were created
+    assertTrue(Files.exists(nestedDir), "Parent directories should be created");
+    assertTrue(Files.isDirectory(nestedDir), "Parent path should be directory");
+    
+    // Verify data persisted
+    assertTrue(Files.exists(testFile), "User file should exist");
+    TarsUserService reloaded = new TarsUserService(testFile.toString(), null);
+    TarsUser retrieved = reloaded.findById(userId);
+    assertNotNull(retrieved, "User should be retrievable after parent creation");
+    
+    logger.detachAppender(listAppender);
+    Files.deleteIfExists(testFile);
+    Files.deleteIfExists(nestedDir);
+    Files.deleteIfExists(nestedDir.getParent());
+    Files.deleteIfExists(nestedDir.getParent().getParent());
+    Files.deleteIfExists(testDir);
+  }
+
+  /**
+   * {@code persistDebugLogsOnSuccessTest} Confirms successful persist operation
+   * completes without errors.
+   */
+  @Test
+  public void persistDebugLogsOnSuccessTest() throws IOException {
+    Path testDir = Files.createTempDirectory("debug-log-test");
+    Path testFile = testDir.resolve("users.json");
+    
+    try (InputStream resourceStream = getClass()
+        .getClassLoader()
+        .getResourceAsStream("test-data/test-data-users.json")) {
+      assertNotNull(resourceStream, "Fixture missing");
+      Files.copy(resourceStream, testFile);
+    }
+    
+    TarsUserService service = new TarsUserService(testFile.toString(), null);
+    TarsUser created = service.createUser(204L, "debug_test", "debug@test.com", "user");
+    assertNotNull(created, "User should be created");
+    Long userId = created.getUserId();
+    
+    // Verify successful persistence by reloading
+    TarsUserService reloaded = new TarsUserService(testFile.toString(), null);
+    TarsUser retrieved = reloaded.findById(userId);
+    assertNotNull(retrieved, "User should persist successfully");
+    assertEquals("debug@test.com", retrieved.getEmail());
+    
+    Files.deleteIfExists(testFile);
+    Files.deleteIfExists(testDir);
+  }
+
+  /**
+   * {@code deleteUserWithNullIdTest} Ensures deleteUser gracefully handles null
+   * userId input, returning null without side effects.
+   */
+  @Test
+  public void deleteUserWithNullIdTest() {
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+    listAppender.start();
+    logger.addAppender(listAppender);
+
+    final int initialSize = userService.listUsers().size();
+    TarsUser result = userService.deleteUser(null);
+
+    assertNull(result, "Deleting with null ID should return null");
+    assertEquals(initialSize, userService.listUsers().size(), "User count should be unchanged");
+
+    List<ILoggingEvent> logsList = listAppender.list;
+    assertTrue(
+        logsList.stream().anyMatch(event ->
+            event.getLevel() == Level.WARN
+                && event.getFormattedMessage().contains("deleteUser rejected: null userId")),
+        "Should log WARN for null userId"
+    );
+
+    logger.detachAppender(listAppender);
+  }
+
+  /**
+   * {@code deleteUserNotFoundTest} Validates deleteUser returns null when
+   * attempting to delete non-existent user.
+   */
+  @Test
+  public void deleteUserNotFoundTest() {
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+    listAppender.start();
+    logger.addAppender(listAppender);
+
+    final int initialSize = userService.listUsers().size();
+    TarsUser result = userService.deleteUser(999L);
+
+    assertNull(result, "Deleting non-existent user should return null");
+    assertEquals(initialSize, userService.listUsers().size(), "User count should be unchanged");
+
+    List<ILoggingEvent> logsList = listAppender.list;
+    assertTrue(
+        logsList.stream().anyMatch(event ->
+            event.getLevel() == Level.WARN
+                && event.getFormattedMessage().contains("deleteUser: user not found")
+                && event.getFormattedMessage().contains("id=999")),
+        "Should log WARN for user not found"
+    );
+
+    logger.detachAppender(listAppender);
+  }
+
+  /**
+   * {@code deleteUserSuccessTest} Confirms successful deletion returns the
+   * deleted user, updates list, and logs appropriately.
+   */
+  @Test
+  public void deleteUserSuccessTest() {
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+    listAppender.start();
+    logger.addAppender(listAppender);
+
+    final int initialSize = userService.listUsers().size();
+    TarsUser userToDelete = userService.findById(1L);
+    assertNotNull(userToDelete, "User should exist before deletion");
+    String expectedUsername = userToDelete.getUsername();
+
+    TarsUser deletedUser = userService.deleteUser(1L);
+
+    assertNotNull(deletedUser, "Deleted user should be returned");
+    assertEquals(1L, deletedUser.getUserId(), "Returned user should have correct ID");
+    assertEquals(expectedUsername, deletedUser.getUsername(), "Returned user should match");
+    assertEquals(
+        initialSize - 1,
+        userService.listUsers().size(),
+        "User count should decrease by 1"
+    );
+    assertNull(userService.findById(1L), "Deleted user should no longer be retrievable");
+
+    List<ILoggingEvent> logsList = listAppender.list;
+    assertTrue(
+        logsList.stream().anyMatch(event ->
+            event.getLevel() == Level.INFO
+                && event.getFormattedMessage().contains("Deleted TarsUser")
+                && event.getFormattedMessage().contains("id=1")),
+        "Should log INFO on successful deletion"
+    );
+
+    logger.detachAppender(listAppender);
+  }
+
+  /**
+   * {@code deleteUserPersistsChangesTest} Verifies deletion is durably written
+   * to storage and survives service reload.
+   */
+  @Test
+  public void deleteUserPersistsChangesTest() throws IOException {
+    Path testDir = Files.createTempDirectory("delete-persist-test");
+    Path testFile = testDir.resolve("users.json");
+
+    try (InputStream resourceStream = getClass()
+        .getClassLoader()
+        .getResourceAsStream("test-data/test-data-users.json")) {
+      assertNotNull(resourceStream, "Fixture missing");
+      Files.copy(resourceStream, testFile);
+    }
+
+    TarsUserService service = new TarsUserService(testFile.toString(), null);
+    final int initialSize = service.listUsers().size();
+
+    TarsUser deleted = service.deleteUser(2L);
+    assertNotNull(deleted, "User should be deleted");
+    assertEquals(initialSize - 1, service.listUsers().size());
+
+    // Reload service from file
+    TarsUserService reloaded = new TarsUserService(testFile.toString(), null);
+    assertNull(reloaded.findById(2L), "Deleted user should not exist after reload");
+    assertEquals(
+        initialSize - 1,
+        reloaded.listUsers().size(),
+        "Reloaded service should reflect deletion"
+    );
+
+    Files.deleteIfExists(testFile);
+    Files.deleteIfExists(testDir);
+  }
+
+  /**
+   * {@code deleteUserFromMiddleOfListTest} Ensures deletion works correctly
+   * for users at any position in the list.
+   */
+  @Test
+  public void deleteUserFromMiddleOfListTest() {
+    // Assuming test data has users with IDs 1, 2, 3, 4
+    TarsUser user1Before = userService.findById(1L);
+    TarsUser user3Before = userService.findById(3L);
+    TarsUser user4Before = userService.findById(4L);
+
+    assertNotNull(user1Before, "User 1 should exist");
+    assertNotNull(user3Before, "User 3 should exist");
+    assertNotNull(user4Before, "User 4 should exist");
+
+    final int initialSize = userService.listUsers().size();
+    TarsUser deletedUser = userService.deleteUser(2L);
+
+    assertNotNull(deletedUser, "User 2 should be deleted successfully");
+    assertEquals(2L, deletedUser.getUserId());
+    assertEquals(initialSize - 1, userService.listUsers().size());
+
+    // Verify other users remain intact
+    assertNotNull(userService.findById(1L), "User 1 should still exist");
+    assertNotNull(userService.findById(3L), "User 3 should still exist");
+    assertNotNull(userService.findById(4L), "User 4 should still exist");
+    assertNull(userService.findById(2L), "User 2 should be gone");
+  }
+
+  /**
+   * {@code deleteMultipleUsersSequentiallyTest} Validates that multiple
+   * sequential deletions work correctly.
+   */
+  @Test
+  public void deleteMultipleUsersSequentiallyTest() {
+    final int initialSize = userService.listUsers().size();
+
+    TarsUser deleted1 = userService.deleteUser(1L);
+    assertNotNull(deleted1, "First deletion should succeed");
+    assertEquals(1L, deleted1.getUserId());
+    assertEquals(initialSize - 1, userService.listUsers().size());
+
+    TarsUser deleted2 = userService.deleteUser(3L);
+    assertNotNull(deleted2, "Second deletion should succeed");
+    assertEquals(3L, deleted2.getUserId());
+    assertEquals(initialSize - 2, userService.listUsers().size());
+
+    // Verify both are gone
+    assertNull(userService.findById(1L), "User 1 should be deleted");
+    assertNull(userService.findById(3L), "User 3 should be deleted");
+
+    // Verify others remain
+    assertNotNull(userService.findById(2L), "User 2 should still exist");
+    assertNotNull(userService.findById(4L), "User 4 should still exist");
+  }
+
+  /**
+   * {@code deleteUserReturnsCorrectUserObjectTest} Confirms the returned
+   * TarsUser object contains all expected attributes.
+   */
+  @Test
+  public void deleteUserReturnsCorrectUserObjectTest() {
+    TarsUser originalUser = userService.findById(1L);
+    assertNotNull(originalUser, "User should exist");
+
+    final String expectedUsername = originalUser.getUsername();
+    final String expectedEmail = originalUser.getEmail();
+    final Long expectedClientId = originalUser.getClientId();
+
+    TarsUser deletedUser = userService.deleteUser(1L);
+
+    assertNotNull(deletedUser, "Should return deleted user");
+    assertEquals(1L, deletedUser.getUserId(), "User ID should match");
+    assertEquals(expectedUsername, deletedUser.getUsername(), "Username should match");
+    assertEquals(expectedEmail, deletedUser.getEmail(), "Email should match");
+    assertEquals(expectedClientId, deletedUser.getClientId(), "Client ID should match");
+  }
+
+  /**
+   * {@code deleteUserWithInfoLoggingDisabledTest} Verifies deleteUser works
+   * correctly when INFO logging is disabled (tests logger.isInfoEnabled branch).
+   */
+  @Test
+  public void deleteUserWithInfoLoggingDisabledTest() {
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    
+    try {
+      // Set level to WARN (disables INFO and DEBUG)
+      logger.setLevel(Level.WARN);
+      
+      final int initialSize = userService.listUsers().size();
+      TarsUser deletedUser = userService.deleteUser(1L);
+      
+      assertNotNull(deletedUser, "Deletion should succeed even with INFO disabled");
+      assertEquals(1L, deletedUser.getUserId());
+      assertEquals(initialSize - 1, userService.listUsers().size());
+      assertNull(userService.findById(1L), "User should be deleted");
+    } finally {
+      // Restore to TRACE to ensure all log levels are enabled
+      logger.setLevel(Level.TRACE);
+    }
+  }
+
+  /**
+   * {@code deleteUserWithWarnLoggingDisabledTest} Verifies deleteUser null
+   * check works when WARN logging is disabled (tests logger.isWarnEnabled branch).
+   */
+  @Test
+  public void deleteUserWithWarnLoggingDisabledTest() {
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    
+    try {
+      // Set level to ERROR (disables WARN, INFO, DEBUG)
+      logger.setLevel(Level.ERROR);
+      
+      final int initialSize = userService.listUsers().size();
+      TarsUser result = userService.deleteUser(null);
+      
+      assertNull(result, "Should return null for null userId even with WARN disabled");
+      assertEquals(initialSize, userService.listUsers().size(), "No users should be deleted");
+    } finally {
+      logger.setLevel(Level.TRACE);
+    }
+  }
+
+  /**
+   * {@code createUserWithInfoLoggingDisabledTest} Tests createUser when INFO
+   * logging is disabled (covers logger.isInfoEnabled branch in createUser).
+   */
+  @Test
+  public void createUserWithInfoLoggingDisabledTest() {
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    
+    try {
+      logger.setLevel(Level.WARN);
+      
+      final int initialSize = userService.listUsers().size();
+      TarsUser created = userService.createUser(10L, "test_user", "test@example.com", "user");
+      
+      assertNotNull(created, "User should be created even with INFO logging disabled");
+      assertEquals(initialSize + 1, userService.listUsers().size());
+    } finally {
+      logger.setLevel(Level.TRACE);
+    }
+  }
+
+  /**
+   * {@code createUserWithWarnLoggingDisabledTest} Tests createUser validation
+   * when WARN logging is disabled (covers logger.isWarnEnabled branches).
+   */
+  @Test
+  public void createUserWithWarnLoggingDisabledTest() {
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    
+    try {
+      logger.setLevel(Level.ERROR);
+      
+      // Test null parameters - should still reject even without WARN logs
+      TarsUser result1 = userService.createUser(null, null, null, null);
+      assertNull(result1, "Should reject null params even with WARN disabled");
+      
+      // Test blank username - should still reject
+      TarsUser result2 = userService.createUser(5L, "  ", "test@test.com", "user");
+      assertNull(result2, "Should reject blank username even with WARN disabled");
+    } finally {
+      logger.setLevel(Level.TRACE);
+    }
+  }
+
+  /**
+   * {@code deactivateUserWithInfoLoggingDisabledTest} Tests deactivateUser
+   * when INFO logging is disabled (covers logger.isInfoEnabled branch).
+   */
+  @Test
+  public void deactivateUserWithInfoLoggingDisabledTest() {
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    
+    try {
+      logger.setLevel(Level.WARN);
+      
+      boolean result = userService.deactivateUser(1L);
+      
+      assertTrue(result, "Deactivation should succeed with INFO disabled");
+      TarsUser user = userService.findById(1L);
+      assertFalse(user.getActive(), "User should be deactivated");
+    } finally {
+      logger.setLevel(Level.TRACE);
+    }
+  }
+
+  /**
+   * {@code deactivateUserWithWarnLoggingDisabledTest} Tests deactivateUser
+   * not found case when WARN logging is disabled.
+   */
+  @Test
+  public void deactivateUserWithWarnLoggingDisabledTest() {
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    
+    try {
+      logger.setLevel(Level.ERROR);
+      
+      boolean result = userService.deactivateUser(999L);
+      
+      assertFalse(result, "Should return false for non-existent user with WARN disabled");
+    } finally {
+      logger.setLevel(Level.TRACE);
+    }
+  }
+
+  /**
+   * {@code updateLastLoginWithWarnLoggingDisabledTest} Tests updateLastLogin
+   * when WARN logging is disabled (covers logger.isWarnEnabled branch).
+   */
+  @Test
+  public void updateLastLoginWithWarnLoggingDisabledTest() {
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    
+    try {
+      logger.setLevel(Level.ERROR);
+      
+      boolean result = userService.updateLastLogin(999L);
+      
+      assertFalse(result, "Should return false for non-existent user with WARN disabled");
+    } finally {
+      logger.setLevel(Level.TRACE);
+    }
+  }
+
+  /**
+   * {@code updateLastLoginWithInfoLoggingDisabledTest} Tests updateLastLogin
+   * success case when INFO logging is disabled.
+   */
+  @Test
+  public void updateLastLoginWithInfoLoggingDisabledTest() throws InterruptedException {
+    Logger logger = (Logger) LoggerFactory.getLogger(TarsUserService.class);
+    
+    try {
+      logger.setLevel(Level.WARN);
+      
+      TarsUser before = userService.findById(1L);
+      String loginBefore = before.getLastLogin();
+      
+      Thread.sleep(2);
+      
+      boolean result = userService.updateLastLogin(1L);
+      
+      assertTrue(result, "Update should succeed with INFO disabled");
+      TarsUser after = userService.findById(1L);
+      assertNotEquals(loginBefore, after.getLastLogin(), "Last login should be updated");
+    } finally {
+      logger.setLevel(Level.TRACE);
+    }
+  }
+}

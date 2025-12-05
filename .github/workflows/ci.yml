@@ -1,0 +1,242 @@
+# This workflow to help fulfill the Team projects requirements.
+# Created by: Osarobo Omokaro
+# Date: 10/26/2025
+# Updated: 12/04/2025
+
+name: CI Pipeline
+run-name: CI • ${{ github.ref_name }} • ${{ github.sha }}
+
+on:
+  push:
+    branches:
+      - '**'
+    tags:
+      - 'v*.*.*'  # semantic version tags trigger release deploy
+  pull_request:
+    branches:
+      - '**'
+
+# Cancel previous runs on same ref
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write  # required for creating releases
+  id-token: write
+
+jobs:
+
+  pmd-analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+
+
+      - name: Run PMD (Docker image)
+        uses: docker://pmdcode/pmd:latest
+        with:
+          args: >
+            check
+            -d ./TeamProject/src/main/java
+            -R ./TeamProject/rulesets/java/quickstart.xml
+            -f text
+            -r ./TeamProject/pmd.txt
+            --no-fail-on-violation
+            --minimum-priority 3
+
+      - name: Show PMD Summary
+        working-directory: ./TeamProject
+        run: |
+          if [ -f pmd.txt ]; then
+            echo "=== PMD Report Summary ==="
+            wc -l pmd.txt
+            echo ""
+            echo "First 50 lines:"
+            head -50 pmd.txt
+          else
+            echo "⚠️ PMD report not generated"
+          fi
+
+      - name: Upload PMD Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: pmd-report
+          path: ./TeamProject/pmd.txt
+          retention-days: 5  # Auto-delete after 5 days
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java-version: [17]
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up JDK ${{ matrix.java-version }}
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java-version }}
+          cache: maven
+
+      - name: Run Tests + Coverage
+        working-directory: ./TeamProject
+        run: mvn -B -ntp clean verify jacoco:report
+      
+      - name: Upload Surefire Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports-${{ matrix.java-version }}
+          path: TeamProject/target/surefire-reports/
+          retention-days: 5
+
+      - name: Upload Jacoco HTML
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html-${{ matrix.java-version }}
+          path: TeamProject/target/site/jacoco/
+          retention-days: 5
+
+      - name: Extract Coverage Percentage
+        id: coverage
+        run: |
+          CSV="TeamProject/target/site/jacoco/jacoco.csv"
+          if [ ! -f "$CSV" ]; then
+            echo "Jacoco CSV not found!"
+            exit 1
+          fi
+          # Jacoco CSV columns (after header):
+          # 4=INSTRUCTION_MISSED 5=INSTRUCTION_COVERED 6=BRANCH_MISSED 7=BRANCH_COVERED
+          INST_MISSED=$(awk -F',' 'NR>1 {sum+=$4} END {print sum+0}' "$CSV")
+          INST_COVERED=$(awk -F',' 'NR>1 {sum+=$5} END {print sum+0}' "$CSV")
+          BR_MISSED=$(awk -F',' 'NR>1 {sum+=$6} END {print sum+0}' "$CSV")
+          BR_COVERED=$(awk -F',' 'NR>1 {sum+=$7} END {print sum+0}' "$CSV")
+          INST_TOTAL=$((INST_MISSED + INST_COVERED))
+          BR_TOTAL=$((BR_MISSED + BR_COVERED))
+          if [ "$INST_TOTAL" -eq 0 ]; then INST_PCT=0; else INST_PCT=$(awk -v c="$INST_COVERED" -v t="$INST_TOTAL" 'BEGIN{printf "%.2f", (c/t)*100}'); fi
+          if [ "$BR_TOTAL" -eq 0 ]; then BR_PCT=0; else BR_PCT=$(awk -v c="$BR_COVERED" -v t="$BR_TOTAL" 'BEGIN{printf "%.2f", (c/t)*100}'); fi
+          echo "instruction_coverage=$INST_PCT" >> "$GITHUB_OUTPUT"
+          echo "branch_coverage=$BR_PCT" >> "$GITHUB_OUTPUT"
+          echo "Instruction Coverage: $INST_PCT%"
+          echo "Branch Coverage: $BR_PCT%"
+
+      - name: Enforce Minimum Branch Coverage
+        run: |
+          ACT=${{ steps.coverage.outputs.branch_coverage }}
+          MIN=84.00
+          awk -v a="$ACT" -v m="$MIN" 'BEGIN{ if (a+0 < m+0) exit 1 }' \
+            || { echo "❌ Branch coverage ${ACT}% < ${MIN}%"; exit 1; }
+          echo "✅ Branch coverage OK (${ACT}% ≥ ${MIN}%)"
+
+  checkstyle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+
+      - name: Run Checkstyle
+        working-directory: ./TeamProject
+        run: mvn -B -ntp checkstyle:check
+    
+      - name: Check Checkstyle Violations
+        run: |
+          VIOLATIONS=$(grep -c '<error' TeamProject/target/checkstyle-result.xml || echo 0)
+          echo "Checkstyle violations: $VIOLATIONS"
+          if [ "$VIOLATIONS" -gt 0 ]; then
+            echo "❌ Checkstyle found $VIOLATIONS violations"
+            head -50 TeamProject/target/checkstyle-result.xml
+            exit 1
+          fi
+
+      - name: Upload Checkstyle Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkstyle-report
+          path: TeamProject/target/checkstyle-result.xml
+          retention-days: 5
+
+  quality-gate:
+    runs-on: ubuntu-latest
+    needs: [test, checkstyle, pmd-analysis]
+    steps:
+      - run: echo "Quality checks completed."
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [quality-gate]
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+
+      - name: Package Application
+        working-directory: ./TeamProject
+        run: mvn -B -ntp clean package -DskipTests
+
+      - name: List target directory
+        run: ls -1 TeamProject/target
+
+      - name: Upload Production JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-jar
+          path: TeamProject/target/*SNAPSHOT.jar
+          retention-days: 5
+
+      - name: Record SHA256
+        run: shasum -a 256 TeamProject/target/*SNAPSHOT.jar > build-sha256.txt
+        shell: bash
+
+      - name: Upload Build Hash
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-sha256
+          path: build-sha256.txt
+          retention-days: 5
+
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Download Production JAR
+        uses: actions/download-artifact@v4
+        with:
+          name: production-jar
+          path: ./dist
+
+      - name: Verify Artifact
+        run: |
+          ls -l dist
+          file dist/*SNAPSHOT.jar
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*SNAPSHOT.jar
+            build-sha256.txt
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

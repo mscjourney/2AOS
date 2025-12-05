@@ -1,0 +1,65 @@
+# TARS Node.js Client - Dependencies List
+# 
+# Note: Node.js uses package.json for dependency management, not requirements.txt
+# To install dependencies, run: npm install
+#
+# This file is provided as a reference for all dependencies used in the project.
+
+# ==============================================================================
+# SERVER DEPENDENCIES (package.json)
+# ==============================================================================
+
+# Production Dependencies
+express@^4.18.2          # Web framework for Node.js
+axios@^1.6.0              # HTTP client for making API requests
+cors@^2.8.5               # Cross-Origin Resource Sharing middleware
+fs-extra@^11.1.1          # Enhanced file system operations
+path@^0.12.7              # Path utilities (built-in Node.js module)
+
+# Development Dependencies
+nodemon@^3.0.1            # Auto-restart server during development
+
+# ==============================================================================
+# CLIENT DEPENDENCIES (client/package.json)
+# ==============================================================================
+
+# Core React Dependencies
+react@^19.2.0             # React library
+react-dom@^19.2.0        # React DOM renderer
+react-router-dom@^7.9.6   # Routing for React applications
+react-scripts@5.0.1       # Create React App build scripts
+
+# HTTP Client
+axios@^1.13.2             # HTTP client for API calls from React
+
+# Testing Dependencies
+@testing-library/dom@^10.4.1
+@testing-library/jest-dom@^6.9.1
+@testing-library/react@^16.3.0
+@testing-library/user-event@^13.5.0
+
+# Utilities
+web-vitals@^2.1.4         # Web performance metrics
+
+# ==============================================================================
+# INSTALLATION INSTRUCTIONS
+# ==============================================================================
+
+# Install all dependencies:
+#   npm install                    # Install server dependencies
+#   cd client && npm install      # Install client dependencies
+#
+# Or use the convenience script:
+#   npm run install-all
+
+# ==============================================================================
+# SYSTEM REQUIREMENTS
+# ==============================================================================
+
+# Node.js: v14.0.0 or higher
+# npm: v6.0.0 or higher (comes with Node.js)
+#
+# To check versions:
+#   node --version
+#   npm --version
+

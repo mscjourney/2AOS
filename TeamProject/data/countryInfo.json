@@ -1,0 +1,1152 @@
+[
+  {
+    "country": "United States",
+    "capital": "Washington, DC",
+    "summary": "Known for its diverse landscapes—from national parks and coastlines to major metropolitan cities—and its wide range of cultural, historical, and entertainment attractions."
+  },
+  {
+    "country": "Afghanistan",
+    "capital": "Kabul",
+    "summary": "Known for its dramatic mountain landscapes and Silk Road history, though travel remains highly restricted."
+  },
+  {
+    "country": "Albania",
+    "capital": "Tirana",
+    "summary": "Famous for its Adriatic beaches, Ottoman towns, and affordable Mediterranean-style travel."
+  },
+  {
+    "country": "Algeria",
+    "capital": "Algiers",
+    "summary": "Known for vast Sahara dunes, Roman ruins, and a blend of North African and French cultural influences."
+  },
+  {
+    "country": "Andorra",
+    "capital": "Andorra la Vella",
+    "summary": "Popular for its ski resorts, tax-free shopping, and scenic Pyrenean hiking."
+  },
+  {
+    "country": "Angola",
+    "capital": "Luanda",
+    "summary": "Known for its Atlantic coastline, rich wildlife, and rapidly modernizing cities."
+  },
+  {
+    "country": "Anguilla",
+    "capital": "The Valley",
+    "summary": "Famous for its pristine white-sand beaches and luxury Caribbean resorts."
+  },
+  {
+    "country": "Antarctica",
+    "capital": "N/A",
+    "summary": "Visited for once-in-a-lifetime expedition cruises, wildlife viewing, and otherworldly ice landscapes."
+  },
+  {
+    "country": "Antigua and Barbuda",
+    "capital": "St. John's",
+    "summary": "Known for its 365 beaches, turquoise waters, and sailing culture."
+  },
+  {
+    "country": "Argentina",
+    "capital": "Buenos Aires",
+    "summary": "Famous for tango, Patagonia adventures, world-class steak, and vibrant European-style cities."
+  },
+  {
+    "country": "Armenia",
+    "capital": "Yerevan",
+    "summary": "Known for ancient monasteries, rich cuisine, and dramatic mountain scenery."
+  },
+  {
+    "country": "Aruba",
+    "capital": "Oranjestad",
+    "summary": "Beloved for its desert-meets-beach landscapes, turquoise waters, and year-round warm weather."
+  },
+  {
+    "country": "Australia",
+    "capital": "Canberra",
+    "summary": "Famous for its beaches, the Outback, Great Barrier Reef, and wildlife like kangaroos and koalas."
+  },
+  {
+    "country": "Austria",
+    "capital": "Vienna",
+    "summary": "Known for alpine skiing, classical music heritage, and elegant imperial architecture."
+  },
+  {
+    "country": "Azerbaijan",
+    "capital": "Baku",
+    "summary": "Famous for its futuristic skyline, Caspian Sea views, and ancient fire-related Zoroastrian sites."
+  },
+  {
+    "country": "Bahamas",
+    "capital": "Nassau",
+    "summary": "Known for crystal-clear waters, snorkeling, and luxury island resorts."
+  },
+  {
+    "country": "Bahrain",
+    "capital": "Manama",
+    "summary": "Famous for its modern skyline, Formula 1 Grand Prix, and ancient Dilmun heritage sites."
+  },
+  {
+    "country": "Bangladesh",
+    "capital": "Dhaka",
+    "summary": "Known for its riverine landscapes, Sundarbans mangrove forests, and vibrant cultural life."
+  },
+  {
+    "country": "Barbados",
+    "capital": "Bridgetown",
+    "summary": "Popular for its beaches, rum culture, and laid-back Caribbean atmosphere."
+  },
+  {
+    "country": "Belarus",
+    "capital": "Minsk",
+    "summary": "Known for Soviet-era architecture, forests, and traditional folk culture."
+  },
+  {
+    "country": "Belgium",
+    "capital": "Brussels",
+    "summary": "Famous for medieval towns, chocolate, waffles, and world-renowned beer."
+  },
+  {
+    "country": "Belize",
+    "capital": "Belmopan",
+    "summary": "Popular for the Great Blue Hole, Mayan ruins, and world-class scuba diving."
+  },
+  {
+    "country": "Benin",
+    "capital": "Porto-Novo",
+    "summary": "Known as the birthplace of Vodun (Voodoo) and home to vibrant markets and historic coastal forts."
+  },
+  {
+    "country": "Bermuda",
+    "capital": "Hamilton",
+    "summary": "Famous for pink-sand beaches, British-Caribbean culture fusion, and shipwreck diving."
+  },
+  {
+    "country": "Bhutan",
+    "capital": "Thimphu",
+    "summary": "Known for its Himalayan monasteries, Gross National Happiness philosophy, and scenic trekking."
+  },
+  {
+    "country": "Bolivia",
+    "capital": "Sucre (constitutional), La Paz (administrative)",
+    "summary": "Famous for the Uyuni Salt Flats, high-altitude Andean landscapes, and rich Indigenous culture."
+  },
+  {
+    "country": "Bonaire",
+    "capital": "Kralendijk",
+    "summary": "Known for world-class shore diving, vibrant coral reefs, and relaxed Caribbean island life."
+  },
+  {
+    "country": "Bonaire, Sint Eustatius, and Saba",
+    "capital": "Kralendijk (Bonaire), Oranjestad (Sint Eustatius), The Bottom (Saba)",
+    "summary": "Famous for exceptional scuba diving, volcanic island scenery, and quiet nature-focused tourism."
+  },
+  {
+    "country": "Bosnia and Herzegovina",
+    "capital": "Sarajevo",
+    "summary": "Known for its Ottoman and Austro-Hungarian heritage, scenic mountains, and historic bridge towns like Mostar."
+  },
+  {
+    "country": "Botswana",
+    "capital": "Gaborone",
+    "summary": "Famous for luxury safaris, the Okavango Delta, and abundant wildlife."
+  },
+  {
+    "country": "Brazil",
+    "capital": "Brasília",
+    "summary": "Known for the Amazon, Rio’s beaches, carnival culture, and diverse natural landscapes."
+  },
+  {
+    "country": "British Virgin Islands",
+    "capital": "Road Town",
+    "summary": "Popular for sailing, turquoise waters, and upscale island resorts."
+  },
+  {
+    "country": "Brunei",
+    "capital": "Bandar Seri Begawan",
+    "summary": "Known for its opulent mosques, pristine rainforests, and quiet, wealthy atmosphere."
+  },
+  {
+    "country": "Bulgaria",
+    "capital": "Sofia",
+    "summary": "Known for its Black Sea beaches, ancient monasteries, and affordable ski resorts."
+  },
+  {
+    "country": "Burkina Faso",
+    "capital": "Ouagadougou",
+    "summary": "Known for vibrant music culture and markets, though currently facing severe security challenges."
+  },
+  {
+    "country": "Burma (Myanmar)",
+    "capital": "Naypyidaw",
+    "summary": "Famous for temples like Bagan and Inle Lake, though travel is heavily restricted due to unrest."
+  },
+  {
+    "country": "Burundi",
+    "capital": "Gitega",
+    "summary": "Known for its highland scenery, Lake Tanganyika, and traditional drumming culture."
+  },
+  {
+    "country": "Cabo Verde",
+    "capital": "Praia",
+    "summary": "Popular for its laid-back islands, beaches, and volcanic hiking on places like Fogo."
+  },
+  {
+    "country": "Cambodia",
+    "capital": "Phnom Penh",
+    "summary": "Best known for the Angkor Wat temple complex and friendly, budget-friendly travel culture."
+  },
+  {
+    "country": "Cameroon",
+    "capital": "Yaoundé",
+    "summary": "Famous for its diverse landscapes, wildlife, and vibrant cultural traditions."
+  },
+  {
+    "country": "Canada",
+    "capital": "Ottawa",
+    "summary": "Known for its national parks, multicultural cities, and vast wilderness scenery."
+  },
+  {
+    "country": "Cayman Islands",
+    "capital": "George Town",
+    "summary": "Famous for luxury resorts, Seven Mile Beach, and top-tier diving."
+  },
+  {
+    "country": "Central African Republic",
+    "capital": "Bangui",
+    "summary": "Known for its unique wildlife and dense forests but currently experiencing significant instability."
+  },
+  {
+    "country": "Chad",
+    "capital": "N'Djamena",
+    "summary": "Famous for the Sahara landscapes and Lake Chad region, though travel often requires caution."
+  },
+  {
+    "country": "Chile",
+    "capital": "Santiago",
+    "summary": "Known for Patagonia, the Atacama Desert, and world-renowned wine regions."
+  },
+  {
+    "country": "China",
+    "capital": "Beijing",
+    "summary": "Famous for the Great Wall, diverse cuisine, megacities, and vast cultural heritage."
+  },
+  {
+    "country": "Colombia",
+    "capital": "Bogotá",
+    "summary": "Popular for its coffee region, Caribbean beaches, colorful colonial towns, and vibrant nightlife."
+  },
+  {
+    "country": "Comoros",
+    "capital": "Moroni",
+    "summary": "Known for volcanic islands, pristine beaches, and a quiet, off-the-beaten-path experience."
+  },
+  {
+    "country": "Costa Rica",
+    "capital": "San José",
+    "summary": "Famous for eco-tourism, rainforests, wildlife, and adventure activities like zip-lining and surfing."
+  },
+  {
+    "country": "Croatia",
+    "capital": "Zagreb",
+    "summary": "Known for its Adriatic coastline, medieval towns, and islands popular with beachgoers and sailors."
+  },
+  {
+    "country": "Cuba",
+    "capital": "Havana",
+    "summary": "Famous for classic cars, salsa culture, beaches, and colorful colonial architecture."
+  },
+  {
+    "country": "Curaçao",
+    "capital": "Willemstad",
+    "summary": "Famous for its colorful Dutch Caribbean architecture, clear waters, and excellent snorkeling."
+  },
+  {
+    "country": "Cyprus",
+    "capital": "Nicosia",
+    "summary": "Known for Mediterranean beaches, ancient ruins, and a unique blend of Greek and Turkish culture."
+  },
+  {
+    "country": "Czechia",
+    "capital": "Prague",
+    "summary": "Popular for its fairy-tale medieval old towns, castles, and world-renowned beer culture."
+  },
+  {
+    "country": "Côte d'Ivoire (Ivory Coast)",
+    "capital": "Yamoussoukro",
+    "summary": "Known for lively coastal cities, cocoa culture, and West African arts and music."
+  },
+  {
+    "country": "Democratic Republic of the Congo (D.R.C.)",
+    "capital": "Kinshasa",
+    "summary": "Famous for its rainforest biodiversity and the Virunga region, though travel requires high caution."
+  },
+  {
+    "country": "Denmark",
+    "capital": "Copenhagen",
+    "summary": "Known for its cycling culture, design, and hygge-filled historic streets."
+  },
+  {
+    "country": "Djibouti",
+    "capital": "Djibouti City",
+    "summary": "Popular for diving, salt lakes like Lake Assal, and lunar-like desert landscapes."
+  },
+  {
+    "country": "Dominica",
+    "capital": "Roseau",
+    "summary": "Famous for its rainforests, boiling lake hikes, and eco-focused Caribbean travel."
+  },
+  {
+    "country": "Dominican Republic",
+    "capital": "Santo Domingo",
+    "summary": "Known for all-inclusive beach resorts, vibrant nightlife, and rich colonial history."
+  },
+  {
+    "country": "Ecuador",
+    "capital": "Quito",
+    "summary": "Famous for the Galápagos Islands, Andean volcanoes, and diverse Indigenous culture."
+  },
+  {
+    "country": "Egypt",
+    "capital": "Cairo",
+    "summary": "Known for the Pyramids of Giza, Nile cruises, and ancient temples throughout the country."
+  },
+  {
+    "country": "El Salvador",
+    "capital": "San Salvador",
+    "summary": "Popular for surfing beaches, volcano hikes, and coffee-growing regions."
+  },
+  {
+    "country": "Equatorial Guinea",
+    "capital": "Malabo",
+    "summary": "Known for lush forests, volcanic islands, and relatively low tourist traffic."
+  },
+  {
+    "country": "Eritrea",
+    "capital": "Asmara",
+    "summary": "Famous for its preserved Italian-Art Deco architecture and Red Sea coastline."
+  },
+  {
+    "country": "Estonia",
+    "capital": "Tallinn",
+    "summary": "Known for its medieval old town, digital-first society, and Baltic coastal scenery."
+  },
+  {
+    "country": "Eswatini (Swaziland)",
+    "capital": "Mbabane (administrative), Lobamba (legislative)",
+    "summary": "Popular for wildlife reserves, cultural festivals, and scenic mountains."
+  },
+  {
+    "country": "Ethiopia",
+    "capital": "Addis Ababa",
+    "summary": "Known for ancient historical sites, rock-hewn churches, and unique cuisine and culture."
+  },
+  {
+    "country": "Falkland Islands",
+    "capital": "Stanley",
+    "summary": "Known for rugged landscapes, penguin colonies, and remote nature tourism."
+  },
+  {
+    "country": "Federated States of Micronesia",
+    "capital": "Palikir",
+    "summary": "Popular for world-class diving, WWII wrecks, and tropical island scenery."
+  },
+  {
+    "country": "Fiji",
+    "capital": "Suva",
+    "summary": "Famous for its friendly culture, tropical beaches, and luxury island resorts."
+  },
+  {
+    "country": "Finland",
+    "capital": "Helsinki",
+    "summary": "Known for saunas, Northern Lights, and pristine lakes and forests."
+  },
+  {
+    "country": "France",
+    "capital": "Paris",
+    "summary": "World-renowned for its cuisine, art, wine regions, and iconic landmarks like the Eiffel Tower."
+  },
+  {
+    "country": "France (includes Monaco)",
+    "capital": "Paris (France), Monaco (Monaco)",
+    "summary": "Famous for luxury, Mediterranean coastline, and glamorous destinations like Monte Carlo."
+  },
+  {
+    "country": "French Guiana",
+    "capital": "Cayenne",
+    "summary": "Known for Amazonian nature, multicultural towns, and the European Spaceport."
+  },
+  {
+    "country": "French Polynesia",
+    "capital": "Papeete",
+    "summary": "Famous for Bora Bora, overwater bungalows, and world-class diving in turquoise lagoons."
+  },
+  {
+    "country": "French West Indies",
+    "capital": "Multiple (e.g., Fort-de-France for Martinique, Basse-Terre for Guadeloupe)",
+    "summary": "Known for French-Caribbean culture, volcanic landscapes, and beautiful beaches across several islands."
+  },
+  {
+    "country": "Gabon",
+    "capital": "Libreville",
+    "summary": "Famous for its equatorial rainforests, lowland gorillas, and unspoiled national parks."
+  },
+  {
+    "country": "Gaza",
+    "capital": "Gaza City",
+    "summary": "Known for its Mediterranean coastline and cultural history, though currently unsafe for travel."
+  },
+  {
+    "country": "Georgia",
+    "capital": "Tbilisi",
+    "summary": "Popular for wine country, Caucasus mountain hiking, and its colorful historic capital."
+  },
+  {
+    "country": "Germany",
+    "capital": "Berlin",
+    "summary": "Known for its castles, vibrant cities, beer culture, and rich history."
+  },
+  {
+    "country": "Ghana",
+    "capital": "Accra",
+    "summary": "Famous for its welcoming culture, coastal forts, and vibrant music and arts."
+  },
+  {
+    "country": "Gibraltar",
+    "capital": "Gibraltar",
+    "summary": "Known for the Rock of Gibraltar, Mediterranean views, and unique mix of British and Spanish culture."
+  },
+  {
+    "country": "Greece",
+    "capital": "Athens",
+    "summary": "Famous for ancient ruins, Mediterranean islands, beaches, and incredible cuisine."
+  },
+  {
+    "country": "Greenland",
+    "capital": "Nuuk",
+    "summary": "Known for Arctic landscapes, glaciers, dog-sledding, and Inuit culture."
+  },
+  {
+    "country": "Grenada",
+    "capital": "St. George's",
+    "summary": "Popular for spice plantations, lush rainforests, and beautiful Caribbean beaches."
+  },
+  {
+    "country": "Guadeloupe (French West Indies)",
+    "capital": "Basse-Terre",
+    "summary": "Known for its mix of beaches, volcano hikes, and French-Caribbean food."
+  },
+  {
+    "country": "Guadeloupe, Martinique, Saint Martin, and Saint Barthélemy (French West Indies)",
+    "capital": "Multiple",
+    "summary": "Famous for upscale resorts, stunning beaches, and a fusion of French and Caribbean culture."
+  },
+  {
+    "country": "Guatemala",
+    "capital": "Guatemala City",
+    "summary": "Known for Mayan ruins, colorful highland towns, and Lake Atitlán’s dramatic scenery."
+  },
+  {
+    "country": "Guinea",
+    "capital": "Conakry",
+    "summary": "Famous for vibrant music, mountains, and ecological diversity in West Africa."
+  },
+  {
+    "country": "Guinea-Bissau",
+    "capital": "Bissau",
+    "summary": "Known for the Bijagós Islands, wildlife, and traditional cultures."
+  },
+  {
+    "country": "Guyana",
+    "capital": "Georgetown",
+    "summary": "Famous for Kaieteur Falls, rainforest adventures, and rich Afro-Caribbean culture."
+  },
+  {
+    "country": "Haiti",
+    "capital": "Port-au-Prince",
+    "summary": "Known for its deep cultural heritage, art, and mountain landscapes, though travel is currently unsafe."
+  },
+  {
+    "country": "Honduras",
+    "capital": "Tegucigalpa",
+    "summary": "Popular for the Bay Islands' diving, Mayan ruins, and lush national parks."
+  },
+  {
+    "country": "Hong Kong",
+    "capital": "Hong Kong (Special Administrative Region)",
+    "summary": "Famous for its skyline, food scene, shopping, and blend of Eastern and Western culture."
+  },
+  {
+    "country": "Hungary",
+    "capital": "Budapest",
+    "summary": "Known for thermal baths, the Danube River, and stunning architecture."
+  },
+  {
+    "country": "Iceland",
+    "capital": "Reykjavík",
+    "summary": "Famous for glaciers, volcanoes, hot springs, and Northern Lights."
+  },
+  {
+    "country": "India",
+    "capital": "New Delhi",
+    "summary": "Known for its diverse cultures, cuisine, historic landmarks, and spiritual destinations."
+  },
+  {
+    "country": "Indonesia",
+    "capital": "Jakarta",
+    "summary": "Popular for Bali's beaches, volcano treks, diverse wildlife, and rich island cultures."
+  },
+  {
+    "country": "Iran",
+    "capital": "Tehran",
+    "summary": "Known for ancient Persian history, intricate architecture, and vibrant bazaars, though travel is restricted."
+  },
+  {
+    "country": "Iraq",
+    "capital": "Baghdad",
+    "summary": "Home to ancient Mesopotamian sites and rich cultural heritage, though currently unsafe for tourism."
+  },
+  {
+    "country": "Ireland",
+    "capital": "Dublin",
+    "summary": "Known for its green landscapes, lively pubs, and rich literary and cultural history."
+  },
+  {
+    "country": "Isle of Man",
+    "capital": "Douglas",
+    "summary": "Famous for the TT motorcycle races, rugged coastline, and Celtic-Norse heritage."
+  },
+  {
+    "country": "Israel",
+    "capital": "Jerusalem (declared), Tel Aviv (international recognition varies)",
+    "summary": "Known for its ancient religious sites, Mediterranean beaches, and vibrant food culture."
+  },
+  {
+    "country": "Israel, The West Bank and Gaza",
+    "capital": "Jerusalem (declared), Ramallah (West Bank), Gaza City (Gaza)",
+    "summary": "Known for deeply significant historical and religious sites, though travel conditions vary widely."
+  },
+  {
+    "country": "Italy",
+    "capital": "Rome",
+    "summary": "Famous for its ancient ruins, world-class cuisine, art, and picturesque coastal and countryside towns."
+  },
+  {
+    "country": "Jamaica",
+    "capital": "Kingston",
+    "summary": "Known for reggae culture, tropical beaches, and lush interior mountains."
+  },
+  {
+    "country": "Japan",
+    "capital": "Tokyo",
+    "summary": "Popular for its blend of traditional temples, cutting-edge cities, and natural beauty."
+  },
+  {
+    "country": "Jerusalem",
+    "capital": "Jerusalem",
+    "summary": "One of the world's most historic cities, sacred to multiple religions and rich in cultural heritage."
+  },
+  {
+    "country": "Jordan",
+    "capital": "Amman",
+    "summary": "Famous for Petra, Wadi Rum desert landscapes, and the Dead Sea."
+  },
+  {
+    "country": "Kazakhstan",
+    "capital": "Astana (Nur-Sultan)",
+    "summary": "Known for its vast steppe landscapes, modern architecture, and Silk Road heritage."
+  },
+  {
+    "country": "Kenya",
+    "capital": "Nairobi",
+    "summary": "Famous for safari experiences, Rift Valley scenery, and rich wildlife."
+  },
+  {
+    "country": "Kiribati",
+    "capital": "South Tarawa",
+    "summary": "Known for remote Pacific islands, traditional culture, and diving and fishing waters."
+  },
+  {
+    "country": "Kosovo",
+    "capital": "Pristina",
+    "summary": "Known for its Ottoman architecture, mountain scenery, and welcoming café culture."
+  },
+  {
+    "country": "Kuwait",
+    "capital": "Kuwait City",
+    "summary": "Known for modern skyscrapers, Gulf cuisine, and cultural museums."
+  },
+  {
+    "country": "Kyrgyzstan",
+    "capital": "Bishkek",
+    "summary": "Famous for nomadic culture, alpine trekking, and the stunning Tian Shan mountains."
+  },
+  {
+    "country": "Laos",
+    "capital": "Vientiane",
+    "summary": "Known for its peaceful temples, Mekong River scenery, and backpacker-friendly towns like Luang Prabang."
+  },
+  {
+    "country": "Latvia",
+    "capital": "Riga",
+    "summary": "Popular for its Art Nouveau architecture, Baltic beaches, and historic old towns."
+  },
+  {
+    "country": "Lebanon",
+    "capital": "Beirut",
+    "summary": "Known for ancient ruins, Mediterranean cuisine, and beautiful mountain-coast geography, though travel is currently unsafe."
+  },
+  {
+    "country": "Lesotho",
+    "capital": "Maseru",
+    "summary": "Famous for its dramatic highlands, pony trekking, and mountain villages."
+  },
+  {
+    "country": "Liberia",
+    "capital": "Monrovia",
+    "summary": "Known for West African culture, beaches, and rainforest landscapes."
+  },
+  {
+    "country": "Libya",
+    "capital": "Tripoli",
+    "summary": "Home to ancient desert ruins and Mediterranean coastlines, though currently unsafe for travel."
+  },
+  {
+    "country": "Liechtenstein",
+    "capital": "Vaduz",
+    "summary": "Known for alpine scenery, castles, and a charming small-town European feel."
+  },
+  {
+    "country": "Lithuania",
+    "capital": "Vilnius",
+    "summary": "Popular for its Baroque old town, Baltic culture, and historic fortresses."
+  },
+  {
+    "country": "Luxembourg",
+    "capital": "Luxembourg City",
+    "summary": "Known for its fortified medieval old town, forests, and mix of French and Germanic culture."
+  },
+  {
+    "country": "Macau",
+    "capital": "Macau",
+    "summary": "Famous for its blend of Portuguese and Chinese heritage, casinos, and world-renowned cuisine."
+  },
+  {
+    "country": "Madagascar",
+    "capital": "Antananarivo",
+    "summary": "Known for its unique wildlife, baobab trees, and extraordinary biodiversity found nowhere else on Earth."
+  },
+  {
+    "country": "Malawi",
+    "capital": "Lilongwe",
+    "summary": "Famous for Lake Malawi’s beaches, freshwater diving, and friendly local culture."
+  },
+  {
+    "country": "Malaysia",
+    "capital": "Kuala Lumpur",
+    "summary": "Popular for its multicultural food scene, rainforests, and modern landmarks like the Petronas Towers."
+  },
+  {
+    "country": "Maldives",
+    "capital": "Malé",
+    "summary": "World-renowned for its overwater villas, turquoise lagoons, and luxury tropical escapes."
+  },
+  {
+    "country": "Mali",
+    "capital": "Bamako",
+    "summary": "Known for ancient cities like Timbuktu and rich musical heritage, though currently unsafe for travel."
+  },
+  {
+    "country": "Malta",
+    "capital": "Valletta",
+    "summary": "Known for historic fortresses, Mediterranean beaches, and crystal-clear diving spots."
+  },
+  {
+    "country": "Marshall Islands",
+    "capital": "Majuro",
+    "summary": "Famous for remote atolls, coral reefs, and WWII shipwreck diving."
+  },
+  {
+    "country": "Martinique (French West Indies)",
+    "capital": "Fort-de-France",
+    "summary": "Known for French-Caribbean culture, volcanic peaks, and lush tropical landscapes."
+  },
+  {
+    "country": "Mauritania",
+    "capital": "Nouakchott",
+    "summary": "Known for Saharan dunes, ancient caravan towns, and stark desert scenery."
+  },
+  {
+    "country": "Mauritius",
+    "capital": "Port Louis",
+    "summary": "Popular for its beaches, reef-lined lagoons, and multicultural island cuisine."
+  },
+  {
+    "country": "Mexico",
+    "capital": "Mexico City",
+    "summary": "Famous for its food, beaches, ancient ruins, and vibrant cultural cities."
+  },
+  {
+    "country": "Moldova",
+    "capital": "Chișinău",
+    "summary": "Known for its wineries, rural landscapes, and quiet Eastern European charm."
+  },
+  {
+    "country": "Monaco",
+    "capital": "Monaco",
+    "summary": "Famous for its luxury lifestyle, Formula 1 Grand Prix, and glamorous Mediterranean coastline."
+  },
+  {
+    "country": "Mongolia",
+    "capital": "Ulaanbaatar",
+    "summary": "Known for vast steppes, nomadic culture, and the Gobi Desert."
+  },
+  {
+    "country": "Montenegro",
+    "capital": "Podgorica",
+    "summary": "Popular for its Adriatic beaches, fjord-like Bay of Kotor, and dramatic mountain scenery."
+  },
+  {
+    "country": "Montserrat",
+    "capital": "Little Bay (official), Brades (de facto)",
+    "summary": "Known for its volcanic landscapes, black-sand beaches, and quiet Caribbean atmosphere."
+  },
+  {
+    "country": "Morocco",
+    "capital": "Rabat",
+    "summary": "Famous for its souks, desert dunes, mountain villages, and historic imperial cities."
+  },
+  {
+    "country": "Mozambique",
+    "capital": "Maputo",
+    "summary": "Known for its long Indian Ocean coastline, marine life, and vibrant Afro-Portuguese culture."
+  },
+  {
+    "country": "Namibia",
+    "capital": "Windhoek",
+    "summary": "Popular for the Namib Desert’s red dunes, wildlife safaris, and wide-open landscapes."
+  },
+  {
+    "country": "Nauru",
+    "capital": "Yaren District (de facto)",
+    "summary": "Known for being one of the world’s smallest nations, with a quiet, remote island atmosphere."
+  },
+  {
+    "country": "Nepal",
+    "capital": "Kathmandu",
+    "summary": "Famous for the Himalayas, including Mount Everest, and rich spiritual heritage."
+  },
+  {
+    "country": "Netherlands",
+    "capital": "Amsterdam",
+    "summary": "Known for canals, cycling culture, tulip fields, and world-class museums."
+  },
+  {
+    "country": "New Caledonia",
+    "capital": "Nouméa",
+    "summary": "Known for its stunning lagoon, Kanak culture, and South Pacific island beauty."
+  },
+  {
+    "country": "New Zealand",
+    "capital": "Wellington",
+    "summary": "Famous for dramatic landscapes, adventure sports, and Maori culture."
+  },
+  {
+    "country": "Nicaragua",
+    "capital": "Managua",
+    "summary": "Known for its volcanic landscapes, colonial cities, and surf beaches."
+  },
+  {
+    "country": "Niger",
+    "capital": "Niamey",
+    "summary": "Known for Saharan landscapes and nomadic culture, though currently unsafe for travel."
+  },
+  {
+    "country": "Nigeria",
+    "capital": "Abuja",
+    "summary": "Famous for its vibrant cultural scene, Nollywood films, and diverse landscapes, though travel risks vary by region."
+  },
+  {
+    "country": "North Korea (DPRK)",
+    "capital": "Pyongyang",
+    "summary": "Known for tightly controlled tourism, historic monuments, and unique political culture, but not generally open for independent travel."
+  },
+  {
+    "country": "Norway",
+    "capital": "Oslo",
+    "summary": "Popular for fjords, Northern Lights, and pristine outdoor adventure destinations."
+  },
+  {
+    "country": "Oman",
+    "capital": "Muscat",
+    "summary": "Known for desert landscapes, traditional souks, and stunning coastal fjords."
+  },
+  {
+    "country": "Pakistan",
+    "capital": "Islamabad",
+    "summary": "Famous for Himalayan mountain trekking, ancient Silk Road sites, and rich regional cuisine."
+  },
+  {
+    "country": "Palau",
+    "capital": "Ngerulmud",
+    "summary": "Known for exceptional scuba diving, marine lakes, and pristine Pacific island scenery."
+  },
+  {
+    "country": "Panama",
+    "capital": "Panama City",
+    "summary": "Known for the Panama Canal, tropical rainforests, and vibrant cosmopolitan culture."
+  },
+  {
+    "country": "Papua New Guinea",
+    "capital": "Port Moresby",
+    "summary": "Famous for traditional tribal cultures, rugged jungles, and world-class diving."
+  },
+  {
+    "country": "Paraguay",
+    "capital": "Asunción",
+    "summary": "Known for its relaxed atmosphere, riverside culture, and historic missions."
+  },
+  {
+    "country": "Peru",
+    "capital": "Lima",
+    "summary": "Famous for Machu Picchu, Andean trekking, and world-renowned cuisine."
+  },
+  {
+    "country": "Philippines",
+    "capital": "Manila",
+    "summary": "Known for its tropical islands, diving spots, and friendly cultural warmth."
+  },
+  {
+    "country": "Poland",
+    "capital": "Warsaw",
+    "summary": "Popular for its medieval old towns, hearty cuisine, and historic landmarks."
+  },
+  {
+    "country": "Portugal",
+    "capital": "Lisbon",
+    "summary": "Famous for its beaches, wine regions, and colorful historic cities like Lisbon and Porto."
+  },
+  {
+    "country": "Qatar",
+    "capital": "Doha",
+    "summary": "Known for modern architecture, luxury shopping, and desert adventures."
+  },
+  {
+    "country": "Republic of North Macedonia",
+    "capital": "Skopje",
+    "summary": "Known for lakeside Ohrid, mountain trails, and a blend of Balkan cultures."
+  },
+  {
+    "country": "Republic of the Congo",
+    "capital": "Brazzaville",
+    "summary": "Known for its rainforests, gorilla trekking, and vibrant riverfront capital."
+  },
+  {
+    "country": "Romania",
+    "capital": "Bucharest",
+    "summary": "Known for Transylvanian castles, Carpathian mountains, and charming medieval towns."
+  },
+  {
+    "country": "Russia",
+    "capital": "Moscow",
+    "summary": "Known for its vast cultural heritage and historic cities, though travel is currently restricted."
+  },
+  {
+    "country": "Rwanda",
+    "capital": "Kigali",
+    "summary": "Famous for mountain gorilla trekking and its clean, modern capital."
+  },
+  {
+    "country": "Saba",
+    "capital": "The Bottom",
+    "summary": "Known for volcanic peaks, pristine reefs, and quiet eco-tourism."
+  },
+  {
+    "country": "Saint Barthélemy (French West Indies)",
+    "capital": "Gustavia",
+    "summary": "Famous for luxury resorts, designer shopping, and upscale beaches."
+  },
+  {
+    "country": "Saint Kitts and Nevis",
+    "capital": "Basseterre",
+    "summary": "Known for its volcanic peaks, beaches, and historic sugar plantations."
+  },
+  {
+    "country": "Saint Lucia",
+    "capital": "Castries",
+    "summary": "Famous for the Pitons, lush rainforests, and romantic Caribbean resorts."
+  },
+  {
+    "country": "Saint Martin (French West Indies)",
+    "capital": "Marigot",
+    "summary": "Known for French-Caribbean culture, beaches, and excellent dining."
+  },
+  {
+    "country": "Saint Vincent and the Grenadines",
+    "capital": "Kingstown",
+    "summary": "Known for its sailing, quiet Caribbean beaches, and volcanic island scenery."
+  },
+  {
+    "country": "Samoa",
+    "capital": "Apia",
+    "summary": "Famous for its lush waterfalls, traditional Polynesian culture, and beautiful beaches."
+  },
+  {
+    "country": "San Marino",
+    "capital": "San Marino",
+    "summary": "Known for its hilltop medieval architecture and stunning views over the Italian countryside."
+  },
+  {
+    "country": "Sao Tome and Principe",
+    "capital": "São Tomé",
+    "summary": "Popular for its untouched beaches, cacao plantations, and volcanic landscapes."
+  },
+  {
+    "country": "Saudi Arabia",
+    "capital": "Riyadh",
+    "summary": "Known for its desert scenery, Red Sea coastline, and increasing cultural tourism following recent reforms."
+  },
+  {
+    "country": "Senegal",
+    "capital": "Dakar",
+    "summary": "Famous for its music, Atlantic beaches, and vibrant markets."
+  },
+  {
+    "country": "Serbia",
+    "capital": "Belgrade",
+    "summary": "Known for its nightlife, historic fortresses, and cafe culture."
+  },
+  {
+    "country": "Seychelles",
+    "capital": "Victoria",
+    "summary": "World-famous for its granite boulder beaches, turquoise seas, and luxury island resorts."
+  },
+  {
+    "country": "Sierra Leone",
+    "capital": "Freetown",
+    "summary": "Known for its beautiful beaches, tropical forests, and warm culture."
+  },
+  {
+    "country": "Singapore",
+    "capital": "Singapore",
+    "summary": "Popular for its futuristic skyline, hawker food, and world-class cleanliness and efficiency."
+  },
+  {
+    "country": "Sint Eustatius",
+    "capital": "Oranjestad",
+    "summary": "Known for its quiet charm, diving spots, and well-preserved colonial history."
+  },
+  {
+    "country": "Sint Maarten",
+    "capital": "Philipsburg",
+    "summary": "Famous for its beaches, shopping, and planes landing dramatically close to Maho Beach."
+  },
+  {
+    "country": "Slovakia",
+    "capital": "Bratislava",
+    "summary": "Known for castles, mountain hiking, and charming old towns."
+  },
+  {
+    "country": "Slovenia",
+    "capital": "Ljubljana",
+    "summary": "Popular for Lake Bled, alpine scenery, and a clean, green capital city."
+  },
+  {
+    "country": "Solomon Islands",
+    "capital": "Honiara",
+    "summary": "Known for WWII history, pristine reefs, and remote island adventure."
+  },
+  {
+    "country": "Somalia",
+    "capital": "Mogadishu",
+    "summary": "Home to rich cultural heritage and Indian Ocean coastline, though currently unsafe for travel."
+  },
+  {
+    "country": "South Africa",
+    "capital": "Pretoria (administrative), Cape Town (legislative), Bloemfontein (judicial)",
+    "summary": "Famous for safari parks, Cape Town’s scenery, and vibrant cultural diversity."
+  },
+  {
+    "country": "South Korea",
+    "capital": "Seoul",
+    "summary": "Known for its high-tech cities, K-culture, delicious cuisine, and scenic mountains."
+  },
+  {
+    "country": "South Sudan",
+    "capital": "Juba",
+    "summary": "Known for its diverse cultures and Nile landscapes, though currently unsafe for tourism."
+  },
+  {
+    "country": "Spain",
+    "capital": "Madrid",
+    "summary": "Popular for beaches, tapas, world-class art, and vibrant regional cultures."
+  },
+  {
+    "country": "Sri Lanka",
+    "capital": "Sri Jayawardenepura Kotte (official), Colombo (commercial)",
+    "summary": "Known for tropical beaches, tea plantations, wildlife, and cultural heritage sites."
+  },
+  {
+    "country": "Sudan",
+    "capital": "Khartoum",
+    "summary": "Known for Nubian pyramids and Nile culture, though currently unsafe for travel."
+  },
+  {
+    "country": "Suriname",
+    "capital": "Paramaribo",
+    "summary": "Famous for its colonial wooden architecture and Amazonian rainforest."
+  },
+  {
+    "country": "Sweden",
+    "capital": "Stockholm",
+    "summary": "Known for its clean design aesthetic, archipelago landscapes, and high quality of life."
+  },
+  {
+    "country": "Switzerland",
+    "capital": "Bern",
+    "summary": "Famous for its Alpine scenery, skiing, chocolate, and lakeside villages."
+  },
+  {
+    "country": "Syria",
+    "capital": "Damascus",
+    "summary": "Known for its ancient historical sites and cultural depth, though currently unsafe for travel."
+  },
+  {
+    "country": "Taiwan",
+    "capital": "Taipei",
+    "summary": "Popular for night markets, mountain scenery, and friendly, modern cities."
+  },
+  {
+    "country": "Tajikistan",
+    "capital": "Dushanbe",
+    "summary": "Known for the Pamir Mountains and some of the world's most dramatic high-altitude trekking."
+  },
+  {
+    "country": "Tanzania",
+    "capital": "Dodoma",
+    "summary": "Famous for Serengeti safaris, Mount Kilimanjaro, and Zanzibar’s beaches."
+  },
+  {
+    "country": "Thailand",
+    "capital": "Bangkok",
+    "summary": "Known for its beaches, temples, street food, and welcoming tourism culture."
+  },
+  {
+    "country": "The Gambia",
+    "capital": "Banjul",
+    "summary": "Popular for its river landscapes, birdwatching, and relaxed coastal towns."
+  },
+  {
+    "country": "Timor-Leste",
+    "capital": "Dili",
+    "summary": "Known for coral reefs, rugged mountains, and emerging eco-tourism."
+  },
+  {
+    "country": "Togo",
+    "capital": "Lomé",
+    "summary": "Known for its markets, beaches, and diverse cultural traditions."
+  },
+  {
+    "country": "Tonga",
+    "capital": "Nukuʻalofa",
+    "summary": "Famous for whale watching, Polynesian culture, and peaceful island life."
+  },
+  {
+    "country": "Trinidad and Tobago",
+    "capital": "Port of Spain",
+    "summary": "Known for Carnival, diverse wildlife, and Caribbean-meets-south-Asian cuisine."
+  },
+  {
+    "country": "Tunisia",
+    "capital": "Tunis",
+    "summary": "Known for Mediterranean beaches, ancient Carthage ruins, and Sahara desert adventures."
+  },
+  {
+    "country": "Turkey",
+    "capital": "Ankara",
+    "summary": "Famous for Istanbul’s historic sites, Mediterranean coasts, and diverse landscapes."
+  },
+  {
+    "country": "Turkmenistan",
+    "capital": "Ashgabat",
+    "summary": "Known for its marble architecture, desert landscapes, and unique cultural identity."
+  },
+  {
+    "country": "Turks and Caicos Islands",
+    "capital": "Cockburn Town",
+    "summary": "Popular for luxury resorts, white-sand beaches, and world-class diving."
+  },
+  {
+    "country": "Tuvalu",
+    "capital": "Funafuti",
+    "summary": "Known for its remote Pacific tranquility and traditional Polynesian culture."
+  },
+  {
+    "country": "Uganda",
+    "capital": "Kampala",
+    "summary": "Famous for mountain gorilla trekking and lush green landscapes."
+  },
+  {
+    "country": "Ukraine",
+    "capital": "Kyiv",
+    "summary": "Known for its historic cities and cultural heritage, though currently unsafe for travel."
+  },
+  {
+    "country": "United Arab Emirates",
+    "capital": "Abu Dhabi",
+    "summary": "Popular for futuristic cities, desert adventures, and luxury shopping."
+  },
+  {
+    "country": "United Kingdom of Great Britain and Northern Ireland",
+    "capital": "London",
+    "summary": "Famous for its historic landmarks, museums, countryside, and global cultural influence."
+  },
+  {
+    "country": "Uruguay",
+    "capital": "Montevideo",
+    "summary": "Known for its beaches, relaxed lifestyle, and wine country."
+  },
+  {
+    "country": "Uzbekistan",
+    "capital": "Tashkent",
+    "summary": "Famous for Silk Road cities like Samarkand and Bukhara with stunning Islamic architecture."
+  },
+  {
+    "country": "Vanuatu",
+    "capital": "Port Vila",
+    "summary": "Popular for volcanoes, coral reefs, and traditional Melanesian villages."
+  },
+  {
+    "country": "Vatican City (Holy See)",
+    "capital": "Vatican City",
+    "summary": "Known for St. Peter’s Basilica, the Sistine Chapel, and unparalleled religious and artistic heritage."
+  },
+  {
+    "country": "Venezuela",
+    "capital": "Caracas",
+    "summary": "Famous for Angel Falls and diverse natural landscapes, though currently unsafe for travel."
+  },
+  {
+    "country": "Vietnam",
+    "capital": "Hanoi",
+    "summary": "Known for its cuisine, dramatic limestone scenery, and vibrant cities like Hanoi and Ho Chi Minh City."
+  },
+  {
+    "country": "West Bank",
+    "capital": "Ramallah (administrative)",
+    "summary": "Known for historic and religious sites and cultural heritage, though travel conditions can be unstable."
+  },
+  {
+    "country": "Yemen",
+    "capital": "Sana'a",
+    "summary": "Famous for its ancient architecture and coastal beauty, though currently unsafe for any travel."
+  },
+  {
+    "country": "Zambia",
+    "capital": "Lusaka",
+    "summary": "Known for Victoria Falls, wildlife safaris, and friendly local culture."
+  },
+  {
+    "country": "Zimbabwe",
+    "capital": "Harare",
+    "summary": "Famous for Victoria Falls, national parks, and rich archaeological sites like Great Zimbabwe."
+  }
+]

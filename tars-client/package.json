@@ -1,0 +1,38 @@
+{
+  "name": "tars-client-nodejs",
+  "version": "1.0.0",
+  "description": "Standalone Node.js client for TARS API with React dashboard",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "build": "cd client && npm run build",
+    "install-client": "cd client && npm install",
+    "install-all": "npm install && cd client && npm install",
+    "test": "jest",
+    "test:e2e": "jest --testPathPattern=e2e",
+    "test:coverage": "jest --coverage",
+    "test:coverage:e2e": "jest --coverage --testPathPattern=e2e",
+    "coverage:serve": "npx http-server coverage/lcov-report -p 8081 -o",
+    "coverage:view": "cat coverage/lcov-report/index.html | grep -A 5 'coverage-summary' || echo 'Run npm run test:coverage first'"
+  },
+  "keywords": [
+    "tars",
+    "api",
+    "client"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "fs-extra": "^11.1.1",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.1",
+    "supertest": "^6.3.4"
+  }
+}

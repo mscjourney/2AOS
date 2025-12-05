@@ -1,0 +1,1152 @@
+[
+  {
+    "country": "United States",
+    "level": "No advisory",
+    "risk_indicators": ["No nationwide travel advisory issued"]
+  },
+  {
+    "country": "Afghanistan",
+    "level": "Level 4: Do not travel",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Health (H)", "Kidnapping or Hostage Taking (K)", "Terrorism (T)", "Wrongful Detention (D)"]
+  },
+  {
+    "country": "Albania",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Crime (C)"]
+  },
+  {
+    "country": "Algeria",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Kidnapping or Hostage Taking (K)", "Terrorism (T)"]
+  },
+  {
+    "country": "Andorra",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Angola",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Crime (C)", "Health (H)"]
+  },
+  {
+    "country": "Anguilla",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Antarctica",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Natural Disaster (N)", "Other (O)"]
+  },
+  {
+    "country": "Antigua and Barbuda",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Argentina",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Armenia",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Other (O)"]
+  },
+  {
+    "country": "Aruba",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Australia",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Austria",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Azerbaijan",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Terrorism (T)", "Other (O)"]
+  },
+  {
+    "country": "Bahrain",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Terrorism (T)"]
+  },
+  {
+    "country": "Bangladesh",
+    "level": "Level 3: Reconsider travel",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Kidnapping or Hostage Taking (K)", "Terrorism (T)"]
+  },
+  {
+    "country": "Barbados",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Belarus",
+    "level": "Level 4: Do not travel",
+    "risk_indicators": ["Unrest (U)", "Other (O)"]
+  },
+  {
+    "country": "Belgium",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Terrorism (T)"]
+  },
+  {
+    "country": "Belize",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Crime (C)"]
+  },
+  {
+    "country": "Benin",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Crime (C)", "Kidnapping or Hostage Taking (K)", "Terrorism (T)"]
+  },
+  {
+    "country": "Bermuda",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Bhutan",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Bolivia",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)", "Crime (C)"]
+  },
+  {
+    "country": "Bonaire",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Bonaire, Sint Eustatius, and Saba",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Bosnia and Herzegovina",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Terrorism (T)", "Other (O)"]
+  },
+  {
+    "country": "Botswana",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Crime (C)"]
+  },
+  {
+    "country": "Brazil",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Crime (C)", "Kidnapping or Hostage Taking (K)"]
+  },
+  {
+    "country": "British Virgin Islands",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Brunei",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Bulgaria",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Burkina Faso",
+    "level": "Level 4: Do not travel",
+    "risk_indicators": ["Crime (C)", "Kidnapping or Hostage Taking (K)", "Terrorism (T)"]
+  },
+  {
+    "country": "Burma (Myanmar)",
+    "level": "Level 4: Do not travel",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Health (H)", "Wrongful Detention (D)", "Other (O)"]
+  },
+  {
+    "country": "Burundi",
+    "level": "Level 3: Reconsider travel",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Health (H)"]
+  },
+  {
+    "country": "Cabo Verde",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": ["Crime (C)"]
+  },
+  {
+    "country": "Cambodia",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Crime (C)", "Other (O)", "Unrest (U)"]
+  },
+  {
+    "country": "Cameroon",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Kidnapping or Hostage Taking (K)", "Terrorism (T)", "Other (O)", "Health (H)"]
+  },
+  {
+    "country": "Canada",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Cayman Islands",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Central African Republic",
+    "level": "Level 4: Do not travel",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Health (H)", "Kidnapping or Hostage Taking (K)", "Other (O)", "Terrorism (T)"]
+  },
+  {
+    "country": "Chad",
+    "level": "Level 3: Reconsider travel",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Kidnapping or Hostage Taking (K)", "Terrorism (T)", "Other (O)"]
+  },
+  {
+    "country": "Chile",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)", "Crime (C)"]
+  },
+  {
+    "country": "China",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Other (O)"]
+  },
+  {
+    "country": "Colombia",
+    "level": "Level 3: Reconsider travel",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Kidnapping or Hostage Taking (K)", "Terrorism (T)", "Other (O)"]
+  },
+  {
+    "country": "Comoros",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)"]
+  },
+  {
+    "country": "Costa Rica",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Crime (C)"]
+  },
+  {
+    "country": "Croatia",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Cuba",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Crime (C)", "Other (O)"]
+  },
+  {
+    "country": "Curaçao",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Cyprus",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": ["Other (O)"]
+  },
+  {
+    "country": "Czechia",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Côte d'Ivoire (Ivory Coast)",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Health (H)", "Terrorism (T)"]
+  },
+  {
+    "country": "Democratic Republic of the Congo (D.R.C)",
+    "level": "Level 3: Reconsider travel",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Kidnapping or Hostage Taking (K)", "Terrorism (T)", "Other (O)"]
+  },
+  {
+    "country": "Denmark",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Terrorism (T)"]
+  },
+  {
+    "country": "Djibouti",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Terrorism (T)", "Other (O)"]
+  },
+  {
+    "country": "Dominica",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Dominican Republic",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Crime (C)"]
+  },
+  {
+    "country": "Ecuador",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Kidnapping or Hostage Taking (K)", "Terrorism (T)"]
+  },
+  {
+    "country": "Egypt",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Terrorism (T)", "Other (O)", "Crime (C)", "Health (H)"]
+  },
+  {
+    "country": "El Salvador",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Equatorial Guinea",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Crime (C)", "Health (H)"]
+  },
+  {
+    "country": "Eritrea",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Wrongful Detention (D)", "Other (O)"]
+  },
+  {
+    "country": "Estonia",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Eswatini (Swaziland)",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)", "Crime (C)"]
+  },
+  {
+    "country": "Ethiopia",
+    "level": "Level 3: Reconsider travel",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Kidnapping or Hostage Taking (K)", "Terrorism (T)", "Other (O)"]
+  },
+  {
+    "country": "Falkland Islands",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Terrorism (T)"]
+  },
+  {
+    "country": "Federated States of Micronesia",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Fiji",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Finland",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "France",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)", "Terrorism (T)"]
+  },
+  {
+    "country": "France (includes Monaco)",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)", "Terrorism (T)"]
+  },
+  {
+    "country": "French Guiana",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "French Polynesia",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "French West Indies",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Gabon",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Health (H)"]
+  },
+  {
+    "country": "Gaza",
+    "level": "Level 4: Do not travel",
+    "risk_indicators": ["Terrorism (T)", "Other (O)"]
+  },
+  {
+    "country": "Georgia",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Other (O)"]
+  },
+  {
+    "country": "Germany",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Terrorism (T)"]
+  },
+  {
+    "country": "Ghana",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)", "Crime (C)"]
+  },
+  {
+    "country": "Gibraltar",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Terrorism (T)"]
+  },
+  {
+    "country": "Greece",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Greenland",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Natural Disaster (N)", "Other (O)"]
+  },
+  {
+    "country": "Grenada",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Guadeloupe (French West Indies)",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Guadeloupe, Martinique, Saint Martin, and Saint Barthélemy (French West Indies)",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Guatemala",
+    "level": "Level 3: Reconsider travel",
+    "risk_indicators": ["Crime (C)"]
+  },
+  {
+    "country": "Guinea",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Health (H)"]
+  },
+  {
+    "country": "Guinea-Bissau",
+    "level": "Level 3: Reconsider travel",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Health (H)"]
+  },
+  {
+    "country": "Guyana",
+    "level": "Level 3: Reconsider travel",
+    "risk_indicators": []
+  },
+  {
+    "country": "Haiti",
+    "level": "Level 4: Do not travel",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Health (H)", "Kidnapping or Hostage Taking (K)", "Terrorism (T)"]
+  },
+  {
+    "country": "Honduras",
+    "level": "Level 3: Reconsider travel",
+    "risk_indicators": ["Crime (C)", "Other (O)"]
+  },
+  {
+    "country": "Hong Kong",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Other (O)"]
+  },
+  {
+    "country": "Hungary",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Iceland",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "India",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Terrorism (T)", "Other (O)"]
+  },
+  {
+    "country": "Indonesia",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)", "Natural Disaster (N)", "Terrorism (T)"]
+  },
+  {
+    "country": "Iran",
+    "level": "Level 4: Do not travel",
+    "risk_indicators": ["Unrest (U)", "Kidnapping or Hostage Taking (K)", "Terrorism (T)", "Wrongful Detention (D)", "Other (O)"]
+  },
+  {
+    "country": "Iraq",
+    "level": "Level 4: Do not travel",
+    "risk_indicators": ["Unrest (U)", "Kidnapping or Hostage Taking (K)", "Terrorism (T)", "Other (O)"]
+  },
+  {
+    "country": "Ireland",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Isle of Man",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Terrorism (T)"]
+  },
+  {
+    "country": "Israel",
+    "level": "Level 3: Reconsider travel",
+    "risk_indicators": ["Unrest (U)", "Terrorism (T)"]
+  },
+  {
+    "country": "Israel, The West Bank and Gaza",
+    "level": "Level 3: Reconsider travel",
+    "risk_indicators": ["Unrest (U)", "Terrorism (T)", "Other (O)"]
+  },
+  {
+    "country": "Italy",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Terrorism (T)"]
+  },
+  {
+    "country": "Jamaica",
+    "level": "Level 3: Reconsider travel",
+    "risk_indicators": ["Crime (C)", "Health (H)", "Natural Disaster (N)"]
+  },
+  {
+    "country": "Japan",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Jerusalem",
+    "level": "Level 3: Reconsider travel",
+    "risk_indicators": ["Unrest (U)", "Terrorism (T)", "Other (O)"]
+  },
+  {
+    "country": "Jordan",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Terrorism (T)", "Other (O)"]
+  },
+  {
+    "country": "Kazakhstan",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Kenya",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Health (H)", "Kidnapping or Hostage Taking (K)", "Terrorism (T)"]
+  },
+  {
+    "country": "Kiribati",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Kosovo",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)", "Terrorism (T)"]
+  },
+  {
+    "country": "Kuwait",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": ["Crime (C)", "Other (O)"]
+  },
+  {
+    "country": "Kyrgyzstan",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": ["Other (O)"]
+  },
+  {
+    "country": "Laos",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Other (O)"]
+  },
+  {
+    "country": "Latvia",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Lebanon",
+    "level": "Level 4: Do not travel",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Kidnapping or Hostage Taking (K)", "Terrorism (T)", "Other (O)"]
+  },
+  {
+    "country": "Lesotho",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Terrorism (T)"]
+  },
+  {
+    "country": "Liberia",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)", "Crime (C)"]
+  },
+  {
+    "country": "Libya",
+    "level": "Level 4: Do not travel",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Kidnapping or Hostage Taking (K)", "Terrorism (T)", "Other (O)"]
+  },
+  {
+    "country": "Liechtenstein",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Lithuania",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Luxembourg",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Macau",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Other (O)"]
+  },
+  {
+    "country": "Madagascar",
+    "level": "Level 3: Reconsider travel",
+    "risk_indicators": ["Unrest (U)", "Crime (C)"]
+  },
+  {
+    "country": "Malawi",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)", "Crime (C)"]
+  },
+  {
+    "country": "Malaysia",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": ["Kidnapping or Hostage Taking (K)"]
+  },
+  {
+    "country": "Maldives",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Terrorism (T)"]
+  },
+  {
+    "country": "Mali",
+    "level": "Level 4: Do not travel",
+    "risk_indicators": ["Crime (C)", "Kidnapping or Hostage Taking (K)", "Terrorism (T)", "Unrest (U)", "Health (H)"]
+  },
+  {
+    "country": "Malta",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Marshall Islands",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": ["Health (H)"]
+  },
+  {
+    "country": "Martinique (French West Indies)",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Mauritania",
+    "level": "Level 3: Reconsider travel",
+    "risk_indicators": ["Crime (C)", "Terrorism (T)"]
+  },
+  {
+    "country": "Mauritius",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Mexico",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Crime (C)", "Kidnapping or Hostage Taking (K)", "Terrorism (T)"]
+  },
+  {
+    "country": "Moldova",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)", "Terrorism (T)"]
+  },
+  {
+    "country": "Monaco",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)", "Terrorism (T)"]
+  },
+  {
+    "country": "Mongolia",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Montenegro",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Montserrat",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Morocco",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Terrorism (T)"]
+  },
+  {
+    "country": "Mozambique",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Health (H)", "Terrorism (T)"]
+  },
+  {
+    "country": "Namibia",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Crime (C)", "Health (H)"]
+  },
+  {
+    "country": "Nauru",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": ["Health (H)"]
+  },
+  {
+    "country": "Nepal",
+    "level": "Level 3: Reconsider travel",
+    "risk_indicators": ["Unrest (U)"]
+  },
+  {
+    "country": "Netherlands",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Terrorism (T)"]
+  },
+  {
+    "country": "New Caledonia",
+    "level": "Level 3: Reconsider travel",
+    "risk_indicators": ["Unrest (U)", "Crime (C)"]
+  },
+  {
+    "country": "New Zealand",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Nicaragua",
+    "level": "Level 3: Reconsider travel",
+    "risk_indicators": ["Crime (C)", "Health (H)", "Wrongful Detention (D)", "Other (O)"]
+  },
+  {
+    "country": "Niger",
+    "level": "Level 4: Do not travel",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Health (H)", "Kidnapping or Hostage Taking (K)", "Terrorism (T)"]
+  },
+  {
+    "country": "Nigeria",
+    "level": "Level 3: Reconsider travel",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Kidnapping or Hostage Taking (K)", "Terrorism (T)", "Health (H)"]
+  },
+  {
+    "country": "North Korea (Democratic People's Republic of Korea)",
+    "level": "Level 4: Do not travel",
+    "risk_indicators": ["Wrongful Detention (D)", "Other (O)"]
+  },
+  {
+    "country": "Norway",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Oman",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Terrorism (T)", "Other (O)"]
+  },
+  {
+    "country": "Pakistan",
+    "level": "Level 3: Reconsider travel",
+    "risk_indicators": ["Terrorism (T)", "Other (O)"]
+  },
+  {
+    "country": "Palau",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Panama",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)", "Crime (C)"]
+  },
+  {
+    "country": "Papua New Guinea",
+    "level": "Level 3: Reconsider travel",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Health (H)", "Kidnapping or Hostage Taking (K)", "Natural Disaster (N)", "Other (O)"]
+  },
+  {
+    "country": "Paraguay",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": ["Crime (C)"]
+  },
+  {
+    "country": "Peru",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Kidnapping or Hostage Taking (K)", "Terrorism (T)"]
+  },
+  {
+    "country": "Philippines",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Kidnapping or Hostage Taking (K)", "Terrorism (T)"]
+  },
+  {
+    "country": "Poland",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Portugal",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Qatar",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Republic of North Macedonia",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Republic of the Congo",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Crime (C)"]
+  },
+  {
+    "country": "Romania",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Russia",
+    "level": "Level 4: Do not travel",
+    "risk_indicators": ["Unrest (U)", "Terrorism (T)", "Wrongful Detention (D)", "Other (O)"]
+  },
+  {
+    "country": "Rwanda",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)"]
+  },
+  {
+    "country": "Saba",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Saint Barthélemy (French West Indies)",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Saint Kitts and Nevis",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Saint Lucia",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Saint Martin (French West Indies)",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Saint Vincent and the Grenadines",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Samoa",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "San Marino",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Terrorism (T)"]
+  },
+  {
+    "country": "Sao Tome and Principe",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Health (H)"]
+  },
+  {
+    "country": "Saudi Arabia",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Terrorism (T)", "Other (O)"]
+  },
+  {
+    "country": "Senegal",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": ["Crime (C)", "Other (O)"]
+  },
+  {
+    "country": "Serbia",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Crime (C)"]
+  },
+  {
+    "country": "Seychelles",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Sierra Leone",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Health (H)"]
+  },
+  {
+    "country": "Singapore",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Sint Eustatius",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Sint Maarten",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Slovakia",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Slovenia",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Solomon Islands",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Health (H)", "Other (O)"]
+  },
+  {
+    "country": "Somalia",
+    "level": "Level 4: Do not travel",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Kidnapping or Hostage Taking (K)", "Terrorism (T)", "Other (O)", "Health (H)"]
+  },
+  {
+    "country": "South Africa",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Kidnapping or Hostage Taking (K)", "Terrorism (T)"]
+  },
+  {
+    "country": "South Korea",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "South Sudan",
+    "level": "Level 4: Do not travel",
+    "risk_indicators": ["Crime (C)", "Kidnapping or Hostage Taking (K)", "Other (O)"]
+  },
+  {
+    "country": "Spain",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)", "Terrorism (T)"]
+  },
+  {
+    "country": "Sri Lanka",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)", "Terrorism (T)", "Other (O)"]
+  },
+  {
+    "country": "Sudan",
+    "level": "Level 4: Do not travel",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Kidnapping or Hostage Taking (K)", "Terrorism (T)", "Other (O)", "Health (H)"]
+  },
+  {
+    "country": "Suriname",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Sweden",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Terrorism (T)"]
+  },
+  {
+    "country": "Switzerland",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Syria",
+    "level": "Level 4: Do not travel",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Kidnapping or Hostage Taking (K)", "Terrorism (T)", "Other (O)"]
+  },
+  {
+    "country": "Taiwan",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Tajikistan",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Terrorism (T)", "Other (O)"]
+  },
+  {
+    "country": "Tanzania",
+    "level": "Level 3: Reconsider travel",
+    "risk_indicators": ["Crime (C)", "Terrorism (T)", "Other (O)", "Unrest (U)"]
+  },
+  {
+    "country": "Thailand",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)"]
+  },
+  {
+    "country": "The Bahamas",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Crime (C)"]
+  },
+  {
+    "country": "The Gambia",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Crime (C)", "Health (H)", "Other (O)"]
+  },
+  {
+    "country": "Timor-Leste",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)", "Crime (C)"]
+  },
+  {
+    "country": "Togo",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Kidnapping or Hostage Taking (K)", "Terrorism (T)"]
+  },
+  {
+    "country": "Tonga",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Trinidad and Tobago",
+    "level": "Level 3: Reconsider travel",
+    "risk_indicators": ["Crime (C)", "Kidnapping or Hostage Taking (K)", "Terrorism (T)"]
+  },
+  {
+    "country": "Tunisia",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Terrorism (T)", "Other (O)"]
+  },
+  {
+    "country": "Turkey",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Terrorism (T)", "Other (O)"]
+  },
+  {
+    "country": "Turkmenistan",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Turks and Caicos Islands",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Crime (C)"]
+  },
+  {
+    "country": "Tuvalu",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Uganda",
+    "level": "Level 3: Reconsider travel",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Terrorism (T)"]
+  },
+  {
+    "country": "Ukraine",
+    "level": "Level 4: Do not travel",
+    "risk_indicators": ["Other (O)"]
+  },
+  {
+    "country": "United Arab Emirates",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Terrorism (T)", "Other (O)"]
+  },
+  {
+    "country": "United Kingdom of Great Britain and Northern Ireland",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Terrorism (T)"]
+  },
+  {
+    "country": "Uruguay",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Crime (C)"]
+  },
+  {
+    "country": "Uzbekistan",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Vanuatu",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Vatican City (Holy See)",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Terrorism (T)"]
+  },
+  {
+    "country": "Venezuela",
+    "level": "Level 4: Do not travel",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Health (H)", "Kidnapping or Hostage Taking (K)", "Terrorism (T)", "Wrongful Detention (D)", "Other (O)"]
+  },
+  {
+    "country": "Vietnam",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "West Bank",
+    "level": "Level 3: Reconsider travel",
+    "risk_indicators": ["Terrorism (T)", "Other (O)"]
+  },
+  {
+    "country": "Yemen",
+    "level": "Level 4: Do not travel",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Health (H)", "Kidnapping or Hostage Taking (K)", "Terrorism (T)", "Other (O)"]
+  },
+  {
+    "country": "Zambia",
+    "level": "Level 1: Exercise normal precautions",
+    "risk_indicators": []
+  },
+  {
+    "country": "Zimbabwe",
+    "level": "Level 2: Exercise increased caution",
+    "risk_indicators": ["Unrest (U)", "Crime (C)", "Other (O)"]
+  }
+]

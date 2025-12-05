@@ -1,0 +1,115 @@
+./src/main/java/org/coms4156/tars/TarsApplication.java:10:	UseUtilityClass:	All methods are static. Consider adding a private no-args constructor to prevent instantiation.
+./src/main/java/org/coms4156/tars/controller/RouteController.java:632:	PreserveStackTrace:	Thrown exception does not preserve the stack trace of exception 'e' on all code paths
+./src/main/java/org/coms4156/tars/controller/RouteController.java:635:	UseLocaleWithCaseConversions:	When doing a String.toLowerCase()/toUpperCase() call, use a Locale
+./src/main/java/org/coms4156/tars/controller/RouteController.java:643:	UseLocaleWithCaseConversions:	When doing a String.toLowerCase()/toUpperCase() call, use a Locale
+./src/main/java/org/coms4156/tars/dto/TarsUserDto.java:36:	UncommentedEmptyConstructor:	Document empty constructor
+./src/main/java/org/coms4156/tars/model/CrimeModel.java:102:	PreserveStackTrace:	Thrown exception does not preserve the stack trace of exception 'e' on all code paths
+./src/main/java/org/coms4156/tars/model/CrimeModel.java:111:	UseLocaleWithCaseConversions:	When doing a String.toLowerCase()/toUpperCase() call, use a Locale
+./src/main/java/org/coms4156/tars/model/CrimeModel.java:126:	UseLocaleWithCaseConversions:	When doing a String.toLowerCase()/toUpperCase() call, use a Locale
+./src/main/java/org/coms4156/tars/model/CrimeSummary.java:16:	UncommentedEmptyConstructor:	Document empty constructor
+./src/main/java/org/coms4156/tars/model/TravelAdvisory.java:53:	LooseCoupling:	Avoid using implementation types like 'ArrayList'; use the interface instead
+./src/main/java/org/coms4156/tars/model/TravelAdvisoryModel.java:61:	LooseCoupling:	Avoid using implementation types like 'ArrayList'; use the interface instead
+./src/main/java/org/coms4156/tars/model/WeatherAlert.java:37:	UncommentedEmptyConstructor:	Document empty constructor
+./src/main/java/org/coms4156/tars/model/WeatherAlertModel.java:16:	UseUtilityClass:	All methods are static. Consider adding a private no-args constructor to prevent instantiation.
+./src/main/java/org/coms4156/tars/model/WeatherAlertModel.java:66:	PreserveStackTrace:	Thrown exception does not preserve the stack trace of exception 'e' on all code paths
+./src/main/java/org/coms4156/tars/model/WeatherAlertModel.java:97:	PreserveStackTrace:	Thrown exception does not preserve the stack trace of exception 'e' on all code paths
+./src/main/java/org/coms4156/tars/model/WeatherModel.java:14:	UseUtilityClass:	All methods are static. Consider adding a private no-args constructor to prevent instantiation.
+./src/main/java/org/coms4156/tars/model/WeatherModel.java:87:	LiteralsFirstInComparisons:	Position literals first in String comparisons
+./src/main/java/org/coms4156/tars/model/WeatherModel.java:149:	PreserveStackTrace:	Thrown exception does not preserve the stack trace of exception 'e' on all code paths
+./src/main/java/org/coms4156/tars/model/WeatherModel.java:172:	LiteralsFirstInComparisons:	Position literals first in String comparisons
+./src/main/java/org/coms4156/tars/model/WeatherModel.java:249:	PreserveStackTrace:	Thrown exception does not preserve the stack trace of exception 'e' on all code paths
+./src/main/java/org/coms4156/tars/model/WeatherRecommendation.java:51:	UncommentedEmptyConstructor:	Document empty constructor
+./src/test/java/org/coms4156/tars/LoggingTest.java:7:	UnnecessaryImport:	Unused static import 'org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post'
+./src/test/java/org/coms4156/tars/LoggingTest.java:41:	SingularField:	Perhaps 'logger' could be replaced by a local variable.
+./src/test/java/org/coms4156/tars/RouteControllerExceptionTest.java:119:	UnusedLocalVariable:	Avoid unused local variables such as 'mockModel'.
+./src/test/java/org/coms4156/tars/RouteControllerExceptionTest.java:153:	UnnecessaryFullyQualifiedName:	Unnecessary qualifier 'java.util': 'List' is already in scope because it is imported in this file
+./src/test/java/org/coms4156/tars/RouteControllerExceptionTest.java:153:	UnnecessaryFullyQualifiedName:	Unnecessary qualifier 'java.util': 'List' is already in scope because it is imported in this file
+./src/test/java/org/coms4156/tars/RouteControllerExceptionTest.java:153:	UnnecessaryFullyQualifiedName:	Unnecessary qualifier 'java.util': 'List' is already in scope because it is imported in this file
+./src/test/java/org/coms4156/tars/RouteControllerExceptionTest.java:173:	UnnecessaryFullyQualifiedName:	Unnecessary qualifier 'java.util': 'List' is already in scope because it is imported in this file
+./src/test/java/org/coms4156/tars/RouteControllerExceptionTest.java:173:	UnnecessaryFullyQualifiedName:	Unnecessary qualifier 'java.util': 'List' is already in scope because it is imported in this file
+./src/test/java/org/coms4156/tars/RouteControllerExceptionTest.java:173:	UnnecessaryFullyQualifiedName:	Unnecessary qualifier 'java.util': 'List' is already in scope because it is imported in this file
+./src/test/java/org/coms4156/tars/RouteControllerExceptionTest.java:193:	UnusedLocalVariable:	Avoid unused local variables such as 'mocked'.
+./src/test/java/org/coms4156/tars/RouteControllerExceptionTest.java:213:	UnusedLocalVariable:	Avoid unused local variables such as 'mocked'.
+./src/test/java/org/coms4156/tars/RouteControllerExceptionTest.java:229:	UnusedLocalVariable:	Avoid unused local variables such as 'mocked'.
+./src/test/java/org/coms4156/tars/controller/CrimeEndpointTest.java:3:	UnnecessaryImport:	Unused static import 'org.hamcrest.Matchers.containsString'
+./src/test/java/org/coms4156/tars/controller/CrimeEndpointTest.java:12:	UnnecessaryImport:	Unnecessary import from the current package 'org.coms4156.tars.controller.RouteController'
+./src/test/java/org/coms4156/tars/controller/CrimeEndpointTest.java:14:	UnnecessaryImport:	Unused import 'org.coms4156.tars.model.CrimeSummary'
+./src/test/java/org/coms4156/tars/controller/CrimeEndpointTest.java:142:	UnusedLocalVariable:	Avoid unused local variables such as 'mocked'.
+./src/test/java/org/coms4156/tars/controller/RouteControllerUnitTest.java:3:	UnnecessaryImport:	Unused static import 'org.hamcrest.Matchers.contains'
+./src/test/java/org/coms4156/tars/controller/RouteControllerUnitTest.java:5:	UnnecessaryImport:	Unused static import 'org.hamcrest.Matchers.is'
+./src/test/java/org/coms4156/tars/controller/RouteControllerUnitTest.java:8:	UnnecessaryImport:	Unused static import 'org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put'
+./src/test/java/org/coms4156/tars/controller/RouteControllerUnitTest.java:9:	UnnecessaryImport:	Unused static import 'org.springframework.test.web.servlet.result.MockMvcResultHandlers.print'
+./src/test/java/org/coms4156/tars/controller/RouteControllerUnitTest.java:15:	UnnecessaryImport:	Unused import 'java.util.ArrayList'
+./src/test/java/org/coms4156/tars/controller/RouteControllerUnitTest.java:17:	UnnecessaryImport:	Unused import 'java.util.List'
+./src/test/java/org/coms4156/tars/controller/RouteControllerUnitTest.java:19:	UnnecessaryImport:	Unused import 'org.coms4156.tars.model.TravelAdvisory'
+./src/test/java/org/coms4156/tars/controller/RouteControllerUnitTest.java:20:	UnnecessaryImport:	Unused import 'org.coms4156.tars.model.UserPreference'
+./src/test/java/org/coms4156/tars/controller/WeatherEndpointTest.java:3:	UnnecessaryImport:	Unused static import 'org.hamcrest.Matchers.containsString'
+./src/test/java/org/coms4156/tars/model/ClientModelTest.java:5:	UnnecessaryImport:	Unused static import 'org.junit.jupiter.api.Assertions.assertThrows'
+./src/test/java/org/coms4156/tars/model/ClientModelTest.java:8:	UnnecessaryImport:	Unused import 'java.util.ArrayList'
+./src/test/java/org/coms4156/tars/model/ClientModelTest.java:9:	UnnecessaryImport:	Unused import 'java.util.List'
+./src/test/java/org/coms4156/tars/model/ClientModelTest.java:109:	LiteralsFirstInComparisons:	Position literals first in String comparisons
+./src/test/java/org/coms4156/tars/model/ClientModelTest.java:112:	EqualsNull:	Avoid using equals() to compare against null
+./src/test/java/org/coms4156/tars/model/ClientTest.java:174:	EqualsNull:	Avoid using equals() to compare against null
+./src/test/java/org/coms4156/tars/model/ClientTest.java:179:	LiteralsFirstInComparisons:	Position literals first in String comparisons
+./src/test/java/org/coms4156/tars/model/CountryModelTest.java:9:	UnnecessaryImport:	Unused import 'com.fasterxml.jackson.databind.JsonNode'
+./src/test/java/org/coms4156/tars/model/CountrySummaryTest.java:7:	UnnecessaryImport:	Unnecessary import from the current package 'org.coms4156.tars.model.TravelAdvisory'
+./src/test/java/org/coms4156/tars/model/CountrySummaryTest.java:8:	UnnecessaryImport:	Unnecessary import from the current package 'org.coms4156.tars.model.TravelAdvisoryModel'
+./src/test/java/org/coms4156/tars/model/CrimeModelTest.java:3:	UnnecessaryImport:	Unused static import 'org.junit.jupiter.api.Assertions.assertEquals'
+./src/test/java/org/coms4156/tars/model/CrimeModelTest.java:6:	UnnecessaryImport:	Unused static import 'org.junit.jupiter.api.Assertions.assertThrows'
+./src/test/java/org/coms4156/tars/model/CrimeModelTest.java:40:	UnusedPrivateField:	Avoid unused private fields such as 'crimeModel'.
+./src/test/java/org/coms4156/tars/model/CrimeModelTest.java:51:	MethodNamingConventions:	The JUnit 5 test method name 'testGetCrimeSummary_Success' doesn't match '[a-z][a-zA-Z0-9]*'
+./src/test/java/org/coms4156/tars/model/CrimeModelTest.java:67:	MethodNamingConventions:	The JUnit 5 test method name 'testGetCrimeSummary_Success_2' doesn't match '[a-z][a-zA-Z0-9]*'
+./src/test/java/org/coms4156/tars/model/CrimeModelTest.java:87:	MethodNamingConventions:	The JUnit 5 test method name 'testGetCrimeSummary_InvalidDate' doesn't match '[a-z][a-zA-Z0-9]*'
+./src/test/java/org/coms4156/tars/model/CrimeModelTest.java:104:	MethodNamingConventions:	The JUnit 5 test method name 'testGetCrimeSummary_InvalidState' doesn't match '[a-z][a-zA-Z0-9]*'
+./src/test/java/org/coms4156/tars/model/CrimeModelTest.java:119:	MethodNamingConventions:	The JUnit 5 test method name 'testGetCrimeSummary_InvalidOffense' doesn't match '[a-z][a-zA-Z0-9]*'
+./src/test/java/org/coms4156/tars/model/CrimeModelTest.java:131:	MethodNamingConventions:	The JUnit 5 test method name 'testGetCrimeSummary_FullStateName' doesn't match '[a-z][a-zA-Z0-9]*'
+./src/test/java/org/coms4156/tars/model/CrimeModelTest.java:147:	MethodNamingConventions:	The JUnit 5 test method name 'testGetCrimeSummary_InvalidStateName' doesn't match '[a-z][a-zA-Z0-9]*'
+./src/test/java/org/coms4156/tars/model/ModelIntegrationTest.java:5:	UnnecessaryImport:	Unused static import 'org.junit.jupiter.api.Assertions.assertNull'
+./src/test/java/org/coms4156/tars/model/TravelAdvisoryTest.java:17:	SingularField:	Perhaps 'travelAdvisory' could be replaced by a local variable.
+./src/test/java/org/coms4156/tars/model/TravelAdvisoryTest.java:18:	LooseCoupling:	Avoid using implementation types like 'ArrayList'; use the interface instead
+./src/test/java/org/coms4156/tars/model/TravelAdvisoryTest.java:64:	LooseCoupling:	Avoid using implementation types like 'ArrayList'; use the interface instead
+./src/test/java/org/coms4156/tars/model/TravelAdvisoryTest.java:79:	LooseCoupling:	Avoid using implementation types like 'ArrayList'; use the interface instead
+./src/test/java/org/coms4156/tars/model/TravelAdvisoryTest.java:116:	LooseCoupling:	Avoid using implementation types like 'ArrayList'; use the interface instead
+./src/test/java/org/coms4156/tars/model/UserModelTest.java:97:	EqualsNull:	Avoid using equals() to compare against null
+./src/test/java/org/coms4156/tars/model/UserModelTest.java:107:	LiteralsFirstInComparisons:	Position literals first in String comparisons
+./src/test/java/org/coms4156/tars/model/WeatherAlertModelTest.java:245:	AvoidAccessibilityAlteration:	You should not modify visibility of constructors, methods or fields using setAccessible()
+./src/test/java/org/coms4156/tars/model/WeatherAlertModelTest.java:266:	AvoidAccessibilityAlteration:	You should not modify visibility of constructors, methods or fields using setAccessible()
+./src/test/java/org/coms4156/tars/model/WeatherAlertModelTest.java:280:	AvoidAccessibilityAlteration:	You should not modify visibility of constructors, methods or fields using setAccessible()
+./src/test/java/org/coms4156/tars/model/WeatherAlertModelTest.java:322:	AvoidAccessibilityAlteration:	You should not modify visibility of constructors, methods or fields using setAccessible()
+./src/test/java/org/coms4156/tars/model/WeatherAlertModelTest.java:364:	AvoidAccessibilityAlteration:	You should not modify visibility of constructors, methods or fields using setAccessible()
+./src/test/java/org/coms4156/tars/model/WeatherAlertModelTest.java:406:	AvoidAccessibilityAlteration:	You should not modify visibility of constructors, methods or fields using setAccessible()
+./src/test/java/org/coms4156/tars/model/WeatherAlertModelTest.java:448:	AvoidAccessibilityAlteration:	You should not modify visibility of constructors, methods or fields using setAccessible()
+./src/test/java/org/coms4156/tars/model/WeatherAlertModelTest.java:480:	AvoidAccessibilityAlteration:	You should not modify visibility of constructors, methods or fields using setAccessible()
+./src/test/java/org/coms4156/tars/model/WeatherAlertModelTest.java:498:	AvoidAccessibilityAlteration:	You should not modify visibility of constructors, methods or fields using setAccessible()
+./src/test/java/org/coms4156/tars/model/WeatherAlertModelTest.java:511:	AvoidAccessibilityAlteration:	You should not modify visibility of constructors, methods or fields using setAccessible()
+./src/test/java/org/coms4156/tars/model/WeatherAlertModelTest.java:548:	AvoidAccessibilityAlteration:	You should not modify visibility of constructors, methods or fields using setAccessible()
+./src/test/java/org/coms4156/tars/model/WeatherAlertModelTest.java:584:	AvoidAccessibilityAlteration:	You should not modify visibility of constructors, methods or fields using setAccessible()
+./src/test/java/org/coms4156/tars/model/WeatherModelTest.java:9:	UnnecessaryImport:	Unused import 'java.util.ArrayList'
+./src/test/java/org/coms4156/tars/model/WeatherRecommendationTest.java:17:	MethodNamingConventions:	The JUnit 5 test method name 'constructorTest_basic' doesn't match '[a-z][a-zA-Z0-9]*'
+./src/test/java/org/coms4156/tars/model/WeatherRecommendationTest.java:30:	MethodNamingConventions:	The JUnit 5 test method name 'constructorTest_withTemperatures' doesn't match '[a-z][a-zA-Z0-9]*'
+./src/test/java/org/coms4156/tars/services/ClientServiceTest.java:186:	CloseResource:	Ensure that resources like this InputStream object are closed after use
+./src/test/java/org/coms4156/tars/services/ClientServiceTest.java:238:	CompareObjectsWithEquals:	Use equals() to compare object references.
+./src/test/java/org/coms4156/tars/services/ClientServiceTest.java:251:	AvoidAccessibilityAlteration:	You should not modify visibility of constructors, methods or fields using setAccessible()
+./src/test/java/org/coms4156/tars/services/ClientServiceTest.java:269:	AvoidAccessibilityAlteration:	You should not modify visibility of constructors, methods or fields using setAccessible()
+./src/test/java/org/coms4156/tars/services/ClientServiceTest.java:283:	AvoidAccessibilityAlteration:	You should not modify visibility of constructors, methods or fields using setAccessible()
+./src/test/java/org/coms4156/tars/services/ClientServiceTest.java:1237:	UseLocaleWithCaseConversions:	When doing a String.toLowerCase()/toUpperCase() call, use a Locale
+./src/test/java/org/coms4156/tars/services/ClientServiceTest.java:1245:	UseLocaleWithCaseConversions:	When doing a String.toLowerCase()/toUpperCase() call, use a Locale
+./src/test/java/org/coms4156/tars/services/ClientServiceTest.java:1460:	UnnecessaryFullyQualifiedName:	Unnecessary qualifier 'java.util': 'List' is already in scope because it is imported in this file
+./src/test/java/org/coms4156/tars/services/ClientServiceTest.java:1497:	UnnecessaryFullyQualifiedName:	Unnecessary qualifier 'java.util': 'List' is already in scope because it is imported in this file
+./src/test/java/org/coms4156/tars/services/ClientServiceTest.java:1527:	UnnecessaryFullyQualifiedName:	Unnecessary qualifier 'java.util': 'List' is already in scope because it is imported in this file
+./src/test/java/org/coms4156/tars/services/ClientServiceTest.java:1585:	UnnecessaryFullyQualifiedName:	Unnecessary qualifier 'java.util': 'List' is already in scope because it is imported in this file
+./src/test/java/org/coms4156/tars/services/ClientServiceTest.java:1630:	UnnecessaryFullyQualifiedName:	Unnecessary qualifier 'java.util': 'List' is already in scope because it is imported in this file
+./src/test/java/org/coms4156/tars/services/ClientServiceTest.java:1668:	UnnecessaryFullyQualifiedName:	Unnecessary qualifier 'java.util': 'List' is already in scope because it is imported in this file
+./src/test/java/org/coms4156/tars/services/ClientServiceTest.java:1707:	AvoidAccessibilityAlteration:	You should not modify visibility of constructors, methods or fields using setAccessible()
+./src/test/java/org/coms4156/tars/services/ClientServiceTest.java:1713:	EmptyCatchBlock:	Avoid empty catch blocks
+./src/test/java/org/coms4156/tars/services/ServiceIntegrationTest.java:10:	UnnecessaryImport:	Unused import 'java.io.InputStream'
+./src/test/java/org/coms4156/tars/services/ServiceIntegrationTest.java:13:	UnnecessaryImport:	Unused import 'java.nio.file.StandardCopyOption'
+./src/test/java/org/coms4156/tars/services/ServiceIntegrationTest.java:401:	UnusedLocalVariable:	Avoid unused local variables such as 'user'.
+./src/test/java/org/coms4156/tars/services/TarsServiceTest.java:196:	AvoidAccessibilityAlteration:	You should not modify visibility of constructors, methods or fields using setAccessible()
+./src/test/java/org/coms4156/tars/services/TarsServiceTest.java:211:	AvoidAccessibilityAlteration:	You should not modify visibility of constructors, methods or fields using setAccessible()
+./src/test/java/org/coms4156/tars/services/TarsServiceTest.java:234:	AvoidAccessibilityAlteration:	You should not modify visibility of constructors, methods or fields using setAccessible()
+./src/test/java/org/coms4156/tars/services/TarsServiceTest.java:246:	AvoidAccessibilityAlteration:	You should not modify visibility of constructors, methods or fields using setAccessible()
+./src/test/java/org/coms4156/tars/services/TarsServiceTest.java:267:	AvoidAccessibilityAlteration:	You should not modify visibility of constructors, methods or fields using setAccessible()
+./src/test/java/org/coms4156/tars/services/TarsUserServiceTest.java:859:	UnnecessaryFullyQualifiedName:	Unnecessary qualifier 'java.util': 'List' is already in scope because it is imported in this file
+./src/test/java/org/coms4156/tars/services/TarsUserServiceTest.java:949:	UnnecessaryFullyQualifiedName:	Unnecessary qualifier 'java.util': 'List' is already in scope because it is imported in this file
+./src/test/java/org/coms4156/tars/services/TarsUserServiceTest.java:996:	UnnecessaryFullyQualifiedName:	Unnecessary qualifier 'java.util': 'List' is already in scope because it is imported in this file
