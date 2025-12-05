@@ -1,6 +1,7 @@
 # This workflow to help fulfill the Team projects requirements.
 # Created by: Osarobo Omokaro
 # Date: 10/26/2025
+# Updated: 12/04/2025
 
 name: CI Pipeline
 run-name: CI • ${{ github.ref_name }} • ${{ github.sha }}
@@ -9,6 +10,8 @@ on:
   push:
     branches:
       - '**'
+    tags:
+      - 'v*.*.*'  # semantic version tags trigger release deploy
   pull_request:
     branches:
       - '**'
@@ -19,7 +22,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: read
+  contents: write  # required for creating releases
   id-token: write
 
 jobs:
@@ -128,7 +131,7 @@ jobs:
       - name: Enforce Minimum Branch Coverage
         run: |
           ACT=${{ steps.coverage.outputs.branch_coverage }}
-          MIN=79.00
+          MIN=84.00
           awk -v a="$ACT" -v m="$MIN" 'BEGIN{ if (a+0 < m+0) exit 1 }' \
             || { echo "❌ Branch coverage ${ACT}% < ${MIN}%"; exit 1; }
           echo "✅ Branch coverage OK (${ACT}% ≥ ${MIN}%)"
@@ -166,80 +169,74 @@ jobs:
           path: TeamProject/target/checkstyle-result.xml
           retention-days: 5
 
-      # Optional: upload full target/checkstyle-cachefile if you want caching
-      # - name: Upload Checkstyle Cache
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: checkstyle-cache
-      #     path: TeamProject/target/checkstyle-cachefile
-
   quality-gate:
     runs-on: ubuntu-latest
     needs: [test, checkstyle, pmd-analysis]
     steps:
       - run: echo "Quality checks completed."
 
-  # The build and deploy jobs are currently disabled until deployment details are finalized.
-  # build:
-  #   runs-on: ubuntu-latest
-  #   needs: [pmd-analysis, test, checkstyle]
-  #   steps:
-  #     - uses: actions/checkout@v5
+  build:
+    runs-on: ubuntu-latest
+    needs: [quality-gate]
+    steps:
+      - uses: actions/checkout@v5
 
-  #     - name: Set up JDK 17
-  #       uses: actions/setup-java@v5
-  #       with:
-  #         distribution: temurin
-  #         java-version: 17
-  #         cache: maven
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
 
-  #     - name: Package Application
-  #       working-directory: ./TeamProject
-  #       run: mvn -B -ntp clean package -DskipTests
+      - name: Package Application
+        working-directory: ./TeamProject
+        run: mvn -B -ntp clean package -DskipTests
 
-  #     - name: List target directory
-  #       run: ls -1 TeamProject/target
+      - name: List target directory
+        run: ls -1 TeamProject/target
 
-  #     - name: Archive Production Build
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: production-build
-  #         path: TeamProject/target/*SNAPSHOT.jar
-  #         retention-days: 5
+      - name: Upload Production JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-jar
+          path: TeamProject/target/*SNAPSHOT.jar
+          retention-days: 5
 
-  #     - name: Record SHA256
-  #       run: |
-  #         shasum -a 256 TeamProject/target/*SNAPSHOT.jar > build-sha256.txt
-  #       shell: bash
+      - name: Record SHA256
+        run: shasum -a 256 TeamProject/target/*SNAPSHOT.jar > build-sha256.txt
+        shell: bash
 
-  #     - name: Upload Build Hash
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: build-sha256
-  #         path: build-sha256.txt
-  #         retention-days: 5
+      - name: Upload Build Hash
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-sha256
+          path: build-sha256.txt
+          retention-days: 5
 
-  # deploy:
-  #   runs-on: ubuntu-latest
-  #   needs: build
-  #   steps:
-  #     - uses: actions/checkout@v5
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v5
 
-  #     - name: Download Production Artifact
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: production-build
-  #         path: ./dist
+      - name: Download Production JAR
+        uses: actions/download-artifact@v4
+        with:
+          name: production-jar
+          path: ./dist
 
-  #     - name: Verify Artifact
-  #       run: |
-  #         ls -l dist
-  #         file dist/*SNAPSHOT.jar
+      - name: Verify Artifact
+        run: |
+          ls -l dist
+          file dist/*SNAPSHOT.jar
 
-  #     # Placeholder deploy implementation
-  #     - name: (Placeholder) Deploy / Publish
-  #       run: |
-  #         echo "Deploy step placeholder. Add actual deployment logic here (e.g., scp, docker build & push, gh release)."
-
-  #     - name: Post-Deploy Summary
-  #       run: echo "Deployment simulation completed."
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*SNAPSHOT.jar
+            build-sha256.txt
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

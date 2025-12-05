@@ -87,4 +87,27 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<profiles>
+		<profile>
+			<id>ci</id>
+			<properties>
+				<!-- Ensure tests use CI-specific Spring properties if present -->
+				<spring.config.location>classpath:application-ci.properties,classpath:application.properties</spring.config.location>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<systemPropertyVariables>
+								<spring.config.location>${spring.config.location}</spring.config.location>
+							</systemPropertyVariables>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>
