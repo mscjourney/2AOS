@@ -635,12 +635,6 @@ curl -X POST http://localhost:8080/client/createUser \
   -d '{"clientId":4,"username":"JDOE","email":"anotherjdoe@example.com","role":"USER"}'
 ```
 
-### Legacy User Creation
-```bash
-curl -X PUT http://localhost:8080/user/7/add \
-  -H "Content-Type: application/json" \
-  -d '{"id":7,"weatherPreferences":["Sunny"],"temperaturePreferences":["Warm"],"cityPreferences":["Austin"]}'
-```
 
 ### Weather Recommendation
 ```bash
