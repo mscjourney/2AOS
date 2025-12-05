@@ -48,18 +48,20 @@ Property | Purpose | Default
 -------- | ------- | -------
 `tars.data.path` | Filesystem path for legacy user preferences JSON (`User` objects) | `./data/userPreferences.json`
 `tars.users.path` | Path for multi-tenant `TarsUser` entities | `./data/users.json`
-(Clients are stored via `ClientService` in `./data/clients.json` internally; currently not configurable by property.)
+`tars.client.data.path` | Path for client registry (`ClientService`) | `./data/clients.json`
 
 Override in `src/main/resources/application.properties`:
 ```properties
 tars.data.path=./data/userPreferences.json
 tars.users.path=./data/users.json
+tars.client.data.path=./data/clients.json
 ```
 
 Test isolation:
 ```properties
 # src/test/resources/application.properties
 tars.data.path=target/test-userPreferences.json
+tars.client.data.path=target/test-clients.json
 ```
 
 Directories are created automatically if missing.
@@ -472,6 +474,13 @@ mvn test
 Surefire + Jacoco reports under `TeamProject/target/`.  
 Coverage enforcement configured in GitHub Actions (see CI pipeline).
 
+CI profile (aligns properties for CI runs):
+```bash
+cd TeamProject
+mvn -Pci clean test jacoco:report
+```
+`src/main/resources/application-ci.properties` contains public path alignment and security header configuration for consistent CI behavior.
+
 Equivalence Partitions:
 - Contained in javadocs in Test Files which include Equivalence Partition for entrypoints and class methods.
 - Equivalence Partitions for different entrypoints/methods are generally formatted as such:
@@ -528,6 +537,14 @@ See `LICENSE` file in repository.
 
 - [JIRA Board](https://2aos.atlassian.net/jira/software/projects/SCRUM/boards/1)
 - [PMD output result](TeamProject/pmd.txt)
+
+### CI & Releases
+- GitHub Actions runs lint, tests, and builds artifacts.
+- Pushing a tag matching `v*.*.*` creates a GitHub Release attaching the built JAR and checksum.
+  ```bash
+  git tag v1.0.0
+  git push origin v1.0.0
+  ```
 
 Run PMD manually (from `TeamProject`):
 ```bash
