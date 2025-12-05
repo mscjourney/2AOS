@@ -1,6 +1,7 @@
 # This workflow to help fulfill the Team projects requirements.
 # Created by: Osarobo Omokaro
 # Date: 10/26/2025
+# Updated: 12/04/2025
 
 name: CI Pipeline
 run-name: CI • ${{ github.ref_name }} • ${{ github.sha }}
