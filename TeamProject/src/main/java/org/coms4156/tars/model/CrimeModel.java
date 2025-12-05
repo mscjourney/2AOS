@@ -87,7 +87,7 @@ public class CrimeModel {
 
       JsonNode root = objectMapper.readTree(response.body());
       String fullStateName = getStateName(state);
-      JsonNode offenses = root.path("offenses").path("rates").path(fullStateName);
+      JsonNode offenses = root.path("offenses").path("rates").path(fullStateName + " Offenses");
 
       if (offenses.has(formattedDate)) {
         double rate = offenses.get(formattedDate).asDouble();
