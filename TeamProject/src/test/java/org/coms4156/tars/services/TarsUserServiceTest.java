@@ -41,9 +41,9 @@ import org.slf4j.LoggerFactory;
  * 
  * <p>=========== {@code List<TarsUser> listUsersByClientId(Long clientId)} ============
  * Equivalence Partition 1: clientId is not null.
- *    - Test Cases: #TODO
+ *    - Test Cases: listUsersByClientIdValidTest
  * Equivalence Partition 2: clientId is null.
- *    - Test Cases: #TODO
+ *    - Test Cases: listUsersByClientIdNullTest
  * 
  * <p>=========== {@code TarsUser findById(Long userId)} ============
  * Equivalence Partiton 1: userId is not null. TarsUser associated with userId exists.
@@ -52,15 +52,9 @@ import org.slf4j.LoggerFactory;
  *    - Test Cases: getUserByIdTest (tests all partitions)
  * 
  * <p>== {@code TarsUser createUser(Long clientId, String username, String email, String role)} ===
- * Equivalence Partition 1: All params are valid. Client associated with clientId exists.
- *    username and email must maintain uniqueness per client. (case-insensitive)
+ * Equivalence Partition 1: All params are valid.
  *    - Test Cases: createValidUserTest, createUserWithWhitespaceTrimmingTest
- * Equivalence Partition 2: All params are valid. Client associated with clientId exists.
- *    username and/or email do not maintain uniqueness under the specified client.
- *    - Test Cases: #TODO
- * Equivalence Partition 3: All params are valid. Client associated with clientId does NOT exist.
- *    - Test Cases: #TODO
- * Equivalence Partition 4: Any of the params passed is invalid. An invalid param is null,
+ * Equivalence Partition 2: Any of the params passed is invalid. An invalid param is null,
  *    or just whitespace.
  *    - Test Cases: createNullUserTest, createUserWithLimitedDataTest, 
  *        createUserWithBlankUsernameTest, createUserWithBlankEmailTest, 
@@ -633,6 +627,36 @@ public class TarsUserServiceTest {
         user.getLastLogin(),
         "Last login should be empty string initially"
     );
+  }
+
+  /**
+   * {@code listUsersByClientIdValidTest} Lists the users under the specified client.
+   */
+  @Test
+  public void listUsersByClientIdValidTest() {
+    // Users under an existing client
+    List<TarsUser> userList = userService.listUsersByClientId(1L);
+    assertNotNull(userList);
+    assertEquals(userList.size(), 1);
+    assertEquals(userList.get(0).getUsername(), "test_alice");
+
+    userList = userService.listUsersByClientId(930L);
+    assertNotNull(userList);
+    assertTrue(userList.isEmpty());
+    
+    userList = userService.listUsersByClientId(0L);
+    assertNotNull(userList);
+    assertTrue(userList.isEmpty());
+  }
+
+  /**
+   * {@code listUsersByClientIdValidTest} null userId returns an empty ArrayList.
+   */
+  @Test
+  public void listUsersByClientIdNullTest() {
+    List<TarsUser> userList = userService.listUsersByClientId(null);
+    assertNotNull(userList);
+    assertTrue(userList.isEmpty());
   }
 
   /**

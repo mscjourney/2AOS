@@ -379,12 +379,11 @@ public class TarsUserService {
       Long existingClientId = existingUser.getClientId();
       String existingUsername = existingUser.getUsername();
       
-      if (existingClientId != null && existingUsername != null) {
-        if (existingClientId.equals(clientId)) {
-          String existingUsernameLowerCase = existingUsername.trim().toLowerCase(Locale.ROOT);
-          if (existingUsernameLowerCase.equals(normalizedUsernameLowerCase)) {
-            return true;
-          }
+      if (existingClientId != null && existingUsername != null
+          && existingClientId.equals(clientId)) {
+        String existingUsernameLowerCase = existingUsername.trim().toLowerCase(Locale.ROOT);
+        if (existingUsernameLowerCase.equals(normalizedUsernameLowerCase)) {
+          return true;
         }
       }
     }
@@ -408,12 +407,11 @@ public class TarsUserService {
       Long existingClientId = existingUser.getClientId();
       String existingEmail = existingUser.getEmail();
       
-      if (existingClientId != null && existingEmail != null) {
-        if (existingClientId.equals(clientId)) {
-          String existingEmailLowerCase = existingEmail.trim().toLowerCase(Locale.ROOT);
-          if (existingEmailLowerCase.equals(normalizedEmailLowerCase)) {
-            return true;
-          }
+      if (existingClientId != null && existingEmail != null
+          && existingClientId.equals(clientId)) {
+        String existingEmailLowerCase = existingEmail.trim().toLowerCase(Locale.ROOT);
+        if (existingEmailLowerCase.equals(normalizedEmailLowerCase)) {
+          return true;
         }
       }
     }

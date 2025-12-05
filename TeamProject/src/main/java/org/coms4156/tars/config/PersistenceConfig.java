@@ -1,8 +1,6 @@
 package org.coms4156.tars.config;
 
-import java.nio.file.CopyOption;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import org.coms4156.tars.service.ClientService;
 import org.coms4156.tars.service.TarsUserService;
 import org.springframework.context.annotation.Bean;

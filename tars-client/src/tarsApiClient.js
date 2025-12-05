@@ -238,6 +238,21 @@ class TarsApiClient {
   }
 
   /**
+   * Get weather recommendation for a user based on their preferences (getUserRec)
+   * userId is now a path variable for consistency
+   */
+  async getUserWeatherRecommendation(city, userId, days) {
+    try {
+      const response = await axios.get(`${this.baseUrl}/recommendation/weather/user/${userId}`, {
+        params: { city, days }
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to get user weather recommendation: ${error.response?.data || error.message}`);
+    }
+  }
+
+  /**
    * Get weather alerts by city
    */
   async getWeatherAlertsByCity(city) {
@@ -306,31 +321,6 @@ class TarsApiClient {
       return response.data;
     } catch (error) {
       throw new Error(`Failed to get country advisory: ${error.response?.data || error.message}`);
-    }
-  }
-
-  /**
-   * Get city summary
-   */
-  async getCitySummary(city, startDate = null, endDate = null, state = null) {
-    try {
-      const params = {};
-      if (startDate) params.startDate = startDate;
-      if (endDate) params.endDate = endDate;
-      if (state) params.state = state;
-
-      const response = await axios.get(
-        `${this.baseUrl}/summary/${encodeURIComponent(city)}`,
-        { params }
-      );
-      return response.data;
-    } catch (error) {
-      const errorMsg = error.response?.data 
-        ? (typeof error.response.data === 'object' 
-            ? JSON.stringify(error.response.data) 
-            : error.response.data)
-        : error.message;
-      throw new Error(`Failed to get city summary: ${errorMsg}`);
     }
   }
 

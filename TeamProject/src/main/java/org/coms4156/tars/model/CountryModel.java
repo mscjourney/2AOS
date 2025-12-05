@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.nio.file.Files;
-import java.util.ArrayList;
 
 /**
  * Model that handles the logic that countryInfo.json

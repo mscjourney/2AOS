@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import ch.qos.logback.classic.Level;
 import org.coms4156.tars.controller.RouteController;
 import org.coms4156.tars.model.CrimeModel;
+import org.coms4156.tars.model.CrimeSummary;
 import org.coms4156.tars.util.LoggerTestUtil;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
@@ -50,21 +51,21 @@ public class CrimeEndpointTest {
     mockMvc.perform(get("/crime/summary")
                 .param("state", "NC")
                 .param("offense", "V")
-                .param("month", "12")
+                .param("month", "11")
                 .param("year", "2025"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.state").value("NC"))
-        .andExpect(jsonPath("$.month").value("12"))
+        .andExpect(jsonPath("$.month").value("11"))
         .andExpect(jsonPath("$.year").value("2025"));
       
     mockMvc.perform(get("/crime/summary")
                   .param("state", "ny")// works with lowercase
                   .param("offense", "V")
-                  .param("month", "12")
+                  .param("month", "11")
                   .param("year", "2025"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.state").value("ny"))
-        .andExpect(jsonPath("$.month").value("12"))
+        .andExpect(jsonPath("$.month").value("11"))
         .andExpect(jsonPath("$.year").value("2025"));
   }
 
@@ -166,7 +167,7 @@ public class CrimeEndpointTest {
       mockMvc.perform(get("/crime/summary")
                   .param("state", "NC")
                   .param("offense", "V")
-                  .param("month", "12")
+                  .param("month", "11")
                   .param("year", "2025"))
             .andExpect(status().isOk());
 

@@ -1,5 +1,6 @@
 package org.coms4156.tars;
 
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -86,11 +87,30 @@ public class RouteControllerExceptionTest {
       mockedModel.when(() -> WeatherModel.getRecommendedDays("InvalidCity", 7))
           .thenThrow(new RuntimeException("API error"));
 
-      mockMvc.perform(get("/recommendation/weather/")
+      mockMvc.perform(get("/recommendation/weather")
           .param("city", "InvalidCity")
           .param("days", "7")
           .contentType(MediaType.APPLICATION_JSON))
-          .andExpect(status().isInternalServerError());
+          .andExpect(status().isInternalServerError())
+          .andExpect(content().string("API Failure."));
+    }
+  }
+
+  @Test
+  public void testGetUserWeatherRecommendationExceptionHandling() throws Exception {
+    try (MockedStatic<WeatherModel> mockedModel = Mockito.mockStatic(WeatherModel.class)) {
+      mockedModel.when(() -> WeatherModel.getUserRecDays("InvalidCity", 7, new UserPreference()))
+          .thenThrow(new RuntimeException("API error"));
+
+      when(tarsUserService.findById(2L)).thenReturn(new TarsUser());
+      when(tarsService.getUserPreference(2L)).thenReturn(new UserPreference());
+      
+      mockMvc.perform(get("/recommendation/weather/user/2")
+          .param("city", "InvalidCity")
+          .param("days", "7")
+          .contentType(MediaType.APPLICATION_JSON))
+          .andExpect(status().isInternalServerError())
+          .andExpect(content().string("API Failure."));
     }
   }
 

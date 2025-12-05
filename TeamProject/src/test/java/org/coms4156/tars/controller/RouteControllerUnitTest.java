@@ -38,13 +38,11 @@ public class RouteControllerUnitTest {
   @Autowired
   private ObjectMapper objectMapper;
 
-  /* ======== GET / or GET /index Equivalence Partition ========= */
+  /* ======== GET / or GET /index Equivalence Partitions ========= */
 
   /**
    * {@code indexTest} Tests the index endpoint returns the welcome message.
    * Equivalence Partition 1: No input. Both / and /index always result in OK.
-   *
-   * @throws Exception if the request fails
    */
   @Test
   public void indexTest() throws Exception {
@@ -62,33 +60,15 @@ public class RouteControllerUnitTest {
         .andExpect(content().string(containsString("Welcome to the TARS Home Page!")));
   }
   
-  /* Other Tests */
-
-  @Test
-  public void testGetCountryAdvisory() throws Exception {
-    TravelAdvisory mockCanadaAdvisory = 
-          new TravelAdvisory("Canada", "Level 1: Exercise normal precautions", new ArrayList<>());
-
-    mockMvc.perform(get("/country/Canada"))
-      .andExpect(status().isOk())
-        .andExpect(content().string(mockCanadaAdvisory.toString()));
-
-    List<String> mockRisks = new ArrayList<>();
-    mockRisks.add("Unrest (U)");
-    mockRisks.add("Natural Disaster (N)");
-    mockRisks.add("Terrorism (T)");
-
-    TravelAdvisory mockIndonesiaAdvisory =
-          new TravelAdvisory("Indonesia", "Level 2: Exercise increased caution", mockRisks);
-    
-    mockMvc.perform(get("/country/Indonesia"))
-      .andExpect(status().isOk())
-        .andExpect(content().string(mockIndonesiaAdvisory.toString()));
-
-    mockMvc.perform(get("/country/Earth"))
-        .andExpect(status().isNotFound());
-  }
-
+  /* ======== /login Equivalence Partitions ========== */
+  
+  /**
+   * {@code testLoginWithUsernameIntegration}
+   * Equivalence Partition 1: RequestBody contains the username associated with an existing
+   *      active TarsUser
+   *    Returns the TarsUser and preference information. Preference information do not have to 
+   *    already exists. Populates the ResponseEntity with Empty Preferences if not found.
+   */
   @Test
   public void testLoginWithUsernameIntegration() throws Exception {
     Map<String, String> loginBody = new HashMap<>();
@@ -103,6 +83,13 @@ public class RouteControllerUnitTest {
         .andExpect(jsonPath("$.preferences").exists());
   }
 
+  /**
+   * {@code testLoginWithEmailIntegration}
+   * Equivalence Partition 2: RequestBody contains the email associated with an existing
+   *      active TarsUser
+   *    Returns the TarsUser and preference information. Preference information do not have to 
+   *    already exists. Populates the ResponseEntity with Empty Preferences if not found.
+   */
   @Test
   public void testLoginWithEmailIntegration() throws Exception {
     Map<String, String> loginBody = new HashMap<>();
@@ -115,6 +102,13 @@ public class RouteControllerUnitTest {
         .andExpect(jsonPath("$.userId").exists());
   }
 
+  /**
+   * {@code testLoginWithUserIdIntegration}
+   * Equivalence Partition 3: RequestBody contains the userId associated with an existing
+   *      active TarsUser
+   *    Returns the TarsUser and preference information. Preference information do not have to 
+   *    already exists. Populates the ResponseEntity with Empty Preferences if not found.
+   */
   @Test
   public void testLoginWithUserIdIntegration() throws Exception {
     Map<String, String> loginBody = new HashMap<>();
@@ -127,6 +121,10 @@ public class RouteControllerUnitTest {
         .andExpect(jsonPath("$.userId").value(1));
   }
 
+  /**
+   * {@code testLoginWithInactiveUserIntegration}
+   * Equivalence Partition 4: RequestBody has expected fields but an inactive TarsUser found.
+   */
   @Test
   public void testLoginWithInactiveUserIntegration() throws Exception {
     Map<String, String> loginBody = new HashMap<>();
@@ -137,4 +135,34 @@ public class RouteControllerUnitTest {
             .content(objectMapper.writeValueAsString(loginBody)))
         .andExpect(status().isForbidden());
   }
+  
+  /**
+   * {@code testLoginNoUserFound}
+   * Equivalence Partition 5: RequestBody has expected fields but no TarsUser found.
+   */
+  @Test
+  public void testLoginNoUserFound() throws Exception {
+    Map<String, String> loginBody = new HashMap<>();
+    loginBody.put("username", "Miranda");
+
+    mockMvc.perform(post("/login")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(loginBody)))
+        .andExpect(status().isNotFound());
+  }
+
+  /**
+   * {@code testLoginEmptyRequestBody}
+   * Equivalence Partition 6: RequestBody is empty or populated with irrelevant fields.
+   */
+  @Test
+  public void testLoginEmptyRequestBody() throws Exception {
+    Map<String, String> loginBody = new HashMap<>();
+
+    mockMvc.perform(post("/login")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(loginBody)))
+        .andExpect(status().isBadRequest());
+  }
+
 }

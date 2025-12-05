@@ -373,12 +373,16 @@ Error Type | Cause | HTTP Code
 Duplicate client name | Existing case-insensitive match | 409
 Duplicate username (client scope) | Existing username under same clientId | 409
 Client not found | Invalid clientId | 404
-User not found (legacy) | Missing `id` | 404
+TarsUser not found | Invalid userId | 404
+User Preference not found | Invalid userId | 404
 Invalid clientId | Null or negative | 400
 Blank name / username / role | Empty trimmed string | 400
 Invalid days | `days <= 0 || days > 14` | 400
+Invalid city | API returns empty body | 404
+Invalid country | Not found in json | 404
 Missing alert params | Neither city nor lat/lon provided | 400
-Negative legacy user ID | `< 0` | 400
+Missing crime params | Any of state, offense, month, year is missing | 400
+Negative id | `< 0` | 400
 Unexpected exception | Uncaught runtime errors | 500
 
 ---
@@ -470,26 +474,28 @@ Coverage enforcement configured in GitHub Actions (see CI pipeline).
 
 Equivalence Partitions:
 - Contained in javadocs in Test Files which include Equivalence Partition for entrypoints and class methods.
-- Equivalence Partitions for different entrypoints/methods are formatted as such:
+- Equivalence Partitions for different entrypoints/methods are generally formatted as such:
     ```
     =========  <EntryPoint/Methods> ===========
-    Equivalence Partition 1: <>
-    Equivalence Partition 2: <>
+    Equivalence Partition 1: <description>
+        Test Cases: <testName>
+    Equivalence Partition 2: <description>
+        Test Cases: <testName>
     ...
     ```
 - The individual partitions may be grouped together in the javadoc located at the beginning of the file 
 or listed above specific test cases that test the equivalence partitions.
 - Test Files that contain Equivalence Partition Listing
-    - Entry Points
+    - Controller (Entry Points)
         - `ClientEndpointsGetUnitTest.java`
         - `ClientEdnpointUnitTest.java`
         - `CountryEndpointTest.java`
         - `CrimeEndpointTest.java`
         - `RouteControllerUnitTest.java`
         - `TarsUserEndpointUnitTest.java`
+        - `UserPreferenceEndpointTest.java`
         - `WeatherEndpointTest.java`
     - Models
-        - `CitySummaryTest.java` - TO BE DELETED
         - `ClientTest.java`
         - `CountryModelTest.java` 
         - `CrimeModelTest.java` 
