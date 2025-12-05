@@ -363,7 +363,6 @@ Responses:
 - `400 BAD REQUEST` - illegal argument (null / empty/whitespace string)
 - `404 NOT FOUND` - no such country
 - `500 INTERNAL SERVER ERROR` - failure
-
 ---
 
 ## Error Handling Summary
@@ -533,5 +532,6 @@ Run PMD manually (from `TeamProject`):
 ```bash
 pmd check -d './' -R rulesets/java/quickstart.xml -r pmd.txt
 ```
+
 
 ---
