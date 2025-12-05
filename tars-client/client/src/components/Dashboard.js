@@ -114,8 +114,8 @@ function Dashboard() {
         setError('Month must be a number between 1 and 12');
         return;
       }
-      if (isNaN(yearNum) || yearNum < 2000 || yearNum > 2024) {
-        setError('Year must be a number between 2000 and 2024');
+      if (isNaN(yearNum) || yearNum < 2000 || yearNum > 2025) {
+        setError('Year must be a number between 2000 and 2025');
         return;
       }
       
