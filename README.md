@@ -183,25 +183,62 @@ Response: `"Welcome to the TARS Home Page!"`
 
 ### Client Management
 
+#### Get All Clients
+GET `/clients`
+
+Description: Retrieves a list of all registered clients.
+
+Response (200):
+```json
+[
+  {
+    "clientId": 1,
+    "name": "AcmeCorp",
+    "email": "contact@acme.com",
+    "rateLimitPerMinute": 60,
+    "maxConcurrentRequests": 5
+  }
+]
+```
+
+Errors:
+- 500: Internal failure
+
+#### Get Client by ID
+GET `/clients/{clientId}`
+
+Path Variable: `clientId` (long): ID of the client to retrieve.
+
+Response (200): `Client` JSON object.
+
+Errors:
+- 400: Negative clientId
+- 404: Client not found
+- 500: Internal failure
+
 #### Create Client
 POST `/client/create`
 
 Request:
 ```json
-{ "name": "AcmeCorp" }
+{ 
+  "name": "AcmeCorp",
+  "email": "contact@acme.com"
+}
 ```
 Response (201):
 ```json
 {
   "clientId": 4,
   "name": "AcmeCorp",
-  "message": "Client created successfully. Log in to the admin portal to retrieve your API key.",
-  "portalUrl": "https://admin.tars.example.com/clients/4/credentials"
+  "email": "contact@acme.com",
+  "rateLimitPerMinute": 60,
+  "maxConcurrentRequests": 5
 }
 ```
 Errors:
-- 400: Missing or blank `name`
-- 409: Duplicate client name
+- 400: Missing or blank `name` or `email`, or invalid email format
+- 409: Duplicate client name or email
 - 500: Internal failure (service returned null)
 
 #### Create Client User
@@ -212,6 +249,7 @@ Request:
 {
   "clientId": 4,
   "username": "jdoe",
+  "email": "jdoe@example.com",
   "role": "ADMIN"
 }
 ```
@@ -219,10 +257,93 @@ Request:
 Response (201): `TarsUser` JSON object (see model above).
 
 Errors:
-- 400: Null body, invalid clientId, blank username or role
+- 400: Null body, invalid clientId, blank username/email/role, or invalid email format
 - 404: Client not found
-- 409: Username already exists (case-insensitive match within same client)
+- 409: Username or email already exists for this client (case-insensitive)
 - 500: Internal failure creating user
+
+### TarsUser Management
+
+#### Get All TarsUsers
+GET `/tarsUsers`
+
+Description: Retrieves a list of all TarsUsers across all clients.
+
+Response (200): Array of `TarsUser` JSON objects.
+
+Errors:
+- 500: Internal failure
+
+#### Get TarsUser by ID
+GET `/tarsUsers/{userId}`
+
+Path Variable: `userId` (long): ID of the user to retrieve.
+
+Response (200): `TarsUser` JSON object.
+
+Errors:
+- 400: Negative userId
+- 404: TarsUser not found
+- 500: Internal failure
+
+#### Delete TarsUser
+DELETE `/tarsUsers/{userId}`
+
+Path Variable: `userId` (long): ID of the user to delete.
+
+Description: Deletes a TarsUser and their associated preferences.
+
+Response (200): Deleted `TarsUser` JSON object.
+
+Errors:
+- 404: TarsUser not found
+- 500: Internal failure
+
+#### User Login
+POST `/login`
+
+Description: Authenticates a user by username, email, or userId and returns their data with preferences.
+
+Request (one of the following):
+```json
+{ "username": "jdoe" }
+```
+or
+```json
+{ "email": "jdoe@example.com" }
+```
+or
+```json
+{ "userId": "12" }
+```
+
+Response (200):
+```json
+{
+  "user": {
+    "userId": 12,
+    "clientId": 4,
+    "username": "jdoe",
+    "email": "jdoe@example.com",
+    "role": "ADMIN",
+    "active": true,
+    "signUpDate": "2025-11-02T14:21:11Z",
+    "lastLogin": "2025-12-04T10:30:00Z"
+  },
+  "preferences": {
+    "id": 12,
+    "weatherPreferences": ["Sunny"],
+    "temperaturePreferences": ["Warm"],
+    "cityPreferences": ["Austin"]
+  }
+}
+```
+
+Errors:
+- 400: Missing username/email/userId, or invalid format
+- 403: User account is inactive
+- 404: User not found
+- 500: Internal failure
 
 ### User Preferences
 
@@ -246,9 +367,9 @@ Response:
 - `400 Bad Request`: Error message if `id` was negative or `@PathVariable id` does not match JSON `id`.
 - `404 Not Found`: TarsUser with the specified Id does not exist.
 
-GET `/clearPreference/{id}`
+PUT `/clearPreference/{id}`
 
-Description: Removes the preferences of the TarUser by id.
+Description: Removes the preferences of the TarsUser by id.
 
 Path Variable: `id` (long): id of the TarUser to remove preferences for.
 
@@ -282,6 +403,19 @@ Request: None
 
 Response:
 - `200 OK`: Returns a list of `UserPreference` objects.
+
+#### Get User Preferences by Client
+GET `/userPreferenceList/client/{clientId}`
+
+Path Variable: `clientId` (long): ID of the client whose users' preferences to retrieve.
+
+Description: Retrieves preferences for all users belonging to a specific client.
+
+Response (200): Array of `UserPreference` JSON objects (includes users without preferences as empty preference objects).
+
+Errors:
+- 400: Negative or null clientId
+- 500: Internal failure
 
 ### Weather Recommendation
 
@@ -394,17 +528,22 @@ Responses:
 Error Type | Cause | HTTP Code
 ---------- | ----- | ---------
 Duplicate client name | Existing case-insensitive match | 409
+Duplicate client email | Existing email match | 409
 Duplicate username (client scope) | Existing username under same clientId | 409
+Duplicate email (client scope) | Existing email under same clientId | 409
 Client not found | Invalid clientId | 404
 TarsUser not found | Invalid userId | 404
 User Preference not found | Invalid userId | 404
+User inactive | User account is inactive | 403
 Invalid clientId | Null or negative | 400
-Blank name / username / role | Empty trimmed string | 400
+Invalid email format | Email doesn't match regex pattern | 400
+Blank name / username / email / role | Empty trimmed string | 400
 Invalid days | `days <= 0 || days > 14` | 400
 Invalid city | API returns empty body | 404
 Invalid country | Not found in json | 404
 Missing alert params | Neither city nor lat/lon provided | 400
 Missing crime params | Any of state, offense, month, year is missing | 400
+Missing login params | No username, email, or userId provided | 400
 Negative id | `< 0` | 400
 Unexpected exception | Uncaught runtime errors | 500
 
@@ -416,28 +555,67 @@ Unexpected exception | Uncaught runtime errors | 500
 ```bash
 curl -X POST http://localhost:8080/client/create \
   -H "Content-Type: application/json" \
-  -d '{"name":"OrbitAnalytics"}'
+  -d '{"name":"OrbitAnalytics","email":"contact@orbit.com"}'
 ```
 
 ### Create Client User
 ```bash
 curl -X POST http://localhost:8080/client/createUser \
   -H "Content-Type: application/json" \
-  -d '{"clientId":4,"username":"jdoe","role":"ADMIN"}'
+  -d '{"clientId":4,"username":"jdoe","email":"jdoe@example.com","role":"ADMIN"}'
+```
+
+### Get All Clients
+```bash
+curl http://localhost:8080/clients
+```
+
+### Get Client by ID
+```bash
+curl http://localhost:8080/clients/4
+```
+
+### Get All TarsUsers
+```bash
+curl http://localhost:8080/tarsUsers
+```
+
+### Get TarsUser by ID
+```bash
+curl http://localhost:8080/tarsUsers/12
+```
+
+### Delete TarsUser
+```bash
+curl -X DELETE http://localhost:8080/tarsUsers/12
+```
+
+### User Login (by username)
+```bash
+curl -X POST http://localhost:8080/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"jdoe"}'
+```
+
+### User Login (by email)
+```bash
+curl -X POST http://localhost:8080/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"jdoe@example.com"}'
 ```
 
 ### Duplicate Client Name (Expect 409)
 ```bash
 curl -X POST http://localhost:8080/client/create \
   -H "Content-Type: application/json" \
-  -d '{"name":"OrbitAnalytics"}'
+  -d '{"name":"OrbitAnalytics","email":"another@orbit.com"}'
 ```
 
-### Duplicate Username (Case-insensitive)
+### Duplicate Username (Case-insensitive, Expect 409)
 ```bash
 curl -X POST http://localhost:8080/client/createUser \
   -H "Content-Type: application/json" \
-  -d '{"clientId":4,"username":"JDOE","role":"USER"}'
+  -d '{"clientId":4,"username":"JDOE","email":"anotherjdoe@example.com","role":"USER"}'
 ```
 
 ### Legacy User Creation
