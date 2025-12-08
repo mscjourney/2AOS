@@ -228,7 +228,7 @@ class TarsApiClient {
    */
   async getWeatherRecommendation(city, days) {
     try {
-      const response = await axios.get(`${this.baseUrl}/recommendation/weather/`, {
+      const response = await axios.get(`${this.baseUrl}/recommendation/weather`, {
         params: { city, days }
       });
       return response.data;
